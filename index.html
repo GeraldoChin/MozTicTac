@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MozTicTac – Marketplace Moçambicano</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        // Exact palette from document
+        cream:   '#fafaf7',
+        primary: '#1db954',   // green – main buttons & highlights
+        secondary:'#2563eb',  // blue – navigation & secondary elements
+        accent:  '#f97316',   // orange – special CTAs & atacado
+        danger:  '#dc2626',   // red – errors & critical alerts
+        // UI extras
+        surface: '#ffffff',
+        border:  '#e8e8e2',
+        muted:   '#6b7280',
+        dark:    '#111827',
+        card:    '#f4f4f0',
+      },
+      fontFamily: {
+        manrope: ['Manrope','sans-serif'],
+        dm:      ['DM Sans','sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Base */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #fafaf7;
+  color: #111827;
+  scroll-behavior: smooth;
+  font-size: 15px;
+}
+h1,h2,h3,h4,h5 { font-family: 'Manrope', sans-serif; }
+
+/* Material icons */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
+  vertical-align: middle;
+  line-height: 1;
+}
+.icon-fill { font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+.icon-sm  { font-size: 18px; }
+.icon-xs  { font-size: 15px; }
+.icon-lg  { font-size: 28px; }
+
+/* Nav */
+.nav-sticky {
+  position: sticky; top:0; z-index:60;
+  background: rgba(250,250,247,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid #e8e8e2;
+}
+
+/* Cards */
+.card {
+  background:#fff;
+  border:1px solid #e8e8e2;
+  border-radius:16px;
+}
+.card-hover { transition: transform .22s ease, box-shadow .22s ease; cursor:pointer; }
+.card-hover:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,0,0,.09); }
+
+/* Buttons */
+.btn-primary {
+  background:#1db954; color:#fff; font-family:'Manrope',sans-serif;
+  font-weight:700; border-radius:12px; padding:10px 20px; font-size:14px;
+  transition:background .18s, transform .12s;
+  border:none; cursor:pointer;
+}
+.btn-primary:hover { background:#18a34a; transform:translateY(-1px); }
+.btn-secondary {
+  background:#2563eb; color:#fff; font-family:'Manrope',sans-serif;
+  font-weight:700; border-radius:12px; padding:10px 20px; font-size:14px;
+  transition:background .18s; border:none; cursor:pointer;
+}
+.btn-secondary:hover { background:#1d4ed8; }
+.btn-accent {
+  background:#f97316; color:#fff; font-family:'Manrope',sans-serif;
+  font-weight:700; border-radius:12px; padding:10px 20px; font-size:14px;
+  transition:background .18s; border:none; cursor:pointer;
+}
+.btn-accent:hover { background:#ea6c10; }
+.btn-outline {
+  background:transparent; color:#111827; font-family:'Manrope',sans-serif;
+  font-weight:600; border-radius:12px; padding:9px 20px; font-size:14px;
+  border:1.5px solid #e8e8e2; cursor:pointer; transition:border-color .18s, background .18s;
+}
+.btn-outline:hover { border-color:#1db954; background:#f0fdf4; }
+.btn-danger { background:#dc2626; color:#fff; font-family:'Manrope',sans-serif; font-weight:700; border-radius:12px; padding:10px 20px; font-size:14px; border:none; cursor:pointer; transition:background .18s; }
+.btn-danger:hover { background:#b91c1c; }
+.btn-ghost { background:transparent; border:none; cursor:pointer; color:#6b7280; transition:color .18s; }
+.btn-ghost:hover { color:#111827; }
+
+/* Badges */
+.badge { display:inline-flex; align-items:center; gap:4px; border-radius:999px; font-size:11px; font-family:'Manrope',sans-serif; font-weight:700; padding:3px 10px; }
+.badge-green  { background:#dcfce7; color:#166534; }
+.badge-blue   { background:#dbeafe; color:#1e40af; }
+.badge-orange { background:#ffedd5; color:#c2410c; }
+.badge-red    { background:#fee2e2; color:#991b1b; }
+.badge-gray   { background:#f3f4f6; color:#374151; }
+.badge-yellow { background:#fef9c3; color:#854d0e; }
+.badge-purple { background:#f3e8ff; color:#6b21a8; }
+
+/* M-Pesa=green, E-Mola=red, mKesh=orange, Visa=blue */
+.pay-mpesa  { background:#dcfce7; color:#166534; }
+.pay-emola  { background:#fee2e2; color:#991b1b; }
+.pay-mkesh  { background:#ffedd5; color:#c2410c; }
+.pay-visa   { background:#dbeafe; color:#1e40af; }
+
+/* Input */
+.input {
+  width:100%; border:1.5px solid #e8e8e2; border-radius:12px; padding:11px 14px;
+  font-family:'DM Sans',sans-serif; font-size:14px; background:#fff; color:#111827;
+  transition:border-color .18s, box-shadow .18s; outline:none;
+}
+.input:focus { border-color:#1db954; box-shadow:0 0 0 3px rgba(29,185,84,.12); }
+.input::placeholder { color:#9ca3af; }
+.select {
+  width:100%; border:1.5px solid #e8e8e2; border-radius:12px; padding:11px 14px;
+  font-family:'DM Sans',sans-serif; font-size:14px; background:#fff; color:#111827;
+  outline:none; cursor:pointer; transition:border-color .18s;
+  appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z' fill='%236b7280'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center;
+}
+.select:focus { border-color:#1db954; }
+label.lbl { font-family:'Manrope',sans-serif; font-weight:600; font-size:12px; color:#374151; display:block; margin-bottom:5px; }
+textarea.input { resize:none; }
+
+/* Toggle switch */
+.toggle { position:relative; display:inline-block; width:40px; height:22px; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute; inset:0; border-radius:22px; background:#e8e8e2; cursor:pointer; transition:.2s;
+}
+.toggle-slider::before {
+  content:''; position:absolute; width:16px; height:16px; left:3px; top:3px;
+  background:#fff; border-radius:50%; transition:.2s;
+}
+.toggle input:checked + .toggle-slider { background:#1db954; }
+.toggle input:checked + .toggle-slider::before { transform:translateX(18px); }
+
+/* Product grid – responsive 2/3/4/5 cols as per doc */
+.product-grid {
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:14px;
+}
+@media(min-width:640px)  { .product-grid { grid-template-columns:repeat(3,1fr); } }
+@media(min-width:1024px) { .product-grid { grid-template-columns:repeat(4,1fr); } }
+@media(min-width:1280px) { .product-grid { grid-template-columns:repeat(5,1fr); } }
+
+/* Stars */
+.star-fill  { color:#f59e0b; font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; font-size:14px; }
+.star-half  { color:#f59e0b; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20; font-size:14px; }
+.star-empty { color:#d1d5db; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20; font-size:14px; }
+
+/* Category chips */
+.chip {
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  padding:7px 14px; border-radius:999px; font-family:'Manrope',sans-serif;
+  font-weight:600; font-size:13px; cursor:pointer; border:1.5px solid #e8e8e2;
+  background:#fff; color:#6b7280; transition:all .18s;
+}
+.chip.active, .chip:hover { background:#1db954; color:#fff; border-color:#1db954; }
+
+/* Sidebar filter */
+.filter-panel {
+  background:#fff; border:1px solid #e8e8e2; border-radius:16px; padding:20px;
+  position:sticky; top:80px;
+}
+
+/* State badge colors */
+.state-pending    { background:#fef9c3; color:#854d0e; }
+.state-paid       { background:#dbeafe; color:#1e40af; }
+.state-processing { background:#f3e8ff; color:#6b21a8; }
+.state-shipped    { background:#ffedd5; color:#c2410c; }
+.state-delivered  { background:#dcfce7; color:#166534; }
+.state-cancelled  { background:#fee2e2; color:#991b1b; }
+
+/* Admin header */
+.admin-header { background:#111827; color:#fff; }
+
+/* Accordion */
+details summary { list-style:none; cursor:pointer; }
+details summary::-webkit-details-marker { display:none; }
+
+/* Notification dot */
+.notif-dot { width:9px; height:9px; background:#dc2626; border-radius:50%; position:absolute; top:0; right:0; border:2px solid #fafaf7; }
+
+/* Pulse */
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.5} }
+.pulse { animation:pulse 2s infinite; }
+
+/* Marquee */
+@keyframes marquee { from{transform:translateX(0)}to{transform:translateX(-50%)} }
+.marquee-track { display:flex; width:max-content; animation:marquee 30s linear infinite; }
+.marquee-track:hover { animation-play-state:paused; }
+
+/* Fade-up on scroll */
+.fade-up { opacity:0; transform:translateY(24px); transition:opacity .5s ease,transform .5s ease; }
+.fade-up.vis { opacity:1; transform:none; }
+
+/* Chat bubble */
+.msg-out { background:linear-gradient(135deg,#1db954,#2563eb); color:#fff; border-radius:18px 18px 4px 18px; }
+.msg-in  { background:#f3f4f6; color:#111827; border-radius:18px 18px 18px 4px; }
+
+/* Chat fab */
+.chat-fab {
+  position:fixed; bottom:24px; right:24px; z-index:90;
+  width:54px; height:54px; border-radius:50%;
+  background:linear-gradient(135deg,#1db954,#2563eb);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 24px rgba(29,185,84,.35);
+  cursor:pointer; border:none; transition:transform .2s;
+}
+.chat-fab:hover { transform:scale(1.08); }
+
+/* Green accent bar at top */
+.accent-bar { height:3px; background:linear-gradient(90deg,#1db954 0%,#2563eb 50%,#f97316 100%); }
+
+/* Section title */
+.section-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:22px; color:#111827; }
+.section-subtitle { font-size:14px; color:#6b7280; margin-top:2px; }
+
+/* Avatar initials */
+.avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; }
+
+/* Progress bar */
+.progress-bar { height:6px; border-radius:999px; background:#e8e8e2; overflow:hidden; }
+.progress-fill { height:100%; border-radius:999px; background:#1db954; }
+
+/* OTP input */
+.otp-box {
+  width:44px; height:52px; border:1.5px solid #e8e8e2; border-radius:12px;
+  text-align:center; font-size:20px; font-family:'Manrope',sans-serif; font-weight:700;
+  color:#111827; outline:none; transition:border-color .18s, box-shadow .18s;
+}
+.otp-box:focus { border-color:#1db954; box-shadow:0 0 0 3px rgba(29,185,84,.12); }
+
+/* Escrow timeline */
+.etl-item { display:flex; gap:14px; padding-bottom:18px; position:relative; }
+.etl-item::before { content:''; position:absolute; left:14px; top:32px; bottom:0; width:2px; background:#e8e8e2; }
+.etl-item:last-child::before { display:none; }
+.etl-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-family:'Manrope',sans-serif; font-weight:800; }
+
+/* Modal overlay */
+.modal-ov { display:none; position:fixed; inset:0; background:rgba(17,24,39,.5); z-index:200; align-items:center; justify-content:center; padding:16px; }
+.modal-ov.open { display:flex; }
+.modal-box { background:#fff; border-radius:20px; padding:28px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
+
+/* Page hidden */
+.page { display:none; }
+.page.active { display:block; }
+
+/* Admin sidebar */
+.admin-side { width:220px; flex-shrink:0; background:#1e293b; min-height:100vh; }
+.admin-nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:10px; cursor:pointer; color:#94a3b8; font-size:14px; font-family:'Manrope',sans-serif; font-weight:600; transition:all .18s; }
+.admin-nav-item:hover, .admin-nav-item.active { background:#334155; color:#fff; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-thumb { background:#1db954; border-radius:4px; }
+
+/* Hero gradient */
+.hero-bg {
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 0%, rgba(29,185,84,.1) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgba(37,99,235,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(249,115,22,.07) 0%, transparent 55%),
+    #fafaf7;
+}
+
+/* Typing indicator */
+@keyframes blink { 0%,100%{opacity:.2}50%{opacity:1} }
+.typing span { display:inline-block; width:6px; height:6px; background:#6b7280; border-radius:50%; margin:0 2px; animation:blink 1.2s infinite; }
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+</style>
+</head>
+<body>
+
+<!-- GREEN-BLUE-ORANGE accent bar (flag-inspired) -->
+<div class="accent-bar"></div>
+
+<!-- ===================== NAVBAR ===================== -->
+<nav class="nav-sticky">
+  <div class="max-w-screen-xl mx-auto px-4 flex items-center gap-3 h-[62px]">
+
+    <!-- Logo -->
+    <a href="#" onclick="showPage('home')" class="flex items-center gap-2 shrink-0 mr-2">
+      <div style="background:linear-gradient(135deg,#1db954,#2563eb)" class="w-9 h-9 rounded-xl flex items-center justify-center shadow">
+        <span class="material-symbols-outlined text-white icon-sm icon-fill">shopping_bag</span>
+      </div>
+      <span style="font-family:'Manrope',sans-serif;font-weight:900;font-size:19px;color:#111827;letter-spacing:-.5px">
+        Moz<span style="color:#1db954">Tic</span><span style="color:#2563eb">Tac</span>
+      </span>
+    </a>
+
+    <!-- Search bar -->
+    <div class="flex-1 relative max-w-lg hidden sm:block">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 icon-sm">search</span>
+      <input type="text" id="searchInput" placeholder="Pesquisar produtos, categorias, cidades…"
+        class="input pl-10 pr-20 py-[9px] text-[14px]" oninput="liveSearch(this.value)">
+      <button class="btn-primary absolute right-2 top-1/2 -translate-y-1/2 text-xs px-3 py-1.5">Buscar</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2 ml-auto">
+      <!-- Wallet -->
+      <button onclick="showPage('wallet')" class="hidden md:flex items-center gap-1.5 border border-[#e8e8e2] bg-white rounded-xl px-3 py-2 text-sm hover:border-primary transition">
+        <span class="material-symbols-outlined icon-fill text-accent icon-sm">account_balance_wallet</span>
+        <span class="font-manrope font-700 text-dark text-sm" style="font-family:'Manrope',sans-serif;font-weight:700">2.450 MZN</span>
+      </button>
+      <!-- Cart with badge -->
+      <button onclick="showPage('cart')" class="relative w-10 h-10 border border-[#e8e8e2] bg-white rounded-xl flex items-center justify-center hover:border-primary transition">
+        <span class="material-symbols-outlined text-gray-600 icon-sm">shopping_cart</span>
+        <span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-danger text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+      </button>
+      <!-- Notifications -->
+      <div class="relative">
+        <button id="notifBtn" onclick="toggleNotif()" class="relative w-10 h-10 border border-[#e8e8e2] bg-white rounded-xl flex items-center justify-center hover:border-primary transition">
+          <span class="material-symbols-outlined text-gray-600 icon-sm">notifications</span>
+          <div class="notif-dot"></div>
+        </button>
+        <!-- Notif panel -->
+        <div id="notifPanel" class="hidden absolute right-0 top-12 w-80 bg-white border border-[#e8e8e2] rounded-2xl shadow-xl z-50 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-[#e8e8e2]">
+            <span class="font-manrope font-800 text-sm text-dark" style="font-family:'Manrope',sans-serif;font-weight:800">Notificações</span>
+            <button class="text-xs text-primary font-semibold" onclick="document.getElementById('notifPanel').classList.add('hidden')">Marcar tudo lido</button>
+          </div>
+          <div id="notifList" class="divide-y divide-[#f3f4f6] max-h-72 overflow-y-auto"></div>
+        </div>
+      </div>
+      <!-- Chat -->
+      <button onclick="showPage('messages')" class="relative w-10 h-10 border border-[#e8e8e2] bg-white rounded-xl flex items-center justify-center hover:border-secondary transition">
+        <span class="material-symbols-outlined text-gray-600 icon-sm">chat</span>
+        <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-secondary text-white text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
+      </button>
+      <!-- Profile -->
+      <button onclick="showPage('profile')" class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style="background:linear-gradient(135deg,#1db954,#2563eb);font-family:'Manrope',sans-serif">AM</button>
+      <!-- Login -->
+      <button onclick="showPage('login')" class="btn-primary text-sm px-4 py-2">Entrar</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== CATEGORY CHIPS ===================== -->
+<div class="bg-white border-b border-[#e8e8e2] overflow-x-auto">
+  <div class="max-w-screen-xl mx-auto px-4 flex gap-2 py-2.5" id="catRow"></div>
+</div>
+
+<!-- ===================== PAGES ===================== -->
+<main>
+
+<!-- =========================================================
+     HOME PAGE
+     ========================================================= -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero-bg px-4 py-12">
+    <div class="max-w-screen-xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+      <div class="fade-up">
+        <div class="inline-flex items-center gap-2 bg-white border border-[#e8e8e2] rounded-full px-3 py-1.5 text-xs mb-5" style="font-family:'Manrope',sans-serif;font-weight:700;color:#374151">
+          <span class="w-2 h-2 rounded-full bg-primary pulse"></span>
+          Marketplace 100% Moçambicano · Beira, Moçambique
+        </div>
+        <h1 style="font-family:'Manrope',sans-serif;font-weight:900;font-size:clamp(28px,5vw,48px);line-height:1.15;color:#111827" class="mb-4">
+          Compra, Vende<br>e <span style="color:#1db954">Ganha Comissões</span><br>numa só conta.
+        </h1>
+        <p class="text-gray-500 text-base mb-7 max-w-md leading-relaxed">
+          Um único perfil. Três papéis. Comprador, Vendedor e Afiliado — sem criar contas separadas. Pagamentos via M-Pesa, E-Mola e mKesh. Preços em <strong style="color:#111827">Meticais (MZN)</strong>.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="showPage('register')" class="btn-primary text-[15px] px-6 py-3">Criar Conta Grátis</button>
+          <button onclick="showPage('home'); document.getElementById('howSection').scrollIntoView({behavior:'smooth'})" class="btn-outline text-[15px] px-6 py-3">Como Funciona</button>
+          <button onclick="showPage('home')" class="btn-ghost text-[14px] underline">Entrar como Visitante</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex gap-6 mt-8 flex-wrap">
+          <div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#111827">12K+</div><div class="text-xs text-gray-500">Utilizadores</div></div>
+          <div class="w-px bg-[#e8e8e2]"></div>
+          <div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#111827">3.8K</div><div class="text-xs text-gray-500">Produtos</div></div>
+          <div class="w-px bg-[#e8e8e2]"></div>
+          <div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#111827">10</div><div class="text-xs text-gray-500">Províncias</div></div>
+          <div class="w-px bg-[#e8e8e2]"></div>
+          <div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#111827">98%</div><div class="text-xs text-gray-500">Satisfação</div></div>
+        </div>
+      </div>
+
+      <!-- Hero visual — product cards floating -->
+      <div class="hidden md:flex flex-col gap-3 relative">
+        <div class="card p-3 rotate-1 shadow-lg w-56">
+          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=240&q=80" class="w-full h-28 object-cover rounded-xl mb-2">
+          <div class="text-xs text-gray-500">Relógio Premium</div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;color:#111827">4.200 MZN</div>
+          <div class="flex gap-1 mt-1"><span class="badge badge-green">Novo</span><span class="badge badge-blue">Destaque</span></div>
+        </div>
+        <div class="card p-3 -rotate-1 shadow-lg w-56 ml-auto">
+          <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=240&q=80" class="w-full h-28 object-cover rounded-xl mb-2">
+          <div class="text-xs text-gray-500">Perfume Importado</div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;color:#111827">1.850 MZN</div>
+          <div class="flex gap-1 mt-1"><span class="badge pay-emola">E-Mola</span><span class="badge pay-mpesa">M-Pesa</span></div>
+        </div>
+        <!-- Wallet card -->
+        <div class="card p-4 shadow-xl border-primary" style="border-color:#1db954">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-semibold text-gray-500">Carteira Digital</span>
+            <span class="material-symbols-outlined icon-fill text-accent">account_balance_wallet</span>
+          </div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#111827">12.450 <span style="font-size:13px;color:#6b7280;font-weight:400">MZN</span></div>
+          <div class="text-xs text-gray-400 mt-0.5">+ 2.340 MZN saldo pendente</div>
+          <div class="flex gap-1.5 mt-3">
+            <span class="badge pay-mpesa">M-Pesa</span>
+            <span class="badge pay-emola">E-Mola</span>
+            <span class="badge pay-mkesh">mKesh</span>
+            <span class="badge pay-visa">Visa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THREE ROLES BANNER -->
+  <section class="px-4 py-8 bg-white border-y border-[#e8e8e2]">
+    <div class="max-w-screen-xl mx-auto grid md:grid-cols-3 gap-4">
+      <div class="card p-5 card-hover border-l-4" style="border-left-color:#1db954" onclick="showPage('buyer')">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#dcfce7">
+            <span class="material-symbols-outlined icon-fill" style="color:#1db954">shopping_bag</span>
+          </div>
+          <span class="badge badge-green">Sempre Activo</span>
+        </div>
+        <h3 class="section-title text-base mb-1">Comprador</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Navega e compra com Venda Segura. Pagamento retido em escrow até confirmares a recepção do produto.</p>
+        <div class="flex items-center gap-1 mt-3 text-primary text-sm font-semibold" style="font-family:'Manrope',sans-serif;color:#1db954">Ver área <span class="material-symbols-outlined icon-xs">chevron_right</span></div>
+      </div>
+      <div class="card p-5 card-hover border-l-4" style="border-left-color:#2563eb" onclick="showPage('seller')">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#dbeafe">
+            <span class="material-symbols-outlined icon-fill" style="color:#2563eb">storefront</span>
+          </div>
+          <span class="badge badge-blue">Activação Rápida</span>
+        </div>
+        <h3 class="section-title text-base mb-1">Vendedor</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Publica produtos físicos ou serviços. Define preço, sugestão de IA, aceita afiliados e destaque pago.</p>
+        <div class="flex items-center gap-1 mt-3 text-sm font-semibold" style="font-family:'Manrope',sans-serif;color:#2563eb">Ver painel <span class="material-symbols-outlined icon-xs">chevron_right</span></div>
+      </div>
+      <div class="card p-5 card-hover border-l-4" style="border-left-color:#f97316" onclick="showPage('affiliate')">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#ffedd5">
+            <span class="material-symbols-outlined icon-fill" style="color:#f97316">share</span>
+          </div>
+          <span class="badge badge-orange">5%–20% comissão</span>
+        </div>
+        <h3 class="section-title text-base mb-1">Afiliado</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Gera links únicos de 12 caracteres, partilha no WhatsApp e redes sociais e recebe comissão por cada venda.</p>
+        <div class="flex items-center gap-1 mt-3 text-sm font-semibold" style="font-family:'Manrope',sans-serif;color:#f97316">Ver programa <span class="material-symbols-outlined icon-xs">chevron_right</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="px-4 py-10">
+    <div class="max-w-screen-xl mx-auto">
+      <!-- Destaque header -->
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <div class="section-title">Produtos em Destaque</div>
+          <div class="section-subtitle">Anúncios pagos pelos vendedores · aparecem acima dos resultados orgânicos</div>
+        </div>
+        <button class="btn-outline text-xs px-3 py-2">Ver todos</button>
+      </div>
+      <!-- Destaque strip -->
+      <div class="flex gap-3 overflow-x-auto pb-2 mb-8" id="featuredStrip"></div>
+
+      <!-- SEARCH+FILTER row -->
+      <div class="flex flex-col md:flex-row gap-8">
+        <!-- Filter sidebar -->
+        <aside class="md:w-56 shrink-0">
+          <div class="filter-panel">
+            <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#111827" class="mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined icon-sm" style="color:#1db954">tune</span> Filtros
+            </div>
+            <!-- Província -->
+            <div class="mb-4">
+              <label class="lbl">Província</label>
+              <select class="select text-sm" id="filterProv" onchange="filterProducts()">
+                <option value="">Todas</option>
+                <option>Maputo</option><option>Gaza</option><option>Inhambane</option>
+                <option>Sofala</option><option>Manica</option><option>Tete</option>
+                <option>Zambézia</option><option>Nampula</option><option>Niassa</option><option>Cabo Delgado</option>
+              </select>
+            </div>
+            <!-- Preço -->
+            <div class="mb-4">
+              <label class="lbl">Intervalo de Preço (MZN)</label>
+              <div class="flex gap-2">
+                <input type="number" placeholder="Mín" class="input text-sm py-2" id="fMin" oninput="filterProducts()">
+                <input type="number" placeholder="Máx" class="input text-sm py-2" id="fMax" oninput="filterProducts()">
+              </div>
+            </div>
+            <!-- Estado -->
+            <div class="mb-4">
+              <label class="lbl">Estado</label>
+              <div class="flex gap-2">
+                <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="fstate" value="" onchange="filterProducts()" checked> Todos</label>
+                <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="fstate" value="Novo" onchange="filterProducts()"> Novo</label>
+                <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="fstate" value="Usado" onchange="filterProducts()"> Usado</label>
+              </div>
+            </div>
+            <!-- Tipo -->
+            <div class="mb-4">
+              <label class="lbl">Tipo</label>
+              <div class="flex flex-col gap-1">
+                <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ftype" value="" onchange="filterProducts()" checked> Todos</label>
+                <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ftype" value="Produto" onchange="filterProducts()"> Produto físico</label>
+                <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="radio" name="ftype" value="Serviço" onchange="filterProducts()"> Serviço</label>
+              </div>
+            </div>
+            <!-- Entrega -->
+            <label class="flex items-center gap-2 cursor-pointer">
+              <label class="toggle"><input type="checkbox" id="fDelivery" onchange="filterProducts()"><span class="toggle-slider"></span></label>
+              <span class="text-sm text-gray-600">Com entrega</span>
+            </label>
+            <!-- Afiliados -->
+            <label class="flex items-center gap-2 cursor-pointer mt-3">
+              <label class="toggle"><input type="checkbox" id="fAffiliate" onchange="filterProducts()"><span class="toggle-slider"></span></label>
+              <span class="text-sm text-gray-600">Aceita afiliados</span>
+            </label>
+            <button onclick="resetFilters()" class="btn-outline w-full mt-4 text-xs py-2">Limpar filtros</button>
+          </div>
+        </aside>
+
+        <!-- Product grid (2/3/4/5 cols) -->
+        <div class="flex-1">
+          <div class="section-title text-base mb-4" id="gridTitle">Todos os Produtos</div>
+          <div class="product-grid" id="productGrid"></div>
+          <div id="emptyState" class="hidden text-center py-16 text-gray-400">
+            <span class="material-symbols-outlined text-5xl mb-3 block" style="color:#e8e8e2">search_off</span>
+            Nenhum produto encontrado com esses filtros.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAYMENT MARQUEE -->
+  <div class="overflow-hidden border-y border-[#e8e8e2] bg-white py-4">
+    <div class="marquee-track gap-8 items-center" style="opacity:.45">
+      <script>
+        ['M-Pesa','E-Mola','mKesh','Visa','Maputo','Gaza','Inhambane','Sofala','Manica','Tete','Zambézia','Nampula','Niassa','Cabo Delgado','M-Pesa','E-Mola','mKesh','Visa','Maputo','Gaza','Inhambane','Sofala','Manica','Tete','Zambézia','Nampula','Niassa','Cabo Delgado'].forEach(t=>{
+          document.write(`<span style="white-space:nowrap;font-family:'Manrope',sans-serif;font-weight:800;font-size:12px;color:#111827;text-transform:uppercase;letter-spacing:.1em">${t}</span><span style="color:#1db954;font-size:20px;font-weight:900;line-height:1"> · </span>`);
+        });
+      </script>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="howSection" class="px-4 py-16 bg-white">
+    <div class="max-w-screen-xl mx-auto">
+      <div class="text-center mb-12">
+        <div class="text-xs font-bold text-primary uppercase tracking-widest mb-2" style="font-family:'Manrope',sans-serif;color:#1db954">Como Funciona</div>
+        <div class="section-title text-2xl">Simples como 1-2-3</div>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+        <div class="text-center fade-up">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow" style="background:linear-gradient(135deg,#1db954,#18a34a)">
+            <span class="material-symbols-outlined text-white icon-lg icon-fill">personn_add</span>
+          </div>
+          <div class="section-title text-base mb-2">1. Regista-te</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Nome, celular, email, senha e província. Verificação OTP de 6 dígitos no email — válido 10 minutos.</p>
+        </div>
+        <div class="text-center fade-up">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)">
+            <span class="material-symbols-outlined text-white icon-lg icon-fill">toggle_on</span>
+          </div>
+          <div class="section-title text-base mb-2">2. Activa os teus papéis</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Em "Meus Papéis" activa Vendedor e/ou Afiliado com um clique — sem burocracia, efeito imediato.</p>
+        </div>
+        <div class="text-center fade-up">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow" style="background:linear-gradient(135deg,#f97316,#ea6c10)">
+            <span class="material-symbols-outlined text-white icon-lg icon-fill">payments</span>
+          </div>
+          <div class="section-title text-base mb-2">3. Compra e ganha</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Paga com M-Pesa, E-Mola, mKesh ou Visa. Levanta os ganhos para a tua carteira quando quiseres.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ESCROW SECTION -->
+  <section class="px-4 py-16" style="background:#f0fdf4">
+    <div class="max-w-screen-xl mx-auto grid md:grid-cols-2 gap-12 items-start">
+      <div class="fade-up">
+        <div class="text-xs font-bold uppercase tracking-widest mb-2" style="font-family:'Manrope',sans-serif;color:#1db954">Venda Segura · Escrow</div>
+        <div class="section-title text-2xl mb-4">O teu dinheiro protegido.<br>Sempre.</div>
+        <p class="text-gray-500 text-sm mb-8 leading-relaxed">Pagamento retido na plataforma — o vendedor só recebe depois de tu confirmares a entrega. Em caso de disputa, o administrador intervém e força a libertação.</p>
+        <!-- Escrow timeline -->
+        <div>
+          <div class="etl-item">
+            <div class="etl-dot" style="background:#dcfce7;color:#166534">1</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#111827">Comprador efectua pagamento</div><div class="text-xs text-gray-500 mt-0.5">M-Pesa, E-Mola ou mKesh → retido em escrow</div></div>
+          </div>
+          <div class="etl-item">
+            <div class="etl-dot" style="background:#ffedd5;color:#c2410c">2</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#111827">Vendedor recebe notificação e envia</div><div class="text-xs text-gray-500 mt-0.5">Pedido passa para estado "Enviado"</div></div>
+          </div>
+          <div class="etl-item">
+            <div class="etl-dot" style="background:#dbeafe;color:#1e40af">3</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#111827">Comprador confirma a recepção</div><div class="text-xs text-gray-500 mt-0.5">Pagamento libertado → carteira do vendedor</div></div>
+          </div>
+          <div class="etl-item">
+            <div class="etl-dot" style="background:#f3e8ff;color:#6b21a8">4</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#111827">Vendedor levanta para M-Pesa / conta</div><div class="text-xs text-gray-500 mt-0.5">Processado em até 24h pela equipa MozTicTac</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Escrow card demo -->
+      <div class="card p-6 shadow-lg" style="border-color:#1db954">
+        <div class="flex items-center justify-between mb-4">
+          <span style="font-family:'Manrope',sans-serif;font-weight:800;font-size:14px;color:#111827">Pedido #MOZ-2847</span>
+          <span class="badge badge-yellow">Em Escrow</span>
+        </div>
+        <div class="flex items-center gap-3 mb-4">
+          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&q=80" class="w-14 h-14 rounded-xl object-cover shrink-0">
+          <div class="flex-1">
+            <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;color:#111827">Relógio Premium Swiss Made</div>
+            <div class="text-xs text-gray-500">Vendedor: João M. · Maputo</div>
+          </div>
+        </div>
+        <div class="bg-[#f9fafb] rounded-xl p-3 text-sm mb-4">
+          <div class="flex justify-between text-gray-500 mb-1"><span>Pago pelo comprador</span><span class="font-semibold text-dark">4.200 MZN</span></div>
+          <div class="flex justify-between text-gray-500 mb-1"><span>Taxa plataforma (5%)</span><span class="text-danger font-semibold">-210 MZN</span></div>
+          <div class="border-t border-[#e8e8e2] pt-2 flex justify-between"><span class="text-gray-500">Vendedor recebe</span><span style="font-family:'Manrope',sans-serif;font-weight:800;color:#1db954">3.990 MZN</span></div>
+        </div>
+        <!-- Progress states -->
+        <div class="flex items-center gap-2 mb-4">
+          <div class="flex-1 text-center"><div class="w-7 h-7 rounded-full mx-auto flex items-center justify-center text-white text-xs" style="background:#1db954;font-family:'Manrope',sans-serif;font-weight:800">1</div><div class="text-[10px] text-gray-500 mt-1">Pago</div></div>
+          <div class="flex-1 h-px bg-primary"></div>
+          <div class="flex-1 text-center"><div class="w-7 h-7 rounded-full mx-auto flex items-center justify-center text-white text-xs" style="background:#f97316;font-family:'Manrope',sans-serif;font-weight:800">2</div><div class="text-[10px] text-gray-500 mt-1">Enviado</div></div>
+          <div class="flex-1 h-px bg-[#e8e8e2]"></div>
+          <div class="flex-1 text-center"><div class="w-7 h-7 rounded-full mx-auto flex items-center justify-center bg-[#e8e8e2] text-gray-400 text-xs" style="font-family:'Manrope',sans-serif;font-weight:800">3</div><div class="text-[10px] text-gray-500 mt-1">Entregue</div></div>
+        </div>
+        <button class="btn-primary w-full">Confirmar Recepção</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AFFILIATE SECTION -->
+  <section class="px-4 py-16 bg-white">
+    <div class="max-w-screen-xl mx-auto">
+      <div class="text-center mb-10">
+        <div class="text-xs font-bold uppercase tracking-widest mb-2" style="font-family:'Manrope',sans-serif;color:#f97316">Programa de Afiliados</div>
+        <div class="section-title text-2xl">Ganha sem vender nada.</div>
+        <p class="text-sm text-gray-500 mt-2">Gera um link único de 12 caracteres · Partilha no WhatsApp · Recebe 5%–20% por cada venda</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-5">
+        <!-- Link card -->
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#ffedd5"><span class="material-symbols-outlined icon-fill" style="color:#f97316">link</span></div>
+            <span style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;color:#111827">Link gerado</span>
+          </div>
+          <div class="bg-[#f9fafb] rounded-xl p-3 text-xs text-gray-500 font-mono break-all mb-3">
+            moztictac.mz/p/rel-premium?ref=<span style="color:#f97316;font-weight:700">ANA82KP9XBTU</span>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn-outline flex-1 text-xs py-1.5">Copiar link</button>
+            <button class="btn-accent flex-1 text-xs py-1.5">WhatsApp</button>
+          </div>
+        </div>
+        <!-- Stats card -->
+        <div class="card p-5">
+          <div class="text-xs text-gray-500 mb-3" style="font-family:'Manrope',sans-serif;font-weight:700">Estatísticas do link</div>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-gray-500">Cliques</span><span style="font-family:'Manrope',sans-serif;font-weight:800;color:#111827">248</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Vendas geradas</span><span style="font-family:'Manrope',sans-serif;font-weight:800;color:#111827">17</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Taxa de conversão</span><span style="font-family:'Manrope',sans-serif;font-weight:800;color:#1db954">6.8%</span></div>
+            <div class="border-t border-[#e8e8e2] pt-2 flex justify-between"><span class="text-gray-500">Comissão total</span><span style="font-family:'Manrope',sans-serif;font-weight:900;font-size:16px;color:#f97316">1.260 MZN</span></div>
+          </div>
+        </div>
+        <!-- Earnings card -->
+        <div class="card p-5" style="border-color:#f97316">
+          <div class="text-xs text-gray-500 mb-1">Ganhos disponíveis</div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:28px;color:#f97316">4.520 <span style="font-size:14px;color:#6b7280;font-weight:400">MZN</span></div>
+          <div class="space-y-2 mt-4">
+            <div class="flex items-center gap-2 text-xs text-gray-500"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">check_circle</span> Comissão de 5% a 20% do valor líquido</div>
+            <div class="flex items-center gap-2 text-xs text-gray-500"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">check_circle</span> Desconto do pagamento do vendedor</div>
+            <div class="flex items-center gap-2 text-xs text-gray-500"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">check_circle</span> Comprador paga sempre o mesmo preço</div>
+            <div class="flex items-center gap-2 text-xs text-gray-500"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">check_circle</span> Levantamento imediato após confirmação</div>
+          </div>
+          <button onclick="showPage('affiliate')" class="btn-accent w-full mt-4 text-sm">Começar como Afiliado</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="px-4 py-14" style="background:#fafaf7">
+    <div class="max-w-screen-xl mx-auto">
+      <div class="section-title text-center mb-8">O que dizem os utilizadores</div>
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="card p-5">
+          <div class="flex mb-3" id="stars1"></div>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed">"Comecei como comprador e em dois dias já estava a vender as minhas capulanas. Recebi o dinheiro no M-Pesa no mesmo dia!"</p>
+          <div class="flex items-center gap-2">
+            <div class="avatar w-8 h-8 text-white text-xs" style="background:linear-gradient(135deg,#1db954,#2563eb)">FM</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px">Fatima M.</div><div class="text-xs text-gray-400">Maputo · Vendedora</div></div>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="flex mb-3" id="stars2"></div>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed">"Como afiliado partilhei 3 links no WhatsApp. Em uma semana ganhei 4.500 MZN em comissões. Incrível para algo tão simples!"</p>
+          <div class="flex items-center gap-2">
+            <div class="avatar w-8 h-8 text-white text-xs" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">CJ</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px">Carlos J.</div><div class="text-xs text-gray-400">Beira · Afiliado</div></div>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="flex mb-3" id="stars3"></div>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed">"O escrow deu-me confiança para comprar. Sabia que se o produto não chegasse, não perderia o meu dinheiro. Fantástico!"</p>
+          <div class="flex items-center gap-2">
+            <div class="avatar w-8 h-8 text-white text-xs" style="background:linear-gradient(135deg,#f97316,#dc2626)">LN</div>
+            <div><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px">Lúcia N.</div><div class="text-xs text-gray-400">Nampula · Compradora</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="px-4 py-16 text-center bg-white border-t border-[#e8e8e2]">
+    <div class="max-w-lg mx-auto">
+      <div class="section-title text-2xl mb-3">Pronto para começar?</div>
+      <p class="text-gray-500 text-sm mb-7">Junta-te a mais de 12.000 moçambicanos de Maputo a Cabo Delgado que já compram, vendem e ganham na mesma conta.</p>
+      <button onclick="showPage('register')" class="btn-primary text-base px-8 py-3">Criar Conta Grátis — É Grátis</button>
+    </div>
+  </section>
+</div>
+
+<!-- =========================================================
+     PRODUCT DETAIL
+     ========================================================= -->
+<div id="page-product" class="page">
+  <div class="max-w-screen-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 hover:text-dark mb-6 transition"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar à loja</button>
+    <div class="grid md:grid-cols-2 gap-10">
+      <!-- Gallery -->
+      <div>
+        <div class="rounded-2xl overflow-hidden aspect-square mb-3 bg-[#f4f4f0]">
+          <img id="mainImg" src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80" class="w-full h-full object-cover">
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=120&q=80" onclick="changeImg(this)" class="w-16 h-16 rounded-xl object-cover cursor-pointer border-2 border-primary hover:opacity-90 transition">
+          <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=120&q=80" onclick="changeImg(this)" class="w-16 h-16 rounded-xl object-cover cursor-pointer border-2 border-[#e8e8e2] hover:border-primary transition">
+          <img src="https://images.unsplash.com/photo-1612817288484-6f916006741a?w=120&q=80" onclick="changeImg(this)" class="w-16 h-16 rounded-xl object-cover cursor-pointer border-2 border-[#e8e8e2] hover:border-primary transition">
+        </div>
+      </div>
+      <!-- Info -->
+      <div>
+        <div class="flex flex-wrap gap-2 mb-2">
+          <span class="badge badge-gray">Electrónicos</span>
+          <span class="badge badge-green">Novo</span>
+          <span class="badge badge-blue">Anúncio Destaque</span>
+          <span class="badge badge-orange">Aceita Afiliados</span>
+        </div>
+        <h1 style="font-family:'Manrope',sans-serif;font-weight:900;font-size:22px;color:#111827;line-height:1.2" class="mb-2">Relógio Premium Swiss Made</h1>
+        <!-- Rating -->
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex" id="detailStars"></div>
+          <span class="text-sm text-gray-500">4.9 (124 avaliações)</span>
+        </div>
+        <!-- Seller info -->
+        <div class="flex items-center gap-2 mb-4 p-3 bg-[#f9fafb] rounded-xl">
+          <div class="avatar w-9 h-9 text-white text-sm" style="background:linear-gradient(135deg,#1db954,#2563eb)">JM</div>
+          <div class="flex-1">
+            <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;color:#111827">João Machava</div>
+            <div class="text-xs text-gray-500 flex items-center gap-1"><span class="material-symbols-outlined icon-xs" style="color:#1db954">location_on</span>Maputo · 4.8★ (89 avaliações)</div>
+          </div>
+          <button onclick="showPage('messages')" class="btn-outline text-xs py-1.5 px-3">Contactar</button>
+        </div>
+        <!-- Price block -->
+        <div class="mb-4">
+          <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:30px;color:#111827">4.200 <span style="font-size:16px;color:#6b7280;font-weight:400">MZN</span></div>
+          <div class="text-xs text-gray-400 mt-0.5">Preço inclui taxa de 5% da plataforma · Vendedor recebe <span style="color:#1db954;font-weight:700">3.990 MZN</span></div>
+        </div>
+        <!-- Atacado block (orange, as per doc) -->
+        <div class="mb-4 p-3 rounded-xl border" style="background:#fff7ed;border-color:#fed7aa">
+          <div class="flex items-center gap-2 mb-1" style="color:#c2410c;font-family:'Manrope',sans-serif;font-weight:700;font-size:13px">
+            <span class="material-symbols-outlined icon-sm icon-fill">inventory_2</span> Preço de Atacado disponível
+          </div>
+          <div class="text-sm text-gray-600">Mínimo <strong style="color:#111827">5 unidades</strong> → <strong style="color:#f97316">3.800 MZN</strong> por unidade</div>
+        </div>
+        <!-- Payment methods per doc -->
+        <div class="mb-4">
+          <div class="text-xs text-gray-500 mb-2" style="font-family:'Manrope',sans-serif;font-weight:700">Pagamentos aceites por este vendedor</div>
+          <div class="flex flex-wrap gap-2">
+            <span class="badge pay-mpesa">M-Pesa</span>
+            <span class="badge pay-emola">E-Mola</span>
+            <span class="badge pay-mkesh">mKesh</span>
+            <span class="badge pay-visa">Visa</span>
+          </div>
+        </div>
+        <!-- Quantity selector -->
+        <div class="flex items-center gap-3 mb-4">
+          <div class="text-xs text-gray-500" style="font-family:'Manrope',sans-serif;font-weight:700">Quantidade</div>
+          <div class="flex items-center border border-[#e8e8e2] rounded-xl overflow-hidden">
+            <button onclick="changeQty(-1)" class="px-3 py-2 hover:bg-[#f3f4f6] transition text-lg font-bold" style="font-family:'Manrope',sans-serif">-</button>
+            <span id="qtyVal" class="px-4 py-2 text-sm" style="font-family:'Manrope',sans-serif;font-weight:700">1</span>
+            <button onclick="changeQty(1)" class="px-3 py-2 hover:bg-[#f3f4f6] transition text-lg font-bold" style="font-family:'Manrope',sans-serif">+</button>
+          </div>
+          <div class="flex items-center gap-1 text-xs text-primary"><span class="material-symbols-outlined icon-xs icon-fill">local_shipping</span>Entrega disponível</div>
+        </div>
+        <!-- Actions per doc -->
+        <div class="flex gap-2 flex-wrap mb-4">
+          <button onclick="showPage('cart')" class="btn-primary flex-1">Adicionar ao Carrinho</button>
+          <button onclick="showPage('messages')" class="btn-secondary px-4">Contactar</button>
+          <button onclick="showPage('affiliate')" class="btn-accent px-4">Afiliar</button>
+          <button class="btn-outline px-4"><span class="material-symbols-outlined icon-sm">favorite</span></button>
+        </div>
+        <!-- Affiliate link generated -->
+        <div class="p-3 bg-[#fff7ed] rounded-xl border border-orange-200 text-xs">
+          <div style="font-family:'Manrope',sans-serif;font-weight:700;color:#c2410c;margin-bottom:4px">Link de Afiliado gerado</div>
+          <div class="flex items-center gap-2">
+            <span class="text-gray-600 font-mono flex-1">moztictac.mz/p/rel-premium?ref=ANA82KP9XBTU</span>
+            <button class="btn-accent py-1 px-2 text-[11px]">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description + Reviews -->
+    <div class="mt-10 grid md:grid-cols-2 gap-8">
+      <div>
+        <div class="section-title text-base mb-3">Descrição</div>
+        <p class="text-sm text-gray-600 leading-relaxed">Relógio de pulso importado, caixa em aço inoxidável, vidro de safira, resistente à água até 50m. Pulseira em couro genuíno. Inclui caixa de oferta e garantia de 12 meses. Produto disponível em Maputo com entrega ao domicílio.</p>
+      </div>
+      <div>
+        <div class="section-title text-base mb-3">Avaliações (124)</div>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="avatar w-8 h-8 text-white text-xs shrink-0" style="background:linear-gradient(135deg,#f97316,#dc2626)">MT</div>
+            <div><div class="flex items-center gap-1 mb-0.5"><div class="flex" id="rev1"></div><span class="text-xs text-gray-400 ml-1">22 Mar</span></div><p class="text-xs text-gray-600">Chegou em perfeito estado, exatamente como descrito. Recomendo!</p></div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="avatar w-8 h-8 text-white text-xs shrink-0" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">SN</div>
+            <div><div class="flex items-center gap-1 mb-0.5"><div class="flex" id="rev2"></div><span class="text-xs text-gray-400 ml-1">18 Mar</span></div><p class="text-xs text-gray-600">Bom produto, entrega rápida. Vendedor muito simpático e atencioso.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     BUYER AREA
+     ========================================================= -->
+<div id="page-buyer" class="page">
+  <div class="max-w-screen-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6 transition"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#dcfce7"><span class="material-symbols-outlined icon-fill" style="color:#1db954">shopping_bag</span></div>
+      <div><div class="section-title text-lg">Área do Comprador</div><div class="section-subtitle">Os meus pedidos</div></div>
+    </div>
+    <!-- State filter -->
+    <div class="flex gap-2 flex-wrap mb-4">
+      <button class="chip active" onclick="filterOrders(this,'all')">Todos</button>
+      <button class="chip" onclick="filterOrders(this,'pending')">Pendente</button>
+      <button class="chip" onclick="filterOrders(this,'paid')">Pago</button>
+      <button class="chip" onclick="filterOrders(this,'shipped')">Enviado</button>
+      <button class="chip" onclick="filterOrders(this,'delivered')">Entregue</button>
+      <button class="chip" onclick="filterOrders(this,'cancelled')">Cancelado</button>
+    </div>
+    <div id="buyerOrders" class="space-y-3"></div>
+  </div>
+</div>
+
+<!-- =========================================================
+     SELLER DASHBOARD
+     ========================================================= -->
+<div id="page-seller" class="page">
+  <div class="max-w-screen-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6 transition"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#dbeafe"><span class="material-symbols-outlined icon-fill" style="color:#2563eb">storefront</span></div>
+      <div><div class="section-title text-lg">Painel do Vendedor</div><div class="section-subtitle">Gere os teus produtos e vendas</div></div>
+    </div>
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="card p-4"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Produtos publicados</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#111827">12</div></div>
+      <div class="card p-4"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Total de vendas</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#2563eb">47</div></div>
+      <div class="card p-4"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Receita líquida (MZN)</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#1db954">84.200</div></div>
+      <div class="card p-4"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Aguardam envio</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:26px;color:#f97316">5</div></div>
+    </div>
+    <!-- Tabs -->
+    <div class="flex gap-2 border-b border-[#e8e8e2] mb-6">
+      <button onclick="selTab(this,'sprods')" class="seller-tab pb-2.5 px-1 text-sm border-b-2 border-secondary text-secondary" style="font-family:'Manrope',sans-serif;font-weight:700;color:#2563eb;border-color:#2563eb">Meus Produtos</button>
+      <button onclick="selTab(this,'spublish')" class="seller-tab pb-2.5 px-1 text-sm border-b-2 border-transparent text-gray-500" style="font-family:'Manrope',sans-serif;font-weight:700">Publicar</button>
+      <button onclick="selTab(this,'ssales')" class="seller-tab pb-2.5 px-1 text-sm border-b-2 border-transparent text-gray-500" style="font-family:'Manrope',sans-serif;font-weight:700">Vendas</button>
+      <button onclick="selTab(this,'sfeatured')" class="seller-tab pb-2.5 px-1 text-sm border-b-2 border-transparent text-gray-500" style="font-family:'Manrope',sans-serif;font-weight:700">Destaque Pago</button>
+    </div>
+
+    <!-- Products tab -->
+    <div id="tab-sprods" class="space-y-3" id="sellerPList"></div>
+
+    <!-- Publish tab -->
+    <div id="tab-spublish" class="hidden max-w-xl">
+      <div class="card p-6">
+        <div class="section-title text-base mb-5">Publicar Novo Produto / Serviço</div>
+        <!-- Fotos -->
+        <div class="mb-4">
+          <label class="lbl">Fotografias (ilimitadas, máx 5MB cada · JPG/PNG/WebP)</label>
+          <div class="border-2 border-dashed border-[#e8e8e2] rounded-xl p-6 text-center cursor-pointer hover:border-primary transition">
+            <span class="material-symbols-outlined text-gray-400 text-4xl block mb-2">add_photo_alternate</span>
+            <div class="text-sm text-gray-500">Clica ou arrasta as fotos aqui</div>
+            <div class="text-xs text-gray-400 mt-1">A primeira imagem é a capa</div>
+          </div>
+        </div>
+        <!-- Tipo -->
+        <div class="mb-4">
+          <label class="lbl">Tipo de publicação</label>
+          <div class="flex gap-3">
+            <label class="flex-1 border rounded-xl p-3 cursor-pointer text-center border-primary bg-[#f0fdf4]"><input type="radio" name="ptype" value="Produto" checked class="mr-1" style="accent-color:#1db954"><span class="text-sm font-semibold" style="font-family:'Manrope',sans-serif">Produto físico</span></label>
+            <label class="flex-1 border rounded-xl p-3 cursor-pointer text-center border-[#e8e8e2]"><input type="radio" name="ptype" value="Serviço" class="mr-1" style="accent-color:#1db954"><span class="text-sm font-semibold" style="font-family:'Manrope',sans-serif">Serviço</span></label>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div><label class="lbl">Categoria</label><select class="select text-sm"><option>Roupa</option><option>Celulares</option><option>Cabelos</option><option>Sapatos</option><option>Electrónicos</option><option>Acessórios</option><option>Alimentos</option><option>Serviços</option><option>Outros</option></select></div>
+          <div><label class="lbl">Estado</label><select class="select text-sm"><option>Novo</option><option>Usado</option></select></div>
+        </div>
+        <div class="mb-4"><label class="lbl">Nome do produto</label><input type="text" class="input" placeholder="Ex: Capulana bordada artesanal"></div>
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1">
+            <label class="lbl mb-0">Descrição</label>
+            <button class="flex items-center gap-1 text-xs border border-[#e8e8e2] rounded-lg px-2 py-1 hover:border-primary transition" style="color:#f97316;font-family:'Manrope',sans-serif;font-weight:700"><span class="material-symbols-outlined icon-xs icon-fill">auto_awesome</span> Gerar com IA</button>
+          </div>
+          <textarea class="input" rows="3" placeholder="Descreve o produto, características, condições…"></textarea>
+        </div>
+        <!-- Price + IA suggestion -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1">
+            <label class="lbl mb-0">Preço (MZN) — o vendedor deseja receber</label>
+            <button id="aiPriceBtn" onclick="aiPriceSuggest()" class="flex items-center gap-1 text-xs border border-[#e8e8e2] rounded-lg px-2 py-1 hover:border-accent transition" style="color:#f97316;font-family:'Manrope',sans-serif;font-weight:700"><span class="material-symbols-outlined icon-xs icon-fill">auto_awesome</span> Sugestão IA</button>
+          </div>
+          <input type="number" id="sellerPrice" class="input" placeholder="0.00" oninput="calcBuyerPrice()">
+          <div id="buyerPricePreview" class="text-xs text-gray-500 mt-1"></div>
+          <!-- IA suggestion result -->
+          <div id="aiSuggestionBox" class="hidden mt-2 p-3 rounded-xl border" style="background:#fff7ed;border-color:#fed7aa">
+            <div class="text-xs font-bold mb-1" style="color:#c2410c;font-family:'Manrope',sans-serif">Sugestão de Preço por IA (Gemini)</div>
+            <div id="aiSuggestionText" class="text-xs text-gray-600"></div>
+            <button onclick="acceptAiPrice()" class="mt-2 btn-accent text-xs py-1 px-3">Aceitar sugestão</button>
+          </div>
+        </div>
+        <!-- Atacado -->
+        <div class="mb-4 p-3 bg-[#f9fafb] rounded-xl border border-[#e8e8e2]">
+          <label class="flex items-center gap-2 cursor-pointer mb-2"><input type="checkbox" id="enableAtacado" style="accent-color:#f97316" onchange="toggleAtacado()"><span class="text-sm font-semibold" style="font-family:'Manrope',sans-serif">Activar preço de atacado</span></label>
+          <div id="atacadoFields" class="hidden grid grid-cols-2 gap-3">
+            <div><label class="lbl">Preço por unidade (MZN)</label><input type="number" class="input text-sm" placeholder="Ex: 2.800"></div>
+            <div><label class="lbl">Qtd. mínima</label><input type="number" class="input text-sm" placeholder="Ex: 5"></div>
+          </div>
+        </div>
+        <!-- Options -->
+        <div class="mb-4 space-y-3">
+          <label class="flex items-center gap-2 cursor-pointer"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label><span class="text-sm">Entrega disponível</span></label>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer mb-2"><label class="toggle"><input type="checkbox" id="enableAff" onchange="toggleAff()"><span class="toggle-slider"></span></label><span class="text-sm">Aceitar afiliados</span></label>
+            <div id="affFields" class="hidden ml-10">
+              <label class="lbl">% de comissão para afiliados (5%–20%)</label>
+              <input type="range" min="5" max="20" value="10" class="w-full" oninput="document.getElementById('affPct').textContent=this.value+'%'" style="accent-color:#f97316">
+              <div class="text-sm font-bold text-orange-500 mt-1" id="affPct" style="font-family:'Manrope',sans-serif">10%</div>
+            </div>
+          </div>
+        </div>
+        <!-- Payment methods -->
+        <div class="mb-5">
+          <label class="lbl">Formas de pagamento aceites</label>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2"><input type="checkbox" checked style="accent-color:#1db954"><span class="badge pay-mpesa">M-Pesa</span><input type="text" class="input text-xs py-1 flex-1" placeholder="Nº conta M-Pesa"></div>
+            <div class="flex items-center gap-2"><input type="checkbox" style="accent-color:#dc2626"><span class="badge pay-emola">E-Mola</span><input type="text" class="input text-xs py-1 flex-1" placeholder="Nº conta E-Mola"></div>
+            <div class="flex items-center gap-2"><input type="checkbox" style="accent-color:#f97316"><span class="badge pay-mkesh">mKesh</span><input type="text" class="input text-xs py-1 flex-1" placeholder="Nº conta mKesh"></div>
+            <div class="flex items-center gap-2"><input type="checkbox" style="accent-color:#2563eb"><span class="badge pay-visa">Visa</span><input type="text" class="input text-xs py-1 flex-1" placeholder="NIB ou info bancária"></div>
+          </div>
+        </div>
+        <!-- Moderation warning -->
+        <div id="moderationWarning" class="hidden mb-4 p-3 rounded-xl border border-red-200 bg-red-50 text-xs text-danger"><span class="material-symbols-outlined icon-xs">warning</span> <strong>Moderação IA:</strong> Conteúdo impróprio detectado. Revê o título e descrição antes de publicar.</div>
+        <button onclick="submitProduct()" class="btn-primary w-full text-base py-3">Publicar Produto</button>
+      </div>
+    </div>
+
+    <!-- Sales tab -->
+    <div id="tab-ssales" class="hidden space-y-3" id="sellerSalesList"></div>
+
+    <!-- Featured tab -->
+    <div id="tab-sfeatured" class="hidden max-w-md">
+      <div class="card p-5">
+        <div class="section-title text-base mb-2">Destaque Pago</div>
+        <p class="text-sm text-gray-500 mb-4 leading-relaxed">O produto aparece no topo da página inicial como "Anúncio", acima de todos os resultados orgânicos. O valor é debitado da tua carteira digital.</p>
+        <div class="mb-4"><label class="lbl">Escolhe o produto</label><select class="select text-sm"><option>Relógio Premium Swiss Made</option><option>Perfume Importado</option></select></div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div><label class="lbl">Valor a pagar (MZN)</label><input type="number" class="input" placeholder="Ex: 500"></div>
+          <div><label class="lbl">Número de dias</label><input type="number" class="input" placeholder="Ex: 7"></div>
+        </div>
+        <div class="p-3 bg-[#f0fdf4] rounded-xl border border-green-200 text-xs mb-4 flex items-center gap-2"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">info</span>O valor é debitado imediatamente da tua <strong>Carteira Digital</strong> (Saldo disponível: <strong>12.450 MZN</strong>)</div>
+        <button class="btn-accent w-full">Activar Destaque</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     AFFILIATE PANEL
+     ========================================================= -->
+<div id="page-affiliate" class="page">
+  <div class="max-w-screen-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6 transition"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#ffedd5"><span class="material-symbols-outlined icon-fill" style="color:#f97316">share</span></div>
+      <div><div class="section-title text-lg">Programa de Afiliados</div><div class="section-subtitle">Ganha comissões partilhando links únicos de 12 caracteres</div></div>
+    </div>
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="card p-4 border-l-4" style="border-left-color:#1db954"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Ganhos disponíveis</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:22px;color:#1db954">4.520 MZN</div></div>
+      <div class="card p-4 border-l-4" style="border-left-color:#f97316"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Vendas geradas</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:22px;color:#f97316">38</div></div>
+      <div class="card p-4 border-l-4" style="border-left-color:#2563eb"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Cliques totais</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:22px;color:#2563eb">892</div></div>
+      <div class="card p-4 border-l-4" style="border-left-color:#dc2626"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Links activos</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:22px;color:#dc2626">8</div></div>
+    </div>
+    <!-- Meus Links -->
+    <div class="section-title text-base mb-4">Meus Links</div>
+    <div class="space-y-3 mb-8" id="affLinks"></div>
+    <!-- Sugestões de produtos -->
+    <div class="section-title text-base mb-4">Sugestões de Produtos para Afiliação</div>
+    <div class="space-y-3" id="affSuggestions"></div>
+  </div>
+</div>
+
+<!-- =========================================================
+     WALLET
+     ========================================================= -->
+<div id="page-wallet" class="page">
+  <div class="max-w-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <!-- Wallet card -->
+    <div class="rounded-2xl p-6 mb-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1db954,#2563eb)">
+      <div class="absolute inset-0 opacity-10" style="background:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 24px) 0/24px 24px"></div>
+      <div class="relative">
+        <div class="flex justify-between items-center mb-8">
+          <span style="font-family:'Manrope',sans-serif;font-weight:800;font-size:16px">MozTicTac Wallet</span>
+          <span class="material-symbols-outlined icon-fill text-white text-4xl">account_balance_wallet</span>
+        </div>
+        <div class="text-white/70 text-sm mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Saldo disponível</div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:36px;color:#fff">12.450 <span style="font-size:16px;font-weight:400;opacity:.7">MZN</span></div>
+        <div class="text-white/60 text-xs mt-1">+ 2.340 MZN saldo pendente (aguarda confirmação de entrega)</div>
+        <div class="flex gap-2 mt-4 flex-wrap">
+          <span class="badge" style="background:rgba(255,255,255,.2);color:#fff">M-Pesa</span>
+          <span class="badge" style="background:rgba(255,255,255,.2);color:#fff">E-Mola</span>
+          <span class="badge" style="background:rgba(255,255,255,.2);color:#fff">mKesh</span>
+          <span class="badge" style="background:rgba(255,255,255,.2);color:#fff">Conta Bancária</span>
+        </div>
+      </div>
+    </div>
+    <!-- Quick actions -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button class="card p-4 text-center card-hover"><span class="material-symbols-outlined icon-fill block mx-auto mb-1" style="color:#1db954;font-size:28px">arrow_downward</span><span class="text-xs text-gray-600" style="font-family:'Manrope',sans-serif;font-weight:600">Receber</span></button>
+      <button onclick="document.getElementById('withdrawModal').classList.add('open')" class="card p-4 text-center card-hover"><span class="material-symbols-outlined icon-fill block mx-auto mb-1" style="color:#dc2626;font-size:28px">arrow_upward</span><span class="text-xs text-gray-600" style="font-family:'Manrope',sans-serif;font-weight:600">Levantar</span></button>
+      <button class="card p-4 text-center card-hover"><span class="material-symbols-outlined icon-fill block mx-auto mb-1" style="color:#f97316;font-size:28px">history</span><span class="text-xs text-gray-600" style="font-family:'Manrope',sans-serif;font-weight:600">Histórico</span></button>
+    </div>
+    <!-- Info pending -->
+    <div class="p-3 bg-[#fef9c3] border border-yellow-200 rounded-xl text-xs mb-6" style="color:#854d0e">
+      <span class="material-symbols-outlined icon-xs icon-fill">info</span> <strong>Saldo Pendente:</strong> 2.340 MZN visível mas não disponível para levantamento até os pedidos correspondentes serem confirmados como entregues.
+    </div>
+    <!-- History -->
+    <div class="section-title text-base mb-3">Histórico de Transacções</div>
+    <div class="space-y-2" id="walletHistory"></div>
+  </div>
+</div>
+
+<!-- Withdraw modal -->
+<div id="withdrawModal" class="modal-ov">
+  <div class="modal-box">
+    <div class="flex justify-between items-center mb-4"><div class="section-title text-base">Levantar Saldo</div><button onclick="document.getElementById('withdrawModal').classList.remove('open')" class="btn-ghost"><span class="material-symbols-outlined">close</span></button></div>
+    <div class="mb-3"><label class="lbl">Valor a levantar (MZN)</label><input type="number" class="input" placeholder="Mínimo 100 MZN"></div>
+    <div class="mb-3"><label class="lbl">Método</label><select class="select"><option>M-Pesa</option><option>E-Mola</option><option>mKesh</option><option>Conta Bancária</option></select></div>
+    <div class="mb-4"><label class="lbl">Número de conta / NIB</label><input type="text" class="input" placeholder="Ex: 84X XXX XXX"></div>
+    <div class="p-3 bg-[#f0fdf4] rounded-xl text-xs mb-4" style="color:#166534"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">schedule</span> Processado manualmente pela equipa MozTicTac em até <strong>24 horas</strong>.</div>
+    <button class="btn-primary w-full">Confirmar Levantamento</button>
+  </div>
+</div>
+
+<!-- =========================================================
+     CART
+     ========================================================= -->
+<div id="page-cart" class="page">
+  <div class="max-w-screen-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6"><span class="material-symbols-outlined icon-sm">arrow_back</span> Continuar a comprar</button>
+    <div class="section-title text-xl mb-6">O meu Carrinho <span class="text-gray-400 text-sm font-normal">(3 itens)</span></div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="md:col-span-2 space-y-3" id="cartItems"></div>
+      <!-- Summary -->
+      <div>
+        <div class="card p-5 sticky top-20">
+          <div class="section-title text-base mb-4">Resumo do Pedido</div>
+          <div class="space-y-2 text-sm mb-4">
+            <div class="flex justify-between text-gray-500"><span>Subtotal (3 itens)</span><span class="font-semibold text-dark">7.900 MZN</span></div>
+            <div class="flex justify-between text-gray-500"><span>Taxa plataforma (5%)</span><span class="text-danger font-semibold">395 MZN</span></div>
+            <div class="flex justify-between font-bold border-t border-[#e8e8e2] pt-2 text-dark"><span>Total</span><span>8.295 MZN</span></div>
+          </div>
+          <div class="mb-4">
+            <label class="lbl">Método de pagamento</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-transparent hover:border-primary transition"><input type="radio" name="payMethod" checked style="accent-color:#1db954"><span class="badge pay-mpesa">M-Pesa</span><span class="text-sm">M-Pesa</span></label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-transparent hover:border-danger transition"><input type="radio" name="payMethod" style="accent-color:#dc2626"><span class="badge pay-emola">E-Mola</span><span class="text-sm">E-Mola</span></label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-transparent hover:border-accent transition"><input type="radio" name="payMethod" style="accent-color:#f97316"><span class="badge pay-mkesh">mKesh</span><span class="text-sm">mKesh</span></label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-transparent hover:border-secondary transition"><input type="radio" name="payMethod" style="accent-color:#2563eb"><span class="badge pay-visa">Visa</span><span class="text-sm">Visa/Banco</span></label>
+            </div>
+          </div>
+          <button onclick="showPage('buyer')" class="btn-primary w-full text-base py-3 mb-2">Pagar com Segurança</button>
+          <div class="flex items-center justify-center gap-1 text-xs text-gray-400"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">lock</span>Venda Segura · Pagamento em Escrow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     MESSAGES / CHAT
+     ========================================================= -->
+<div id="page-messages" class="page">
+  <div class="max-w-screen-xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <div class="grid md:grid-cols-3 gap-4" style="height:540px">
+      <!-- Conversation list -->
+      <div class="card overflow-y-auto">
+        <div class="p-4 border-b border-[#e8e8e2]"><div class="section-title text-sm">Mensagens</div></div>
+        <div id="convList" class="divide-y divide-[#f3f4f6]"></div>
+      </div>
+      <!-- Chat window -->
+      <div class="md:col-span-2 card flex flex-col overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center gap-3 p-4 border-b border-[#e8e8e2]">
+          <div class="avatar w-9 h-9 text-white text-sm" style="background:linear-gradient(135deg,#1db954,#2563eb)">JM</div>
+          <div class="flex-1"><div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#111827">João Machava</div><div class="flex items-center gap-1 text-xs" style="color:#1db954"><span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>Online agora</div></div>
+          <span class="badge badge-gray text-xs">Relógio Premium</span>
+        </div>
+        <!-- Messages -->
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+        <!-- Typing -->
+        <div id="typingIndicator" class="px-4 pb-1 hidden"><div class="typing flex items-center gap-1 text-xs text-gray-400"><span></span><span></span><span></span> a escrever…</div></div>
+        <!-- Input -->
+        <div class="p-3 border-t border-[#e8e8e2] flex gap-2">
+          <input type="text" id="chatInput" placeholder="Escreve uma mensagem…" class="input flex-1 py-2.5" onkeydown="if(event.key==='Enter')sendMsg()">
+          <button onclick="sendMsg()" class="btn-primary px-4"><span class="material-symbols-outlined text-white icon-sm">send</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     PROFILE
+     ========================================================= -->
+<div id="page-profile" class="page">
+  <div class="max-w-lg mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <div class="card p-6 mb-4">
+      <!-- Avatar + badges -->
+      <div class="flex items-center gap-4 mb-5">
+        <div class="avatar w-16 h-16 text-white text-xl" style="background:linear-gradient(135deg,#1db954,#2563eb)">AM</div>
+        <div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:#111827">Ana Machava</div>
+          <div class="flex flex-wrap gap-1 mt-1">
+            <span class="badge badge-green">Comprador</span>
+            <span class="badge badge-blue">Vendedor</span>
+            <span class="badge badge-orange">Afiliado</span>
+            <span class="badge badge-gray"><span class="material-symbols-outlined icon-xs icon-fill" style="color:#1db954">verified</span> Verificado</span>
+          </div>
+        </div>
+      </div>
+      <!-- Editable fields -->
+      <div class="space-y-3">
+        <div><label class="lbl">Nome completo</label><input type="text" value="Ana Machava" class="input"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Província</label><select class="select text-sm"><option selected>Maputo</option><option>Beira</option><option>Nampula</option></select></div>
+          <div><label class="lbl">Cidade</label><input type="text" value="Maputo" class="input text-sm"></div>
+        </div>
+        <div><label class="lbl">Bairro</label><input type="text" value="Polana" class="input"></div>
+        <div><label class="lbl">Celular para pagamentos</label><input type="tel" value="84X XXX XXX" class="input"></div>
+        <div><label class="lbl">Email (não editável)</label><input type="email" value="ana@exemplo.com" class="input bg-[#f9fafb]" readonly></div>
+        <button class="btn-primary w-full">Guardar alterações</button>
+      </div>
+    </div>
+    <!-- Meus Papéis -->
+    <div class="card p-5 mb-4">
+      <div class="section-title text-sm mb-4">Meus Papéis</div>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between p-3 bg-[#f0fdf4] rounded-xl">
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#1db954">shopping_bag</span><div><div class="text-sm font-bold" style="font-family:'Manrope',sans-serif">Comprador</div><div class="text-xs text-gray-400">Sempre activo · não pode ser desactivado</div></div></div>
+          <label class="toggle"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-[#eff6ff] rounded-xl">
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#2563eb">storefront</span><div><div class="text-sm font-bold" style="font-family:'Manrope',sans-serif">Vendedor</div><div class="text-xs text-gray-400">Activo · acesso ao Painel do Vendedor</div></div></div>
+          <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-[#fff7ed] rounded-xl">
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#f97316">share</span><div><div class="text-sm font-bold" style="font-family:'Manrope',sans-serif">Afiliado</div><div class="text-xs text-gray-400">Activo · acesso ao Painel de Afiliado</div></div></div>
+          <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+    <!-- Quick links -->
+    <div class="card p-4 space-y-1">
+      <button onclick="showPage('buyer')" class="flex items-center justify-between w-full p-3 rounded-xl hover:bg-[#f9fafb] transition"><div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined icon-sm icon-fill" style="color:#1db954">shopping_bag</span>Pedidos</div><span class="material-symbols-outlined icon-xs text-gray-400">chevron_right</span></button>
+      <button onclick="showPage('wallet')" class="flex items-center justify-between w-full p-3 rounded-xl hover:bg-[#f9fafb] transition"><div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined icon-sm icon-fill" style="color:#f97316">account_balance_wallet</span>Carteira</div><span class="material-symbols-outlined icon-xs text-gray-400">chevron_right</span></button>
+      <button onclick="showPage('messages')" class="flex items-center justify-between w-full p-3 rounded-xl hover:bg-[#f9fafb] transition"><div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined icon-sm icon-fill" style="color:#2563eb">chat</span>Mensagens</div><span class="material-symbols-outlined icon-xs text-gray-400">chevron_right</span></button>
+      <button onclick="showPage('admin')" class="flex items-center justify-between w-full p-3 rounded-xl hover:bg-[#f9fafb] transition"><div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined icon-sm icon-fill" style="color:#dc2626">admin_panel_settings</span>Painel de Administração</div><span class="material-symbols-outlined icon-xs text-gray-400">chevron_right</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     ADMIN PANEL
+     ========================================================= -->
+<div id="page-admin" class="page">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="admin-side p-4 flex flex-col gap-1">
+      <div class="flex items-center gap-2 px-2 py-3 mb-4">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1db954,#2563eb)"><span class="material-symbols-outlined text-white icon-xs icon-fill">shopping_bag</span></div>
+        <span style="font-family:'Manrope',sans-serif;font-weight:900;font-size:15px;color:#fff">MozTicTac <span style="color:#1db954">Admin</span></span>
+      </div>
+      <button onclick="adminTab('overview')" class="admin-nav-item active" id="anav-overview"><span class="material-symbols-outlined icon-sm icon-fill">dashboard</span>Visão Geral</button>
+      <button onclick="adminTab('users')" class="admin-nav-item" id="anav-users"><span class="material-symbols-outlined icon-sm">people</span>Utilizadores</button>
+      <button onclick="adminTab('products')" class="admin-nav-item" id="anav-products"><span class="material-symbols-outlined icon-sm">inventory_2</span>Produtos</button>
+      <button onclick="adminTab('orders')" class="admin-nav-item" id="anav-orders"><span class="material-symbols-outlined icon-sm">receipt_long</span>Pedidos</button>
+      <div class="flex-1"></div>
+      <button onclick="showPage('home')" class="admin-nav-item"><span class="material-symbols-outlined icon-sm">arrow_back</span>Sair do Admin</button>
+    </aside>
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto" style="background:#f1f5f9">
+      <!-- Admin header (dark as per doc) -->
+      <div class="admin-header px-6 py-4 flex items-center justify-between">
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:#fff" id="adminTitle">Visão Geral</div>
+        <div class="flex items-center gap-2">
+          <span class="badge badge-green pulse">● Live</span>
+          <div class="avatar w-8 h-8 text-white text-xs" style="background:linear-gradient(135deg,#dc2626,#f97316)">AD</div>
+        </div>
+      </div>
+
+      <!-- OVERVIEW TAB -->
+      <div id="atab-overview" class="p-6">
+        <!-- 8 KPIs -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Total utilizadores</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#111827">12.847</div><div class="text-xs text-green-600 mt-0.5">+342 este mês</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Produtos activos</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#2563eb">3.821</div><div class="text-xs text-gray-400 mt-0.5">de 4.102 totais</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Total pedidos</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#111827">28.491</div><div class="text-xs text-orange-500 mt-0.5">+187 hoje</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Receita plataforma (MZN)</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#1db954">1.247.800</div><div class="text-xs text-green-600 mt-0.5">+82.400 este mês</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Volume transaccionado</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#111827">24.956.000</div><div class="text-xs text-gray-400 mt-0.5">MZN total</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Afiliados activos</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#f97316">1.204</div><div class="text-xs text-gray-400 mt-0.5">links gerados: 8.921</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Conversas chat</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#111827">6.728</div></div>
+          <div class="bg-white rounded-xl p-4 border border-[#e2e8f0]"><div class="text-xs text-gray-500 mb-1" style="font-family:'Manrope',sans-serif;font-weight:600">Pedidos hoje</div><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:24px;color:#dc2626">187</div></div>
+        </div>
+        <!-- Charts area -->
+        <div class="grid md:grid-cols-2 gap-5 mb-6">
+          <!-- Orders by state bar chart -->
+          <div class="bg-white rounded-xl p-5 border border-[#e2e8f0]">
+            <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#111827" class="mb-4">Pedidos por Estado</div>
+            <div class="space-y-2 text-sm" id="ordersBars"></div>
+          </div>
+          <!-- Users by type -->
+          <div class="bg-white rounded-xl p-5 border border-[#e2e8f0]">
+            <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#111827" class="mb-4">Utilizadores por Tipo</div>
+            <div class="space-y-2 text-sm" id="usersBars"></div>
+          </div>
+        </div>
+        <!-- Top products -->
+        <div class="bg-white rounded-xl p-5 border border-[#e2e8f0]">
+          <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#111827" class="mb-4">Produtos Mais Vendidos</div>
+          <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-gray-400 border-b border-[#e8e8e2]" style="font-family:'Manrope',sans-serif;font-weight:700"><th class="pb-2">Produto</th><th class="pb-2">Categoria</th><th class="pb-2">Vendedor</th><th class="pb-2">Preço</th><th class="pb-2">Vendas</th><th class="pb-2">Avaliação</th></tr></thead><tbody id="topProductsTable" class="divide-y divide-[#f9fafb]"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- USERS TAB -->
+      <div id="atab-users" class="hidden p-6">
+        <div class="flex gap-3 mb-4">
+          <input type="text" placeholder="Pesquisar por nome, email ou celular…" class="input flex-1">
+          <select class="select w-48"><option value="">Todos os tipos</option><option>Comprador</option><option>Vendedor</option><option>Afiliado</option><option>Admin</option></select>
+        </div>
+        <div class="bg-white rounded-xl border border-[#e2e8f0] overflow-hidden">
+          <table class="w-full text-sm"><thead><tr class="text-left text-xs text-gray-400 border-b border-[#e8e8e2] bg-[#f9fafb]" style="font-family:'Manrope',sans-serif;font-weight:700"><th class="px-4 py-3">Nome</th><th class="px-4 py-3">Email</th><th class="px-4 py-3">Tipo</th><th class="px-4 py-3">Cidade</th><th class="px-4 py-3">Estado</th><th class="px-4 py-3">Registo</th><th class="px-4 py-3">Acções</th></tr></thead><tbody id="adminUsersTable" class="divide-y divide-[#f9fafb]"></tbody></table>
+          <div class="p-3 border-t border-[#e8e8e2] text-xs text-gray-400 text-center">15 por página · Mostrando 1–15 de 12.847</div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS TAB -->
+      <div id="atab-products" class="hidden p-6">
+        <div class="bg-white rounded-xl border border-[#e2e8f0] overflow-hidden">
+          <table class="w-full text-sm"><thead><tr class="text-left text-xs text-gray-400 border-b border-[#e8e8e2] bg-[#f9fafb]" style="font-family:'Manrope',sans-serif;font-weight:700"><th class="px-4 py-3">Produto</th><th class="px-4 py-3">Categoria</th><th class="px-4 py-3">Vendedor</th><th class="px-4 py-3">Preço</th><th class="px-4 py-3">Vendas</th><th class="px-4 py-3">Estado</th></tr></thead><tbody id="adminProductsTable" class="divide-y divide-[#f9fafb]"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ORDERS TAB -->
+      <div id="atab-orders" class="hidden p-6">
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <select class="select w-48"><option value="">Todos os estados</option><option>Pendente</option><option>Pago</option><option>Em Processamento</option><option>Enviado</option><option>Entregue</option><option>Cancelado</option></select>
+        </div>
+        <div class="space-y-3" id="adminOrdersList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User detail modal (admin) -->
+<div id="userModal" class="modal-ov">
+  <div class="modal-box">
+    <div class="flex justify-between items-center mb-4"><div class="section-title text-base">Perfil do Utilizador</div><button onclick="document.getElementById('userModal').classList.remove('open')" class="btn-ghost"><span class="material-symbols-outlined">close</span></button></div>
+    <!-- metrics -->
+    <div class="grid grid-cols-4 gap-2 mb-4">
+      <div class="text-center p-2 bg-[#f9fafb] rounded-xl"><div class="text-lg font-bold" style="font-family:'Manrope',sans-serif;color:#111827">5</div><div class="text-xs text-gray-400">Produtos</div></div>
+      <div class="text-center p-2 bg-[#f9fafb] rounded-xl"><div class="text-lg font-bold" style="font-family:'Manrope',sans-serif;color:#2563eb">23</div><div class="text-xs text-gray-400">Compras</div></div>
+      <div class="text-center p-2 bg-[#f9fafb] rounded-xl"><div class="text-lg font-bold" style="font-family:'Manrope',sans-serif;color:#1db954">14</div><div class="text-xs text-gray-400">Vendas</div></div>
+      <div class="text-center p-2 bg-[#f9fafb] rounded-xl"><div class="text-lg font-bold" style="font-family:'Manrope',sans-serif;color:#f97316">8</div><div class="text-xs text-gray-400">Links Aff.</div></div>
+    </div>
+    <!-- Wallet -->
+    <div class="p-3 bg-[#f0fdf4] rounded-xl border border-green-100 mb-4 text-sm flex justify-between">
+      <span class="text-gray-500">Carteira disponível</span><span style="font-family:'Manrope',sans-serif;font-weight:800;color:#1db954">2.450 MZN</span>
+    </div>
+    <div class="p-3 bg-[#fef9c3] rounded-xl border border-yellow-100 mb-4 text-sm flex justify-between">
+      <span class="text-gray-500">Saldo pendente</span><span style="font-family:'Manrope',sans-serif;font-weight:800;color:#854d0e">780 MZN</span>
+    </div>
+    <!-- Admin actions -->
+    <div class="space-y-2">
+      <div class="flex gap-2"><select class="select flex-1 text-sm"><option>Comprador</option><option>Vendedor</option><option>Afiliado</option><option>Admin</option></select><button class="btn-secondary text-sm px-3 py-2">Alterar tipo</button></div>
+      <button class="btn-outline w-full text-sm">Redefinir senha (invalida sessões activas)</button>
+      <button class="btn-outline w-full text-sm">Verificar manualmente sem OTP</button>
+      <div class="flex gap-2"><input type="text" class="input flex-1 text-sm" placeholder="Mensagem de notificação…"><button class="btn-secondary text-sm px-3">Enviar</button></div>
+      <button class="btn-danger w-full text-sm">Desactivar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     ABOUT / SOBRE NÓS
+     ========================================================= -->
+<div id="page-about" class="page">
+  <div class="max-w-2xl mx-auto px-4 py-8">
+    <button onclick="showPage('home')" class="flex items-center gap-1 text-sm text-gray-500 mb-6"><span class="material-symbols-outlined icon-sm">arrow_back</span> Voltar</button>
+    <div class="section-title text-2xl mb-1">Sobre o MozTicTac</div>
+    <p class="text-gray-500 text-sm mb-6">Marketplace digital 100% moçambicano · Beira, Moçambique · Versão 1.0</p>
+
+    <!-- Missão -->
+    <div class="card p-5 mb-4">
+      <div class="section-title text-base mb-2 flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#1db954">flag</span>Missão</div>
+      <p class="text-sm text-gray-600 leading-relaxed">O MozTicTac é um ecossistema digital que cria oportunidades económicas para moçambicanos em todas as partes do país. Um artesão em Nampula pode vender os seus produtos a compradores em Maputo. Uma costureira em Xai-Xai pode aceitar encomendas de toda a Gaza. Um jovem em Beira pode ganhar comissões a promover produtos de todo o país.</p>
+    </div>
+
+    <!-- How to buy/sell/affiliate -->
+    <div class="card p-5 mb-4">
+      <div class="section-title text-base mb-3">Como Comprar</div>
+      <ol class="text-sm text-gray-600 space-y-1 list-decimal list-inside leading-relaxed">
+        <li>Cria conta ou entra como visitante</li>
+        <li>Pesquisa por palavra-chave ou navega por categoria</li>
+        <li>Filtra por província, preço, estado ou tipo</li>
+        <li>Adiciona ao carrinho e escolhe M-Pesa, E-Mola, mKesh ou Visa</li>
+        <li>Pagamento retido em escrow — confirma a entrega para libertar</li>
+      </ol>
+    </div>
+    <div class="card p-5 mb-4">
+      <div class="section-title text-base mb-3">Como Vender</div>
+      <ol class="text-sm text-gray-600 space-y-1 list-decimal list-inside leading-relaxed">
+        <li>Activa o papel de Vendedor em "Meus Papéis" — 1 clique</li>
+        <li>Publica produto ou serviço com fotos ilimitadas</li>
+        <li>Define preço (sugestão de IA disponível) e formas de pagamento</li>
+        <li>Activa atacado, entrega e afiliados opcionalmente</li>
+        <li>Recebe pedidos e envia · Pagamento creditado após confirmação</li>
+      </ol>
+    </div>
+    <div class="card p-5 mb-4">
+      <div class="section-title text-base mb-3">Como ser Afiliado</div>
+      <ol class="text-sm text-gray-600 space-y-1 list-decimal list-inside leading-relaxed">
+        <li>Activa o papel de Afiliado — 1 clique</li>
+        <li>Vai a "Sugestões de Produtos" e escolhe o produto</li>
+        <li>Gera link único de 12 caracteres com 1 clique</li>
+        <li>Partilha no WhatsApp, Facebook, Instagram…</li>
+        <li>Comissão de 5%–20% creditada na carteira após confirmação</li>
+      </ol>
+    </div>
+
+    <!-- Venda Segura explanation -->
+    <div class="card p-5 mb-4" style="border-color:#1db954">
+      <div class="section-title text-base mb-2 flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#1db954">lock</span>Venda Segura (Escrow)</div>
+      <p class="text-sm text-gray-600 leading-relaxed">O pagamento é retido na plataforma e só libertado ao vendedor depois de confirmares a recepção. Em caso de disputa, o suporte MozTicTac analisa e pode forçar a libertação.</p>
+    </div>
+
+    <!-- Pagamentos -->
+    <div class="card p-5 mb-4">
+      <div class="section-title text-base mb-3 flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#f97316">payments</span>Formas de Pagamento</div>
+      <div class="flex flex-wrap gap-2">
+        <span class="badge pay-mpesa text-sm">M-Pesa · Verde</span>
+        <span class="badge pay-emola text-sm">E-Mola · Vermelho</span>
+        <span class="badge pay-mkesh text-sm">mKesh · Laranja</span>
+        <span class="badge pay-visa text-sm">Visa / Banco · Azul</span>
+      </div>
+      <div class="text-xs text-gray-400 mt-2">Todos os valores em Meticais (MZN). Taxa de plataforma: 5% sobre transacções concluídas.</div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="card p-5 mb-4">
+      <div class="section-title text-base mb-3 flex items-center gap-2"><span class="material-symbols-outlined icon-fill" style="color:#2563eb">help</span>FAQs</div>
+      <div class="space-y-2">
+        <details><summary class="flex items-center justify-between p-3 rounded-xl hover:bg-[#f9fafb] transition text-sm font-semibold" style="font-family:'Manrope',sans-serif">Quanto custa vender? <span class="material-symbols-outlined icon-xs text-gray-400">expand_more</span></summary><p class="text-sm text-gray-500 px-3 pb-3 leading-relaxed">Publicar é gratuito. A plataforma cobra 5% por cada transacção concluída — debitado do pagamento do vendedor.</p></details>
+        <details><summary class="flex items-center justify-between p-3 rounded-xl hover:bg-[#f9fafb] transition text-sm font-semibold" style="font-family:'Manrope',sans-serif">Quando recebo o meu dinheiro? <span class="material-symbols-outlined icon-xs text-gray-400">expand_more</span></summary><p class="text-sm text-gray-500 px-3 pb-3 leading-relaxed">Após o comprador confirmar a entrega, o valor passa para "Saldo Disponível" imediatamente. Levantamentos processados em até 24h.</p></details>
+        <details><summary class="flex items-center justify-between p-3 rounded-xl hover:bg-[#f9fafb] transition text-sm font-semibold" style="font-family:'Manrope',sans-serif">A comissão de afiliado desconta de quem? <span class="material-symbols-outlined icon-xs text-gray-400">expand_more</span></summary><p class="text-sm text-gray-500 px-3 pb-3 leading-relaxed">Do pagamento do vendedor — o comprador paga sempre o mesmo preço, independentemente de ter chegado via link de afiliado.</p></details>
+        <details><summary class="flex items-center justify-between p-3 rounded-xl hover:bg-[#f9fafb] transition text-sm font-semibold" style="font-family:'Manrope',sans-serif">O que são as senhas armazenadas de forma segura? <span class="material-symbols-outlined icon-xs text-gray-400">expand_more</span></summary><p class="text-sm text-gray-500 px-3 pb-3 leading-relaxed">Usamos bcrypt com factor de custo 12. As senhas nunca são armazenadas em texto simples. A comunicação é sempre via HTTPS.</p></details>
+        <details><summary class="flex items-center justify-between p-3 rounded-xl hover:bg-[#f9fafb] transition text-sm font-semibold" style="font-family:'Manrope',sans-serif">Posso usar em todos os telemóveis? <span class="material-symbols-outlined icon-xs text-gray-400">expand_more</span></summary><p class="text-sm text-gray-500 px-3 pb-3 leading-relaxed">Sim. A plataforma é totalmente responsiva e funciona em conexões lentas graças ao carregamento progressivo — optimizada para telemóveis moçambicanos.</p></details>
+      </div>
+    </div>
+    <!-- Contact -->
+    <div class="card p-5">
+      <div class="section-title text-base mb-3">Contacto</div>
+      <p class="text-sm text-gray-600 mb-3">Equipa MozTicTac · Beira, Moçambique</p>
+      <div class="flex gap-2">
+        <input type="text" placeholder="A tua mensagem para a equipa…" class="input flex-1 text-sm">
+        <button class="btn-primary text-sm px-4">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     LOGIN
+     ========================================================= -->
+<div id="page-login" class="page" style="min-height:80vh;display:none;align-items:center;justify-content:center">
+  <div class="w-full max-w-sm mx-auto px-4 py-8">
+    <div class="card p-7">
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#1db954,#2563eb)"><span class="material-symbols-outlined text-white icon-fill">shopping_bag</span></div>
+        <div class="section-title text-xl">Bem-vindo de volta</div>
+        <div class="text-sm text-gray-400 mt-1">Entra na tua conta MozTicTac</div>
+      </div>
+      <div class="space-y-3">
+        <div><label class="lbl">Email</label><input type="email" class="input" placeholder="email@exemplo.com"></div>
+        <div>
+          <label class="lbl">Senha</label>
+          <div class="relative"><input type="password" id="loginPwd" class="input pr-10" placeholder="••••••••"><button onclick="togglePwd('loginPwd')" class="absolute right-3 top-1/2 -translate-y-1/2 btn-ghost"><span class="material-symbols-outlined icon-sm">visibility</span></button></div>
+        </div>
+        <button onclick="showPage('home')" class="btn-primary w-full text-base py-3">Entrar</button>
+        <button onclick="showPage('home')" class="btn-outline w-full text-base py-3">Entrar como Visitante</button>
+      </div>
+      <p class="text-center text-sm text-gray-500 mt-4">Não tens conta? <button onclick="showPage('register')" class="font-bold" style="color:#1db954;font-family:'Manrope',sans-serif">Criar conta grátis</button></p>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     REGISTER
+     ========================================================= -->
+<div id="page-register" class="page" style="min-height:80vh">
+  <div class="max-w-sm mx-auto px-4 py-8">
+    <div class="card p-7">
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#1db954,#2563eb)"><span class="material-symbols-outlined text-white icon-fill">person_add</span></div>
+        <div class="section-title text-xl">Criar conta grátis</div>
+        <div class="text-sm text-gray-400 mt-1">Junta-te ao marketplace moçambicano</div>
+      </div>
+      <!-- Step indicator -->
+      <div class="flex items-center gap-2 mb-5">
+        <div id="step1dot" class="w-2 h-2 rounded-full" style="background:#1db954"></div>
+        <div class="flex-1 h-px bg-[#e8e8e2]"></div>
+        <div id="step2dot" class="w-2 h-2 rounded-full bg-[#e8e8e2]"></div>
+      </div>
+      <div id="regStep1" class="space-y-3">
+        <div><label class="lbl">Nome completo</label><input type="text" class="input" placeholder="O teu nome completo"></div>
+        <div><label class="lbl">Número de celular</label><input type="tel" class="input" placeholder="84X XXX XXX"></div>
+        <div><label class="lbl">Email</label><input type="email" class="input" placeholder="email@exemplo.com"></div>
+        <div>
+          <label class="lbl">Senha</label>
+          <div class="relative"><input type="password" id="regPwd" class="input pr-10" placeholder="Mínimo 8 caracteres"><button onclick="togglePwd('regPwd')" class="absolute right-3 top-1/2 -translate-y-1/2 btn-ghost"><span class="material-symbols-outlined icon-sm">visibility</span></button></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="lbl">Província</label><select class="select text-sm"><option value="">Selecciona</option><option>Maputo</option><option>Gaza</option><option>Inhambane</option><option>Sofala</option><option>Manica</option><option>Tete</option><option>Zambézia</option><option>Nampula</option><option>Niassa</option><option>Cabo Delgado</option></select></div>
+          <div><label class="lbl">Cidade</label><input type="text" class="input text-sm" placeholder="Ex: Beira"></div>
+        </div>
+        <div><label class="lbl">Bairro</label><input type="text" class="input" placeholder="Ex: Munhava"></div>
+        <div class="text-xs text-gray-400 p-2 bg-[#f9fafb] rounded-xl">ⓘ Não escolhes papel agora — todos começam como utilizador neutro e activam papéis depois.</div>
+        <button onclick="goOTP()" class="btn-primary w-full text-base py-3">Continuar</button>
+      </div>
+      <!-- OTP step -->
+      <div id="regStep2" class="hidden">
+        <div class="text-center mb-5">
+          <div class="section-title text-base mb-1">Verificação OTP</div>
+          <div class="text-sm text-gray-500">Introduz o código de 6 dígitos enviado para o teu email. <strong>Válido 10 minutos.</strong></div>
+        </div>
+        <div class="flex gap-2 justify-center mb-5" id="otpBoxes">
+          <input type="text" maxlength="1" class="otp-box" oninput="otpNext(this,0)">
+          <input type="text" maxlength="1" class="otp-box" oninput="otpNext(this,1)">
+          <input type="text" maxlength="1" class="otp-box" oninput="otpNext(this,2)">
+          <input type="text" maxlength="1" class="otp-box" oninput="otpNext(this,3)">
+          <input type="text" maxlength="1" class="otp-box" oninput="otpNext(this,4)">
+          <input type="text" maxlength="1" class="otp-box" oninput="otpNext(this,5)">
+        </div>
+        <button onclick="showPage('roles')" class="btn-primary w-full text-base py-3">Verificar e Entrar</button>
+        <div class="text-center mt-3 text-xs text-gray-400">Não recebeste? <button class="font-bold" style="color:#1db954;font-family:'Manrope',sans-serif">Reenviar código</button></div>
+      </div>
+      <p class="text-center text-sm text-gray-500 mt-4">Já tens conta? <button onclick="showPage('login')" class="font-bold" style="color:#1db954;font-family:'Manrope',sans-serif">Entrar</button></p>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     MY ROLES page
+     ========================================================= -->
+<div id="page-roles" class="page">
+  <div class="max-w-xl mx-auto px-4 py-8">
+    <div class="section-title text-xl mb-2">Meus Papéis</div>
+    <p class="text-sm text-gray-500 mb-6">Activa os papéis que queres desempenhar. Tudo na mesma conta, a mesma carteira, o mesmo histórico.</p>
+    <div class="space-y-4">
+      <div class="card p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:#dcfce7"><span class="material-symbols-outlined icon-fill" style="color:#1db954">shopping_bag</span></div>
+            <div><div class="section-title text-sm mb-1">Comprador</div><p class="text-xs text-gray-500 leading-relaxed">Acede à loja, pesquisa, filtra por província/cidade/preço/estado/tipo, compra com Venda Segura.</p></div>
+          </div>
+          <label class="toggle shrink-0"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+        </div>
+        <div class="mt-3 text-xs text-green-700 bg-green-50 rounded-lg px-3 py-1.5">✓ Sempre activo — não pode ser desactivado</div>
+      </div>
+      <div class="card p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:#dbeafe"><span class="material-symbols-outlined icon-fill" style="color:#2563eb">storefront</span></div>
+            <div><div class="section-title text-sm mb-1">Vendedor</div><p class="text-xs text-gray-500 leading-relaxed">Publica produtos e serviços, define preços com sugestão de IA, aceita afiliados, activa destaque pago.</p></div>
+          </div>
+          <label class="toggle shrink-0"><input type="checkbox" id="roleVendedor" onchange="toggleRoleMsg('roleVendedor','msgVendedor')"><span class="toggle-slider"></span></label>
+        </div>
+        <div id="msgVendedor" class="hidden mt-3 text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-1.5">✓ Papel de Vendedor activado — acesso imediato ao Painel do Vendedor</div>
+      </div>
+      <div class="card p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:#ffedd5"><span class="material-symbols-outlined icon-fill" style="color:#f97316">share</span></div>
+            <div><div class="section-title text-sm mb-1">Afiliado</div><p class="text-xs text-gray-500 leading-relaxed">Gera links únicos de 12 caracteres para produtos de outros vendedores e ganha comissão de 5%–20%.</p></div>
+          </div>
+          <label class="toggle shrink-0"><input type="checkbox" id="roleAfiliado" onchange="toggleRoleMsg('roleAfiliado','msgAfiliado')"><span class="toggle-slider"></span></label>
+        </div>
+        <div id="msgAfiliado" class="hidden mt-3 text-xs text-orange-700 bg-orange-50 rounded-lg px-3 py-1.5">✓ Papel de Afiliado activado — acesso imediato ao Painel de Afiliado</div>
+      </div>
+    </div>
+    <button onclick="showPage('home')" class="btn-primary w-full mt-6 text-base py-3">Entrar na plataforma</button>
+  </div>
+</div>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="bg-[#111827] text-white px-4 py-10 mt-4">
+  <div class="max-w-screen-xl mx-auto grid md:grid-cols-4 gap-8 mb-8">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1db954,#2563eb)"><span class="material-symbols-outlined text-white icon-xs icon-fill">shopping_bag</span></div>
+        <span style="font-family:'Manrope',sans-serif;font-weight:900;font-size:16px">Moz<span style="color:#1db954">Tic</span><span style="color:#2563eb">Tac</span></span>
+      </div>
+      <p class="text-sm text-gray-400 leading-relaxed">Marketplace digital 100% moçambicano. Beira, Moçambique · v1.0</p>
+    </div>
+    <div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#fff" class="mb-3">Plataforma</div>
+      <div class="space-y-2">
+        <button onclick="showPage('home')" class="block text-sm text-gray-400 hover:text-white transition">Início</button>
+        <button onclick="showPage('seller')" class="block text-sm text-gray-400 hover:text-white transition">Vender</button>
+        <button onclick="showPage('affiliate')" class="block text-sm text-gray-400 hover:text-white transition">Afiliados</button>
+        <button onclick="showPage('roles')" class="block text-sm text-gray-400 hover:text-white transition">Meus Papéis</button>
+        <button onclick="showPage('admin')" class="block text-sm text-gray-400 hover:text-white transition">Administração</button>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#fff" class="mb-3">Suporte</div>
+      <div class="space-y-2">
+        <button onclick="showPage('about')" class="block text-sm text-gray-400 hover:text-white transition">Sobre Nós</button>
+        <button onclick="showPage('about')" class="block text-sm text-gray-400 hover:text-white transition">FAQs</button>
+        <button onclick="showPage('about')" class="block text-sm text-gray-400 hover:text-white transition">Venda Segura</button>
+        <button class="block text-sm text-gray-400 hover:text-white transition">Política de Privacidade</button>
+        <button class="block text-sm text-gray-400 hover:text-white transition">Termos de Uso</button>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#fff" class="mb-3">Pagamentos</div>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="badge pay-mpesa">M-Pesa</span>
+        <span class="badge pay-emola">E-Mola</span>
+        <span class="badge pay-mkesh">mKesh</span>
+        <span class="badge pay-visa">Visa</span>
+      </div>
+      <div class="text-xs text-gray-500">Disponível nas 10 províncias de Moçambique · Preços em MZN</div>
+    </div>
+  </div>
+  <div class="border-t border-[#1f2937] pt-5 flex flex-col md:flex-row justify-between items-center gap-2">
+    <span class="text-xs text-gray-500">© 2026 MozTicTac. Todos os direitos reservados. Beira, Moçambique.</span>
+    <div class="accent-bar w-20 rounded-full"></div>
+  </div>
+</footer>
+
+<!-- AI CHAT FAB -->
+<button class="chat-fab" onclick="showPage('messages')">
+  <span class="material-symbols-outlined text-white icon-fill" style="font-size:26px">smart_toy</span>
+</button>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script>
+// ─── Data ───────────────────────────────────────────────────────────────────
+const PRODUCTS = [
+  {id:1,name:'Relógio Premium Swiss Made',price:4200,cat:'Electrónicos',prov:'Maputo',city:'Maputo',rating:4.9,reviews:124,img:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:true,affPct:10,featured:true},
+  {id:2,name:'Perfume Importado 100ml',price:1850,cat:'Acessórios',prov:'Sofala',city:'Beira',rating:4.7,reviews:86,img:'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:true,affPct:15,featured:true},
+  {id:3,name:'Ténis Nike Air Max 2024',price:3200,cat:'Sapatos',prov:'Nampula',city:'Nampula',rating:4.6,reviews:54,img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:false,featured:false},
+  {id:4,name:'Capulana Bordada Artesanal',price:450,cat:'Roupa',prov:'Maputo',city:'Maputo',rating:4.8,reviews:201,img:'https://images.unsplash.com/photo-1604252572049-e67879de9df8?w=400&q=80',state:'Novo',type:'Produto',delivery:false,affiliate:true,affPct:12,featured:false},
+  {id:5,name:'Samsung Galaxy A55 5G',price:8900,cat:'Celulares',prov:'Maputo',city:'Matola',rating:4.5,reviews:38,img:'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:true,affPct:8,featured:true},
+  {id:6,name:'Serviço de Cabeleireiro',price:350,cat:'Serviços',prov:'Sofala',city:'Beira',rating:5.0,reviews:67,img:'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80',state:'Novo',type:'Serviço',delivery:false,affiliate:false,featured:false},
+  {id:7,name:'Auscultadores Bluetooth Sony',price:1200,cat:'Electrónicos',prov:'Tete',city:'Tete',rating:4.4,reviews:29,img:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:true,affPct:10,featured:false},
+  {id:8,name:'Mochila Escolar Impermeável',price:680,cat:'Acessórios',prov:'Zambézia',city:'Quelimane',rating:4.6,reviews:112,img:'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:false,featured:false},
+  {id:9,name:'Caju Torrado Embalado 1kg',price:280,cat:'Alimentos',prov:'Cabo Delgado',city:'Pemba',rating:4.9,reviews:340,img:'https://images.unsplash.com/photo-1608093539340-2e0949cb3b08?w=400&q=80',state:'Novo',type:'Produto',delivery:true,affiliate:true,affPct:20,featured:false},
+  {id:10,name:'Sofá 3 Lugares Usado',price:5500,cat:'Outros',prov:'Gaza',city:'Xai-Xai',rating:4.2,reviews:8,img:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',state:'Usado',type:'Produto',delivery:false,affiliate:false,featured:false},
+];
+const CATS = ['Todos','Roupa','Celulares','Cabelos','Sapatos','Electrónicos','Acessórios','Alimentos','Serviços','Outros'];
+const NOTIFS = [
+  {icon:'shopping_bag',color:'#1db954',text:'Novo pedido recebido — Relógio Premium',time:'2 min'},
+  {icon:'payments',color:'#2563eb',text:'Pagamento confirmado pelo comprador',time:'15 min'},
+  {icon:'share',color:'#f97316',text:'Comissão de afiliado creditada: +420 MZN',time:'1h'},
+  {icon:'star',color:'#f59e0b',text:'Nova avaliação 5★ no teu produto',time:'3h'},
+];
+const WALLET_HIST = [
+  {type:'credit',icon:'arrow_downward',color:'#1db954',desc:'Venda confirmada — Relógio Premium',date:'24 Mar · 14h32',val:'+3.990 MZN'},
+  {type:'credit',icon:'share',color:'#f97316',desc:'Comissão afiliado — Ténis Nike',date:'22 Mar · 09h15',val:'+420 MZN'},
+  {type:'debit',icon:'campaign',color:'#2563eb',desc:'Destaque Pago — 7 dias',date:'21 Mar · 11h00',val:'-350 MZN'},
+  {type:'debit',icon:'arrow_upward',color:'#dc2626',desc:'Levantamento M-Pesa',date:'20 Mar · 08h30',val:'-5.000 MZN'},
+  {type:'credit',icon:'arrow_downward',color:'#1db954',desc:'Venda confirmada — Capulana Bordada',date:'18 Mar · 16h44',val:'+427 MZN'},
+];
+const CONVS = [
+  {name:'João Machava',init:'JM',grad:'#1db954,#2563eb',last:'A entrega é amanhã de manhã cedo!',time:'14:27',unread:1,product:'Relógio Premium'},
+  {name:'Maria Simango',init:'MS',grad:'#f97316,#dc2626',last:'Ainda tens stock do perfume?',time:'Ontem',unread:0,product:'Perfume Importado'},
+];
+const CHAT_MSGS = [
+  {out:false,text:'Olá! Tenho interesse no relógio. Ainda está disponível?',time:'14:20'},
+  {out:true,text:'Sim, está disponível! Temos em stock. Posso fazer entrega em Maputo.',time:'14:22'},
+  {out:false,text:'Qual o prazo de entrega na Polana?',time:'14:24'},
+  {out:true,text:'Entrega no mesmo dia se pagar antes das 14h, senão no dia seguinte de manhã.',time:'14:25'},
+  {out:false,text:'Combinado! Vou fazer a encomenda agora pelo M-Pesa.',time:'14:26'},
+  {out:true,text:'A entrega é amanhã de manhã cedo!',time:'14:27'},
+];
+const ORDERS = [
+  {code:'MOZ-2847',product:'Relógio Premium',img:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&q=80',seller:'João M.',city:'Maputo',state:'shipped',val:4200,date:'24 Mar'},
+  {code:'MOZ-2831',product:'Capulana Bordada',img:'https://images.unsplash.com/photo-1604252572049-e67879de9df8?w=80&q=80',seller:'Fatima C.',city:'Maputo',state:'delivered',val:450,date:'18 Mar'},
+  {code:'MOZ-2810',product:'Mochila Escolar',img:'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=80&q=80',seller:'Pedro N.',city:'Quelimane',state:'pending',val:680,date:'15 Mar'},
+  {code:'MOZ-2789',product:'Auscultadores Sony',img:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=80&q=80',seller:'Luis T.',city:'Tete',state:'cancelled',val:1200,date:'10 Mar'},
+];
+const STATE_LABELS = {pending:'Pendente',paid:'Pago',processing:'Em Processamento',shipped:'Enviado',delivered:'Entregue',cancelled:'Cancelado'};
+const STATE_CSS = {pending:'state-pending',paid:'state-paid',processing:'state-processing',shipped:'state-shipped',delivered:'state-delivered',cancelled:'state-cancelled'};
+
+// ─── Page routing ────────────────────────────────────────────────────────────
+const PAGES = ['home','product','buyer','seller','affiliate','wallet','cart','messages','profile','admin','about','login','register','roles'];
+function showPage(name) {
+  PAGES.forEach(p => {
+    const el = document.getElementById('page-'+p);
+    if (el) { el.classList.remove('active'); el.style.display='none'; }
+  });
+  const t = document.getElementById('page-'+name);
+  if (!t) return;
+  t.classList.add('active');
+  t.style.display = (name==='login') ? 'flex' : 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── Stars renderer ──────────────────────────────────────────────────────────
+function starsHTML(r,id) {
+  let h='';
+  for(let i=1;i<=5;i++){
+    if(i<=Math.floor(r)) h+=`<span class="material-symbols-outlined star-fill">star</span>`;
+    else if(i-r<1) h+=`<span class="material-symbols-outlined star-half">star_half</span>`;
+    else h+=`<span class="material-symbols-outlined star-empty">star</span>`;
+  }
+  if(id){ const el=document.getElementById(id); if(el) el.innerHTML=h; }
+  return h;
+}
+
+// ─── Category bar ────────────────────────────────────────────────────────────
+function buildCats() {
+  const row = document.getElementById('catRow');
+  if(!row) return;
+  CATS.forEach((c,i)=>{
+    const b = document.createElement('button');
+    b.className='chip'+(i===0?' active':'');
+    b.textContent=c;
+    b.onclick=()=>{ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); filterByCategory(c); };
+    row.appendChild(b);
+  });
+}
+let activeCat = 'Todos';
+function filterByCategory(cat){ activeCat=cat; filterProducts(); }
+
+// ─── Product card ────────────────────────────────────────────────────────────
+function productCardHTML(p){
+  const buyerPrice = (p.price * 1.05).toLocaleString('pt-MZ',{maximumFractionDigits:0});
+  return `
+  <div class="card card-hover overflow-hidden" onclick="showPage('product')">
+    <div class="relative">
+      <img src="${p.img}" class="w-full aspect-square object-cover" loading="lazy" alt="${p.name}">
+      ${p.featured?'<div class="absolute top-2 left-2"><span class="badge badge-blue" style="font-size:10px">Anúncio</span></div>':''}
+      ${p.state==='Usado'?'<div class="absolute top-2 right-8"><span class="badge badge-yellow" style="font-size:10px">Usado</span></div>':''}
+      ${p.type==='Serviço'?'<div class="absolute bottom-2 left-2"><span class="badge badge-purple" style="font-size:10px">Serviço</span></div>':''}
+      ${p.affiliate?`<div class="absolute bottom-2 right-2"><span class="badge badge-orange" style="font-size:10px">${p.affPct}% Aff.</span></div>`:''}
+      <button class="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow hover:text-red-500 transition" style="color:#9ca3af">
+        <span class="material-symbols-outlined" style="font-size:15px">favorite</span>
+      </button>
+    </div>
+    <div class="p-3">
+      <div class="text-xs text-gray-400 mb-0.5">${p.cat} · ${p.city}</div>
+      <div class="font-semibold text-dark text-sm mb-1 line-clamp-1" style="font-family:'Manrope',sans-serif">${p.name}</div>
+      <div class="flex items-center gap-1 mb-1.5">${starsHTML(p.rating)}<span class="text-xs text-gray-400">(${p.reviews})</span></div>
+      <div class="flex items-center justify-between">
+        <div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:14px;color:#111827">${p.price.toLocaleString('pt')} <span style="font-size:10px;color:#6b7280;font-weight:400">MZN</span></div>
+          ${p.delivery?'<div class="text-[10px] text-green-600 flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:11px">local_shipping</span>Entrega</div>':''}
+        </div>
+        <button class="btn-primary text-xs px-2.5 py-1.5">Comprar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── Render product grid ─────────────────────────────────────────────────────
+function filterProducts(){
+  const prov  = document.getElementById('filterProv')?.value||'';
+  const fMin  = parseFloat(document.getElementById('fMin')?.value)||0;
+  const fMax  = parseFloat(document.getElementById('fMax')?.value)||Infinity;
+  const fState= document.querySelector('[name=fstate]:checked')?.value||'';
+  const fType = document.querySelector('[name=ftype]:checked')?.value||'';
+  const fDel  = document.getElementById('fDelivery')?.checked||false;
+  const fAff  = document.getElementById('fAffiliate')?.checked||false;
+  const q     = (document.getElementById('searchInput')?.value||'').toLowerCase();
+
+  let res = PRODUCTS.filter(p=>{
+    if(activeCat!=='Todos' && p.cat!==activeCat) return false;
+    if(prov && p.prov!==prov) return false;
+    if(p.price<fMin || p.price>fMax) return false;
+    if(fState && p.state!==fState) return false;
+    if(fType && p.type!==fType) return false;
+    if(fDel && !p.delivery) return false;
+    if(fAff && !p.affiliate) return false;
+    if(q && !p.name.toLowerCase().includes(q) && !p.cat.toLowerCase().includes(q) && !p.city.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const grid = document.getElementById('productGrid');
+  const empty = document.getElementById('emptyState');
+  if(!grid) return;
+  if(res.length===0){ grid.innerHTML=''; if(empty) empty.classList.remove('hidden'); }
+  else { if(empty) empty.classList.add('hidden'); grid.innerHTML=res.map(productCardHTML).join(''); }
+  document.getElementById('gridTitle').textContent = activeCat==='Todos'?`Todos os Produtos (${res.length})`:`${activeCat} (${res.length})`;
+}
+function liveSearch(v){ filterProducts(); }
+function resetFilters(){
+  document.getElementById('filterProv').value='';
+  document.getElementById('fMin').value='';
+  document.getElementById('fMax').value='';
+  document.querySelector('[name=fstate][value=""]').checked=true;
+  document.querySelector('[name=ftype][value=""]').checked=true;
+  document.getElementById('fDelivery').checked=false;
+  document.getElementById('fAffiliate').checked=false;
+  filterProducts();
+}
+
+// ─── Featured strip ──────────────────────────────────────────────────────────
+function buildFeatured(){
+  const strip = document.getElementById('featuredStrip');
+  if(!strip) return;
+  PRODUCTS.filter(p=>p.featured).forEach(p=>{
+    strip.innerHTML+=`
+    <div class="card shrink-0 w-44 card-hover overflow-hidden" onclick="showPage('product')">
+      <img src="${p.img}" class="w-full h-28 object-cover">
+      <div class="p-2.5"><div class="text-xs text-gray-500 truncate">${p.name}</div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:#111827">${p.price.toLocaleString('pt')} MZN</div>
+      <span class="badge badge-blue" style="font-size:9px">Anúncio</span></div>
+    </div>`;
+  });
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+function buildNotifs(){
+  const list = document.getElementById('notifList');
+  if(!list) return;
+  list.innerHTML = NOTIFS.map(n=>`
+    <div class="flex items-start gap-3 px-4 py-3 hover:bg-[#f9fafb] transition cursor-pointer">
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background:${n.color}20">
+        <span class="material-symbols-outlined icon-fill" style="color:${n.color};font-size:16px">${n.icon}</span>
+      </div>
+      <div class="flex-1 min-w-0"><div class="text-sm text-dark leading-snug">${n.text}</div><div class="text-xs text-gray-400 mt-0.5">${n.time} atrás</div></div>
+      <div class="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0"></div>
+    </div>`).join('');
+}
+function toggleNotif(){
+  const p=document.getElementById('notifPanel');
+  p.classList.toggle('hidden');
+}
+document.addEventListener('click',e=>{ const btn=document.getElementById('notifBtn'); const panel=document.getElementById('notifPanel'); if(btn&&panel&&!btn.contains(e.target)&&!panel.contains(e.target)) panel.classList.add('hidden'); });
+
+// ─── Wallet history ──────────────────────────────────────────────────────────
+function buildWallet(){
+  const h = document.getElementById('walletHistory');
+  if(!h) return;
+  h.innerHTML = WALLET_HIST.map(t=>`
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:${t.color}15">
+        <span class="material-symbols-outlined icon-fill" style="color:${t.color};font-size:18px">${t.icon}</span>
+      </div>
+      <div class="flex-1"><div class="text-sm font-semibold text-dark" style="font-family:'Manrope',sans-serif">${t.desc}</div><div class="text-xs text-gray-400">${t.date}</div></div>
+      <div class="font-bold" style="font-family:'Manrope',sans-serif;color:${t.type==='credit'?'#1db954':'#dc2626'}">${t.val}</div>
+    </div>`).join('');
+}
+
+// ─── Chat ────────────────────────────────────────────────────────────────────
+function buildChat(){
+  const msgs = document.getElementById('chatMessages');
+  if(!msgs) return;
+  msgs.innerHTML = CHAT_MSGS.map(m=>`
+    <div class="flex ${m.out?'justify-end':'justify-start'}">
+      <div class="${m.out?'msg-out':'msg-in'} px-4 py-2.5 max-w-xs">
+        <p class="text-sm">${m.text}</p>
+        <div class="text-[10px] mt-1 ${m.out?'text-white/60':'text-gray-400'} text-right">${m.time}</div>
+      </div>
+    </div>`).join('');
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const convs = document.getElementById('convList');
+  if(!convs) return;
+  convs.innerHTML = CONVS.map((c,i)=>`
+    <div class="flex items-center gap-3 px-4 py-3 hover:bg-[#f9fafb] cursor-pointer transition ${i===0?'bg-[#f0fdf4]':''}">
+      <div class="avatar w-9 h-9 text-white text-sm shrink-0" style="background:linear-gradient(135deg,${c.grad})">${c.init}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex justify-between"><span class="text-sm font-bold text-dark" style="font-family:'Manrope',sans-serif">${c.name}</span><span class="text-xs text-gray-400">${c.time}</span></div>
+        <div class="text-xs text-gray-500 truncate">${c.last}</div>
+      </div>
+      ${c.unread?`<span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold">${c.unread}</span>`:''}
+    </div>`).join('');
+}
+let chatLog = [...CHAT_MSGS];
+function sendMsg(){
+  const inp = document.getElementById('chatInput');
+  const v = inp?.value?.trim();
+  if(!v) return;
+  chatLog.push({out:true,text:v,time:new Date().toLocaleTimeString('pt',{hour:'2-digit',minute:'2-digit'})});
+  const msgs = document.getElementById('chatMessages');
+  if(msgs){ msgs.innerHTML+=`<div class="flex justify-end"><div class="msg-out px-4 py-2.5 max-w-xs"><p class="text-sm">${v}</p><div class="text-[10px] mt-1 text-white/60 text-right">${chatLog[chatLog.length-1].time}</div></div></div>`; msgs.scrollTop=msgs.scrollHeight; }
+  inp.value='';
+  // Simulate typing indicator
+  const ti = document.getElementById('typingIndicator');
+  if(ti){ ti.classList.remove('hidden'); setTimeout(()=>ti.classList.add('hidden'),2000); }
+}
+
+// ─── Buyer orders ────────────────────────────────────────────────────────────
+function buildBuyerOrders(){
+  const el = document.getElementById('buyerOrders');
+  if(!el) return;
+  el.innerHTML = ORDERS.map(o=>`
+    <div class="card p-4 flex items-center gap-4 flex-wrap">
+      <img src="${o.img}" class="w-14 h-14 rounded-xl object-cover shrink-0">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-dark text-sm" style="font-family:'Manrope',sans-serif">${o.product}</div>
+        <div class="text-xs text-gray-400">Pedido #${o.code} · ${o.seller} · ${o.date}</div>
+      </div>
+      <span class="badge ${STATE_CSS[o.state]}">${STATE_LABELS[o.state]}</span>
+      <div class="font-bold text-dark" style="font-family:'Manrope',sans-serif">${o.val.toLocaleString('pt')} MZN</div>
+      ${o.state==='shipped'?`<button class="btn-primary text-xs px-3 py-2">Confirmar Entrega</button>`:''}
+    </div>`).join('');
+}
+function filterOrders(btn, state){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('buyerOrders');
+  if(!el) return;
+  const filtered = state==='all'?ORDERS:ORDERS.filter(o=>o.state===state);
+  if(filtered.length===0){ el.innerHTML='<div class="text-center py-12 text-gray-400 text-sm">Nenhum pedido neste estado.</div>'; return; }
+  el.innerHTML = filtered.map(o=>`
+    <div class="card p-4 flex items-center gap-4 flex-wrap">
+      <img src="${o.img}" class="w-14 h-14 rounded-xl object-cover shrink-0">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-dark text-sm" style="font-family:'Manrope',sans-serif">${o.product}</div>
+        <div class="text-xs text-gray-400">Pedido #${o.code} · ${o.seller} · ${o.date}</div>
+      </div>
+      <span class="badge ${STATE_CSS[o.state]}">${STATE_LABELS[o.state]}</span>
+      <div class="font-bold text-dark" style="font-family:'Manrope',sans-serif">${o.val.toLocaleString('pt')} MZN</div>
+      ${o.state==='shipped'?`<div class="w-full mt-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200 text-xs" style="color:#854d0e"><span class="material-symbols-outlined icon-xs">warning</span> O produto foi enviado. Confirma a entrega para libertar o pagamento ao vendedor.</div><button class="btn-primary text-xs px-3 py-2">Confirmar Entrega</button>`:''}
+    </div>`).join('');
+}
+
+// ─── Seller tabs ─────────────────────────────────────────────────────────────
+function selTab(btn, id){
+  document.querySelectorAll('.seller-tab').forEach(b=>{ b.style.color='#6b7280'; b.style.borderColor='transparent'; });
+  btn.style.color='#2563eb'; btn.style.borderColor='#2563eb';
+  ['sprods','spublish','ssales','sfeatured'].forEach(t=>{ const el=document.getElementById('tab-'+t); if(el) el.classList.toggle('hidden',t!==id); });
+  if(id==='sprods') buildSellerProducts();
+  if(id==='ssales') buildSellerSales();
+}
+function buildSellerProducts(){
+  const el=document.getElementById('tab-sprods');
+  if(!el) return;
+  el.innerHTML='<div class="space-y-3">'+PRODUCTS.slice(0,5).map(p=>`
+    <div class="card p-4 flex items-center gap-4">
+      <img src="${p.img}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+      <div class="flex-1 min-w-0"><div class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${p.name}</div><div class="text-xs text-gray-400">${p.cat} · ${p.city} · ${p.type}</div></div>
+      <div class="text-sm font-bold text-dark" style="font-family:'Manrope',sans-serif">${p.price.toLocaleString('pt')} MZN</div>
+      <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+    </div>`).join('')+'</div>';
+}
+function buildSellerSales(){
+  const el=document.getElementById('tab-ssales');
+  if(!el) return;
+  el.innerHTML = ORDERS.map(o=>`
+    <div class="card p-4 flex items-center gap-4 flex-wrap">
+      <img src="${o.img}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${o.product}</div>
+        <div class="text-xs text-gray-400">#${o.code} · ${o.date}</div>
+      </div>
+      <span class="badge ${STATE_CSS[o.state]} text-xs">${STATE_LABELS[o.state]}</span>
+      <div class="text-sm font-bold" style="font-family:'Manrope',sans-serif;color:#1db954">+${Math.round(o.val*0.95).toLocaleString('pt')} MZN <span class="text-xs text-gray-400 font-normal">(líquido)</span></div>
+      ${o.state==='paid'?'<button class="btn-secondary text-xs px-3 py-1.5">Marcar Enviado</button>':''}
+      ${o.state==='shipped'?'<span class="text-xs text-orange-500 font-semibold">Aguarda confirmação do comprador</span>':''}
+    </div>`).join('');
+}
+
+// ─── Seller publish helpers ──────────────────────────────────────────────────
+function calcBuyerPrice(){
+  const v = parseFloat(document.getElementById('sellerPrice')?.value)||0;
+  const el = document.getElementById('buyerPricePreview');
+  if(el) el.textContent = v>0 ? `Comprador pagará: ${(v*1.05).toLocaleString('pt-MZ',{maximumFractionDigits:0})} MZN (inclui 5% taxa plataforma)` : '';
+}
+let aiSuggPrices = [3800,4500];
+function aiPriceSuggest(){
+  const box = document.getElementById('aiSuggestionBox');
+  const txt = document.getElementById('aiSuggestionText');
+  if(!box||!txt) return;
+  box.classList.remove('hidden');
+  txt.textContent='A analisar o produto para o mercado moçambicano…';
+  setTimeout(()=>{
+    aiSuggPrices=[3800+Math.floor(Math.random()*500),4500+Math.floor(Math.random()*500)];
+    txt.textContent=`Sugestão: ${aiSuggPrices[0].toLocaleString('pt')}–${aiSuggPrices[1].toLocaleString('pt')} MZN. Com base em produtos similares da categoria Electrónicos em Moçambique. Considere a demanda sazonal e concorrência em Maputo.`;
+  },1500);
+}
+function acceptAiPrice(){ const inp=document.getElementById('sellerPrice'); if(inp){ inp.value=aiSuggPrices[0]; calcBuyerPrice(); } }
+function toggleAtacado(){ document.getElementById('atacadoFields').classList.toggle('hidden', !document.getElementById('enableAtacado').checked); }
+function toggleAff(){ document.getElementById('affFields').classList.toggle('hidden', !document.getElementById('enableAff').checked); }
+function submitProduct(){
+  document.getElementById('moderationWarning').classList.add('hidden');
+  setTimeout(()=>{ alert('✓ Produto publicado com sucesso!'); showPage('seller'); },600);
+}
+
+// ─── Affiliate panel ─────────────────────────────────────────────────────────
+function buildAffiliate(){
+  const links = document.getElementById('affLinks');
+  const sugg  = document.getElementById('affSuggestions');
+  if(!links||!sugg) return;
+  links.innerHTML = PRODUCTS.filter(p=>p.affiliate).slice(0,3).map(p=>`
+    <div class="card p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="${p.img}" class="w-10 h-10 rounded-xl object-cover shrink-0">
+        <div class="flex-1"><div class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${p.name}</div><div class="text-xs text-gray-400">${p.city}</div></div>
+        <span class="badge badge-orange">${p.affPct}%</span>
+      </div>
+      <div class="bg-[#f9fafb] rounded-xl p-2 font-mono text-xs text-gray-500 mb-2">moztictac.mz/p/${p.name.replace(/\s/g,'-').toLowerCase().slice(0,12)}?ref=<span style="color:#f97316;font-weight:700">ANA82KP9XBTU</span></div>
+      <div class="flex gap-2 text-xs">
+        <span class="text-gray-500">Cliques: <strong style="color:#111827">82</strong></span>
+        <span class="text-gray-500">Vendas: <strong style="color:#111827">6</strong></span>
+        <span class="text-gray-500">Conversão: <strong style="color:#1db954">7.3%</strong></span>
+        <span class="text-gray-500 ml-auto">Ganho: <strong style="color:#f97316">420 MZN</strong></span>
+      </div>
+      <div class="flex gap-2 mt-2"><button class="btn-outline flex-1 text-xs py-1.5">Copiar link</button><button class="btn-accent flex-1 text-xs py-1.5">WhatsApp</button></div>
+    </div>`).join('');
+
+  sugg.innerHTML = PRODUCTS.filter(p=>p.affiliate).map(p=>`
+    <div class="card p-4 flex items-center gap-3">
+      <img src="${p.img}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+      <div class="flex-1">
+        <div class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${p.name}</div>
+        <div class="text-xs text-gray-400">${p.price.toLocaleString('pt')} MZN · ${p.city} · ${p.reviews} vendas</div>
+      </div>
+      <div class="text-center mr-2"><div style="font-family:'Manrope',sans-serif;font-weight:900;font-size:16px;color:#f97316">${p.affPct}%</div><div class="text-xs text-gray-400">comissão</div></div>
+      <button class="btn-accent text-xs px-3 py-2">Gerar Link</button>
+    </div>`).join('');
+}
+
+// ─── Cart ────────────────────────────────────────────────────────────────────
+function buildCart(){
+  const el = document.getElementById('cartItems');
+  if(!el) return;
+  const items = PRODUCTS.slice(0,3);
+  el.innerHTML = items.map((p,i)=>`
+    <div class="card p-4 flex items-center gap-4">
+      <img src="${p.img}" class="w-16 h-16 rounded-xl object-cover shrink-0">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${p.name}</div>
+        <div class="text-xs text-gray-400">${p.city}</div>
+        <div class="flex items-center gap-2 mt-2">
+          <button onclick="changeCartQty(${i},-1)" class="w-7 h-7 border border-[#e8e8e2] rounded-lg flex items-center justify-center hover:border-primary transition font-bold">-</button>
+          <span class="text-sm w-5 text-center" id="cqty${i}" style="font-family:'Manrope',sans-serif;font-weight:700">1</span>
+          <button onclick="changeCartQty(${i},1)" class="w-7 h-7 border border-[#e8e8e2] rounded-lg flex items-center justify-center hover:border-primary transition font-bold">+</button>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="font-bold text-dark" style="font-family:'Manrope',sans-serif">${p.price.toLocaleString('pt')} MZN</div>
+        <button class="text-xs text-danger mt-1 hover:underline transition">Remover</button>
+      </div>
+    </div>`).join('');
+}
+function changeCartQty(i,d){ const el=document.getElementById('cqty'+i); if(!el) return; let v=parseInt(el.textContent)+d; if(v<1)v=1; el.textContent=v; }
+
+// ─── Admin tabs ──────────────────────────────────────────────────────────────
+function adminTab(name){
+  ['overview','users','products','orders'].forEach(t=>{ const el=document.getElementById('atab-'+t); if(el) el.classList.toggle('hidden',t!==name); const nav=document.getElementById('anav-'+t); if(nav) nav.classList.toggle('active',t===name); });
+  const titles={overview:'Visão Geral',users:'Utilizadores',products:'Produtos',orders:'Pedidos'};
+  document.getElementById('adminTitle').textContent=titles[name]||'Admin';
+  if(name==='users') buildAdminUsers();
+  if(name==='products') buildAdminProducts();
+  if(name==='orders') buildAdminOrders();
+}
+function buildAdminUsers(){
+  const tb=document.getElementById('adminUsersTable');
+  if(!tb) return;
+  const sample=[{name:'Ana Machava',email:'ana@exemplo.com',type:'Vendedor',city:'Maputo',verified:true,active:true,date:'01 Jan'},{name:'João Machava',email:'joao@exemplo.com',type:'Comprador',city:'Beira',verified:true,active:true,date:'15 Jan'},{name:'Maria Simango',email:'maria@exemplo.com',type:'Afiliado',city:'Nampula',verified:false,active:true,date:'20 Fev'}];
+  tb.innerHTML=sample.map(u=>`<tr class="hover:bg-[#f9fafb] cursor-pointer" onclick="document.getElementById('userModal').classList.add('open')">
+    <td class="px-4 py-3"><div class="flex items-center gap-2"><div class="avatar w-7 h-7 text-white text-xs" style="background:linear-gradient(135deg,#1db954,#2563eb)">${u.name.slice(0,2)}</div><span class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${u.name}</span></div></td>
+    <td class="px-4 py-3 text-xs text-gray-500">${u.email}</td>
+    <td class="px-4 py-3"><span class="badge ${u.type==='Vendedor'?'badge-blue':u.type==='Afiliado'?'badge-orange':'badge-green'}">${u.type}</span></td>
+    <td class="px-4 py-3 text-xs text-gray-500">${u.city}</td>
+    <td class="px-4 py-3">${u.verified?'<span class="badge badge-green">✓ Verificado</span>':'<span class="badge badge-gray">Pendente</span>'}</td>
+    <td class="px-4 py-3 text-xs text-gray-500">${u.date}</td>
+    <td class="px-4 py-3"><button class="btn-outline text-xs px-2 py-1">${u.active?'Desactivar':'Activar'}</button></td>
+  </tr>`).join('');
+}
+function buildAdminProducts(){
+  const tb=document.getElementById('adminProductsTable');
+  if(!tb) return;
+  tb.innerHTML=PRODUCTS.slice(0,6).map(p=>`<tr class="hover:bg-[#f9fafb]">
+    <td class="px-4 py-3"><div class="flex items-center gap-2"><img src="${p.img}" class="w-8 h-8 rounded-lg object-cover"><span class="text-sm font-semibold text-dark" style="font-family:'Manrope',sans-serif">${p.name}</span></div></td>
+    <td class="px-4 py-3 text-xs text-gray-500">${p.cat}</td>
+    <td class="px-4 py-3 text-xs text-gray-500">João M.</td>
+    <td class="px-4 py-3 text-xs font-bold text-dark" style="font-family:'Manrope',sans-serif">${p.price.toLocaleString('pt')} MZN</td>
+    <td class="px-4 py-3 text-xs text-gray-500">${p.reviews}</td>
+    <td class="px-4 py-3"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+  </tr>`).join('');
+}
+function buildAdminOrders(){
+  const el=document.getElementById('adminOrdersList');
+  if(!el) return;
+  el.innerHTML=ORDERS.map(o=>`
+    <div class="bg-white rounded-xl p-4 border border-[#e2e8f0] flex items-center gap-4 flex-wrap">
+      <img src="${o.img}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+      <div class="flex-1 min-w-0"><div class="font-semibold text-sm text-dark" style="font-family:'Manrope',sans-serif">${o.product}</div><div class="text-xs text-gray-400">#${o.code} · ${o.seller} → Comprador · ${o.date}</div></div>
+      <span class="badge ${STATE_CSS[o.state]}">${STATE_LABELS[o.state]}</span>
+      <div class="text-sm font-bold text-dark" style="font-family:'Manrope',sans-serif">${o.val.toLocaleString('pt')} MZN</div>
+      ${o.state==='shipped'||o.state==='paid'?`<button class="btn-danger text-xs px-3 py-1.5">Forçar Libertação Escrow</button>`:''}
+    </div>`).join('');
+}
+function buildAdminCharts(){
+  const orderStates=[{label:'Entregue',n:18420,color:'#1db954'},{label:'Enviado',n:2310,color:'#f97316'},{label:'Em Processamento',n:1840,color:'#7c3aed'},{label:'Pago',n:980,color:'#2563eb'},{label:'Pendente',n:620,color:'#f59e0b'},{label:'Cancelado',n:321,color:'#dc2626'}];
+  const ob=document.getElementById('ordersBars');
+  if(ob){ const max=orderStates[0].n; ob.innerHTML=orderStates.map(s=>`<div><div class="flex justify-between text-xs mb-0.5"><span class="text-gray-600">${s.label}</span><span class="font-bold" style="font-family:'Manrope',sans-serif;color:${s.color}">${s.n.toLocaleString()}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${(s.n/max*100).toFixed(0)}%;background:${s.color}"></div></div></div>`).join(''); }
+  const userTypes=[{label:'Compradores',n:9842,color:'#1db954'},{label:'Vendedores',n:1820,color:'#2563eb'},{label:'Afiliados',n:1204,color:'#f97316'},{label:'Admins',n:3,color:'#dc2626'}];
+  const ub=document.getElementById('usersBars');
+  if(ub){ const max2=userTypes[0].n; ub.innerHTML=userTypes.map(u=>`<div><div class="flex justify-between text-xs mb-0.5"><span class="text-gray-600">${u.label}</span><span class="font-bold" style="font-family:'Manrope',sans-serif;color:${u.color}">${u.n.toLocaleString()}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${(u.n/max2*100).toFixed(0)}%;background:${u.color}"></div></div></div>`).join(''); }
+  const tp=document.getElementById('topProductsTable');
+  if(tp){ tp.innerHTML=PRODUCTS.slice(0,5).map(p=>`<tr class="hover:bg-[#f9fafb]"><td class="py-2 px-2"><div class="flex items-center gap-2"><img src="${p.img}" class="w-8 h-8 rounded-lg object-cover">${p.name}</div></td><td class="py-2 px-2 text-xs text-gray-500">${p.cat}</td><td class="py-2 px-2 text-xs text-gray-500">João M.</td><td class="py-2 px-2 text-xs font-bold" style="font-family:'Manrope',sans-serif">${p.price.toLocaleString('pt')} MZN</td><td class="py-2 px-2 text-xs text-gray-500">${p.reviews}</td><td class="py-2 px-2">${starsHTML(p.rating)}</td></tr>`).join(''); }
+}
+
+// ─── Qty / misc helpers ──────────────────────────────────────────────────────
+let qty=1;
+function changeQty(d){ qty=Math.max(1,qty+d); const el=document.getElementById('qtyVal'); if(el) el.textContent=qty; }
+function changeImg(img){ const m=document.getElementById('mainImg'); if(m) m.src=img.src.replace('120','600'); document.querySelectorAll('[onclick^="changeImg"]').forEach(i=>i.style.borderColor='#e8e8e2'); img.style.borderColor='#1db954'; }
+function togglePwd(id){ const inp=document.getElementById(id); if(inp) inp.type=inp.type==='password'?'text':'password'; }
+function toggleRoleMsg(checkId, msgId){ const cb=document.getElementById(checkId); const msg=document.getElementById(msgId); if(msg) msg.classList.toggle('hidden',!cb.checked); }
+
+// ─── OTP flow ────────────────────────────────────────────────────────────────
+function goOTP(){ document.getElementById('regStep1').classList.add('hidden'); document.getElementById('regStep2').classList.remove('hidden'); document.getElementById('step2dot').style.background='#1db954'; }
+const otpInputs = ()=>document.querySelectorAll('.otp-box');
+function otpNext(inp,i){ if(inp.value.length===1){ const all=otpInputs(); if(i<5) all[i+1].focus(); } }
+
+// ─── Scroll fade ─────────────────────────────────────────────────────────────
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); } }),{threshold:.12});
+document.querySelectorAll('.fade-up').forEach(el=>io.observe(el));
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+buildCats();
+buildFeatured();
+filterProducts();
+buildNotifs();
+buildWallet();
+buildCart();
+buildChat();
+buildBuyerOrders();
+buildSellerProducts();
+buildAffiliate();
+buildAdminCharts();
+
+// Stars in various places
+starsHTML(5,'stars1'); starsHTML(5,'stars2'); starsHTML(5,'stars3');
+starsHTML(4.9,'detailStars'); starsHTML(5,'rev1'); starsHTML(4.8,'rev2');
+</script>
+</body>
+</html>
