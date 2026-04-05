@@ -1,44 +1,70 @@
-import { NAV_LINKS, GREEN } from "../data/constants";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  LayoutGrid, Home, ShoppingBag, Store,
+  Share2, HelpCircle, Info, ChevronDown,
+} from "lucide-react";
 
-/**
- * Navbar — green navigation bar with category dropdown trigger and nav links.
- */
-export function Navbar() {
+const VERDE = "#00b96b";
+
+const LINKS_NAV = [
+  { rotulo: "Início",    Icone: Home,        temSeta: false, para: "/" },
+  { rotulo: "Comprar",   Icone: ShoppingBag, temSeta: true,  para: "/comprar" },
+  { rotulo: "Vender",    Icone: Store,       temSeta: true,  para: "/vender" },
+  { rotulo: "Afiliados", Icone: Share2,      temSeta: true,  para: "/afiliados" },
+  { rotulo: "Ajuda",     Icone: HelpCircle,  temSeta: false, para: "/ajuda" },
+  { rotulo: "Sobre Nós", Icone: Info,        temSeta: false, para: "/sobre-nos" },
+];
+
+export function Navbar({ aoClicarCategorias }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
-    <nav className="text-white text-sm" style={{ background: GREEN }}>
+    <nav className="text-white text-sm" style={{ background: VERDE }}>
       <div className="max-w-7xl mx-auto px-4 flex items-stretch">
 
-        {/* Category button */}
+        {/* Categorias */}
         <button
-          className="flex items-center gap-2 px-5 py-3 font-semibold text-sm shrink-0 border-none text-white cursor-pointer"
-          style={{ background: "rgba(0,0,0,.12)" }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,.2)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(0,0,0,.12)")}
+          onClick={aoClicarCategorias}
+          className="flex items-center gap-2 px-5 py-3 font-semibold text-sm"
+          style={{ background: "rgba(0,0,0,.15)" }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
-          Shopping By Categories ▾
+          <LayoutGrid size={16} />
+          Categorias
+          <ChevronDown size={13} />
         </button>
 
-        {/* Nav links */}
-        {NAV_LINKS.map((link) => (
-          <a
-            key={link}
-            href="#"
-            className="flex items-center gap-1 px-4 py-3 font-medium text-white"
-            style={{ textDecoration: "none" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,.12)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
-            {link}
-            {link !== "Buy" && (
-              <svg className="w-3 h-3 opacity-70" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            )}
-          </a>
-        ))}
+        {/* LINKS */}
+        {LINKS_NAV.map(({ rotulo, Icone, temSeta, para }) => {
+          const activo = location.pathname === para;
+
+          return (
+            <button
+              key={rotulo}
+              onClick={() => navigate(para)}
+              className="flex items-center gap-1.5 px-4 py-3 font-medium relative transition-colors"
+              style={{
+                color: "white",
+                background: activo ? "rgba(0,0,0,.2)" : "transparent"
+              }}
+              onMouseEnter={e => {
+                if (!activo) e.currentTarget.style.background = "rgba(0,0,0,.15)";
+              }}
+              onMouseLeave={e => {
+                if (!activo) e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <Icone size={15} />
+              {rotulo}
+              {temSeta && <ChevronDown size={13} className="opacity-70" />}
+
+              {activo && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
+              )}
+            </button>
+          );
+        })}
+
       </div>
     </nav>
   );

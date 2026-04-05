@@ -7,6 +7,7 @@ const CREAM = "#fafaf7";
 
 /**
  * HeroBanner — full-width hero section with layered visual depth and elegant CTAs.
+ * Text aligned to the LEFT.
  *
  * Props:
  *   onShopNow {function} — called when "Shop Now" is clicked
@@ -17,7 +18,6 @@ export function HeroBanner({ onShopNow }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // Staggered entrance animation
     const t = setTimeout(() => setMounted(true), 60);
     return () => clearTimeout(t);
   }, []);
@@ -50,7 +50,6 @@ export function HeroBanner({ onShopNow }) {
           box-sizing: border-box;
         }
 
-        /* Subtle noise texture overlay */
         .moz-hero::before {
           content: '';
           position: absolute;
@@ -70,27 +69,26 @@ export function HeroBanner({ onShopNow }) {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center 20%;
+          object-position: center 30%;
           transform: scale(1.08);
           transition: transform 0.1s ease-out;
-          filter: saturate(0.9);
+          filter: saturate(1.05);
         }
 
-        /* Elegant gradient overlay — light on right, immersive on left */
+        /* Gradient: opaque on LEFT, transparent on RIGHT */
         .moz-hero-overlay {
           position: absolute;
           inset: 0;
           background: linear-gradient(
             105deg,
-            rgba(250,250,247,0.10) 0%,
-            rgba(250,250,247,0.45) 30%,
-            rgba(250,250,247,0.88) 58%,
-            rgba(250,250,247,0.97) 75%,
-            ${CREAM} 100%
+            ${CREAM} 0%,
+            rgba(250,250,247,0.97) 25%,
+            rgba(250,250,247,0.88) 42%,
+            rgba(250,250,247,0.45) 68%,
+            rgba(250,250,247,0.10) 100%
           );
         }
 
-        /* Decorative green accent stripe */
         .moz-hero-accent {
           position: absolute;
           left: 0;
@@ -101,7 +99,6 @@ export function HeroBanner({ onShopNow }) {
           border-radius: 0 2px 2px 0;
         }
 
-        /* Floating badge */
         .moz-badge {
           display: inline-flex;
           align-items: center;
@@ -136,7 +133,6 @@ export function HeroBanner({ onShopNow }) {
           text-transform: uppercase;
         }
 
-        /* Hero heading */
         .moz-eyebrow {
           font-family: 'DM Sans', sans-serif;
           font-style: italic;
@@ -170,7 +166,6 @@ export function HeroBanner({ onShopNow }) {
           display: inline-block;
         }
 
-        /* Underline decorative line */
         .moz-heading-accent::after {
           content: '';
           position: absolute;
@@ -213,7 +208,6 @@ export function HeroBanner({ onShopNow }) {
           transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s;
         }
 
-        /* Mounted state — reveal elements */
         .moz-hero.is-mounted .moz-eyebrow,
         .moz-hero.is-mounted .moz-heading,
         .moz-hero.is-mounted .moz-subheading,
@@ -224,7 +218,6 @@ export function HeroBanner({ onShopNow }) {
           transform: translateY(0);
         }
 
-        /* CTA Buttons */
         .moz-actions {
           display: flex;
           gap: 12px;
@@ -297,7 +290,6 @@ export function HeroBanner({ onShopNow }) {
           transform: translateY(-1px);
         }
 
-        /* Stats row */
         .moz-stats {
           display: flex;
           gap: 28px;
@@ -335,20 +327,46 @@ export function HeroBanner({ onShopNow }) {
           margin: 2px 0;
         }
 
-        /* Floating pill tag on image */
+        /* ── SALE TAG — top center ── */
+        .moz-sale-tag {
+          position: absolute;
+          top: 28px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(135deg, ${ORANGE}, #ef4444);
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 800;
+          font-size: 12px;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          padding: 8px 18px;
+          border-radius: 100px;
+          box-shadow: 0 4px 16px rgba(249,115,22,0.40);
+          z-index: 6;
+          opacity: 0;
+          transition: opacity 0.5s ease 0.9s;
+        }
+
+        .moz-hero.is-mounted .moz-sale-tag {
+          opacity: 1;
+        }
+
+        /* ── FLOATING PILL — bottom center ── */
         .moz-float-pill {
           position: absolute;
-          bottom: 40px;
-          left: 38%;
-          background: rgba(255,255,255,0.85);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,0.9);
+          bottom: 36px;
+          left: 50%;
+          transform: translateX(-50%) translateY(8px);
+          background: rgba(255,255,255,0.88);
+          backdrop-filter: blur(14px);
+          border: 1px solid rgba(255,255,255,0.95);
           border-radius: 100px;
-          padding: 10px 18px;
+          padding: 10px 20px 10px 10px;
           display: flex;
           align-items: center;
           gap: 10px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
           opacity: 0;
           transform: translateY(8px);
           transition: opacity 0.6s ease 0.8s, transform 0.6s ease 0.8s;
@@ -358,12 +376,12 @@ export function HeroBanner({ onShopNow }) {
 
         .moz-hero.is-mounted .moz-float-pill {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateX(-50%) translateY(0);
         }
 
         .moz-float-icon {
-          width: 32px;
-          height: 32px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
           background: linear-gradient(135deg, ${GREEN}, ${BLUE});
           display: flex;
@@ -386,7 +404,6 @@ export function HeroBanner({ onShopNow }) {
           font-weight: 400;
         }
 
-        /* Decorative geometric blob */
         .moz-blob {
           position: absolute;
           border-radius: 50%;
@@ -400,7 +417,7 @@ export function HeroBanner({ onShopNow }) {
           height: 320px;
           background: ${GREEN};
           top: -80px;
-          right: 12%;
+          left: 12%;
           filter: blur(60px);
         }
 
@@ -409,37 +426,13 @@ export function HeroBanner({ onShopNow }) {
           height: 200px;
           background: ${BLUE};
           bottom: -40px;
-          right: 30%;
+          left: 30%;
           filter: blur(50px);
-        }
-
-        /* Sale tag */
-        .moz-sale-tag {
-          position: absolute;
-          top: 32px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: linear-gradient(135deg, ${ORANGE}, #ef4444);
-          color: #fff;
-          font-family: 'Manrope', sans-serif;
-          font-weight: 800;
-          font-size: 12px;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          padding: 6px 16px;
-          border-radius: 100px;
-          box-shadow: 0 4px 16px rgba(249,115,22,0.35);
-          z-index: 6;
-          opacity: 0;
-          transition: opacity 0.5s ease 0.9s;
-        }
-
-        .moz-hero.is-mounted .moz-sale-tag {
-          opacity: 1;
         }
 
         @media (max-width: 640px) {
           .moz-float-pill { display: none; }
+          .moz-sale-tag { top: 16px; right: 16px; font-size: 10px; padding: 6px 14px; }
           .moz-stats { gap: 16px; }
           .moz-stat-value { font-size: 17px; }
           .moz-hero-overlay {
@@ -465,7 +458,7 @@ export function HeroBanner({ onShopNow }) {
         {/* Background image with parallax */}
         <div className="moz-hero-image-wrap">
           <img
-            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1400&q=85"
+            src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1400&q=88"
             alt="MozTicTac Collections"
             className="moz-hero-image"
             style={{
@@ -480,28 +473,29 @@ export function HeroBanner({ onShopNow }) {
         {/* Left accent stripe */}
         <div className="moz-hero-accent" />
 
-        {/* Sale tag pill (floats over image) */}
+        {/* Sale tag — top right */}
         <div className="moz-sale-tag">✦ Summer Sale — Até 65% Off</div>
 
-        {/* Main content */}
+        {/* Main content — LEFT aligned */}
         <div
           style={{
             position: "relative",
             zIndex: 5,
             maxWidth: 1280,
             margin: "0 auto",
-            padding: "clamp(28px, 5vh, 52px) 48px clamp(28px, 5vh, 52px) 52px",
+            padding: "clamp(28px, 5vh, 52px) 52px clamp(28px, 5vh, 52px) 52px",
             display: "flex",
             flexDirection: "column",
-            alignItems: "flex-end",
+            alignItems: "flex-start",
             justifyContent: "center",
             height: "100%",
             boxSizing: "border-box",
           }}
         >
-          <div style={{ maxWidth: 480, textAlign: "right" }}>
+          <div style={{ maxWidth: 480, textAlign: "left" }}>
+
             {/* Live badge */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 18 }}>
+            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 18 }}>
               <div className="moz-badge">
                 <span className="moz-badge-dot" />
                 <span className="moz-badge-text">Marketplace Moçambicano</span>
@@ -528,7 +522,7 @@ export function HeroBanner({ onShopNow }) {
             </p>
 
             {/* CTAs */}
-            <div className="moz-actions" style={{ justifyContent: "flex-end" }}>
+            <div className="moz-actions" style={{ justifyContent: "flex-start" }}>
               <button className="moz-btn-primary" onClick={onShopNow}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -545,26 +539,27 @@ export function HeroBanner({ onShopNow }) {
             </div>
 
             {/* Stats */}
-            <div className="moz-stats" style={{ justifyContent: "flex-end" }}>
-              <div className="moz-stat-item" style={{ textAlign: "right" }}>
+            <div className="moz-stats" style={{ justifyContent: "flex-start" }}>
+              <div className="moz-stat-item">
                 <span className="moz-stat-value">10 Prov.</span>
                 <span className="moz-stat-label">Cobertura Nacional</span>
               </div>
               <div className="moz-stat-divider" />
-              <div className="moz-stat-item" style={{ textAlign: "right" }}>
+              <div className="moz-stat-item">
                 <span className="moz-stat-value">3-em-1</span>
                 <span className="moz-stat-label">Papéis Dinâmicos</span>
               </div>
               <div className="moz-stat-divider" />
-              <div className="moz-stat-item" style={{ textAlign: "right" }}>
+              <div className="moz-stat-item">
                 <span className="moz-stat-value">100% MZN</span>
                 <span className="moz-stat-label">Pagamento Local</span>
               </div>
             </div>
+
           </div>
         </div>
 
-        {/* Floating social proof pill */}
+        {/* Floating pill — bottom right, over image */}
         <div className="moz-float-pill">
           <div className="moz-float-icon">🛍️</div>
           <div>

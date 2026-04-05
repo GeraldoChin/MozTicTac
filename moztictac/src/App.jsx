@@ -1,45 +1,20 @@
-import { useState } from "react";
-import { useCart } from "./hooks/useCart";
-import { TopBar } from "./components/TopBar";
-import { Header } from "./components/Header";
-import { Navbar } from "./components/Navbar";
-import { HeroBanner } from "./components/HeroBanner";
-import { CategoryBar } from "./components/CategoryBar";
-import { DealsSection } from "./components/DealsSection";
-import { PromoBanners } from "./components/PromoBanners";
-import { FashionProducts } from "./components/FashionProducts";
-import { TrendingNow } from "./components/TrendingNow";
-import { BlogSection } from "./components/BlogSection";
-import { BrandsBar } from "./components/BrandsBar";
-import { Newsletter } from "./components/Newsletter";
-// import { Footer } from "./components/Footer";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import MinhaConta from "./pages/Minhaconta";
+import PaginaCarrinho from "./pages/Paginacarrinho";
+import PaginaProdutoDetalhe from "./pages/Paginaprodutodetalhe";
+import PaginaSobreNos from "./pages/Paginasobrenos";
 
-export default function PressMart() {
-  const { cartCount, wishCount, addToCart, addToWish } = useCart();
-  const [searchVal, setSearchVal] = useState("");
-
+export default function App() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <TopBar />
-      <Header
-        cartCount={cartCount}
-        wishCount={wishCount}
-        searchVal={searchVal}
-        onSearchChange={setSearchVal}
-        onAddToCart={addToCart}
-        onAddToWish={addToWish}
-      />
-      <Navbar />
-      <HeroBanner onShopNow={addToCart} />
-      <CategoryBar />
-      <DealsSection onAddToCart={addToCart} />
-      <PromoBanners />
-      <FashionProducts onAddToCart={addToCart} />
-      <TrendingNow />
-      <BlogSection />
-      <BrandsBar />
-      <Newsletter />
-      {/* <Footer /> */}
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/minha-conta" element={<MinhaConta />} />
+         <Route path="/carrinho" element={<PaginaCarrinho />} />
+      {/* <Route path="/comprar" element={<h1>Comprar</h1>} /> */}
+      <Route path="/produto/:id" element={<PaginaProdutoDetalhe />} />
+      <Route path="/sobre-nos" element={<PaginaSobreNos />} />
+      {/* Resto das rotas... */}
+    </Routes>
   );
 }

@@ -1,111 +1,166 @@
-import { CATEGORIES, GREEN } from "../data/constants";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  User,
+  Heart,
+  ShoppingCart,
+  Bell,
+  MessageCircle,
+  Wallet,
+  Search
+} from "lucide-react";
 
-/**
- * Header — logo, search bar with category filter, and icon actions.
- *
- * Props:
- *   cartCount {number}   — badge count shown on Cart icon
- *   wishCount {number}   — badge count shown on Wishlist icon
- *   searchVal {string}   — controlled search input value
- *   onSearchChange {fn}  — called with new search string
- *   onAddToCart   {fn}   — increments cart (search button also triggers it)
- *   onAddToWish   {fn}   — increments wishlist
- */
+const VERDE = "#00b96b";
+
+const CATEGORIAS = [
+  { label: "Roupa" },
+  { label: "Celulares" },
+  { label: "Cabelos" },
+  { label: "Sapatos" },
+  { label: "Electrónicos" },
+  { label: "Acessórios" },
+  { label: "Alimentos" },
+  { label: "Serviços" },
+  { label: "Outros" },
+];
+
 export function Header({
-  cartCount,
-  wishCount,
-  searchVal,
-  onSearchChange,
-  onAddToCart,
-  onAddToWish,
+  contagemCarrinho = 0,
+  contagemWishlist = 0,
+  contagemNotificacoes = 0,
+  contagemMensagens = 0,
+  valorPesquisa = "",
+  aoMudarPesquisa,
+  aoClicarPesquisa,
+  aoClicarCarrinho,
+  aoClicarWishlist,
+  aoClicarNotificacoes,
+  aoClicarChat,
+  aoClicarConta,
+  aoClicarCarteira,
+  utilizadorAutenticado = false,
 }) {
+  const navigate = useNavigate();
+
   return (
-    <header className="bg-white border-b border-gray-200 py-4">
-      <div className="max-w-7xl mx-auto px-4 flex items-center gap-6">
+    <header className="bg-white border-b border-gray-200 py-3 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 flex items-center gap-4">
 
-        {/* Logo */}
-        <div className="text-[22px] font-black text-gray-900 tracking-tight shrink-0 cursor-pointer select-none">
-          PressMart<span style={{ color: GREEN }}>.</span>
-        </div>
+        {/* LOGO (com Link) */}
+        <Link
+          to="/"
+          className="text-[22px] font-black text-gray-900 tracking-tight shrink-0 cursor-pointer select-none"
+        >
+          MozTicTac<span style={{ color: VERDE }}>.</span>
+        </Link>
 
-        {/* Search */}
-        <div className="flex flex-1 max-w-lg border border-gray-300 rounded overflow-hidden">
+        {/* PESQUISA */}
+        <div className="flex flex-1 max-w-2xl border border-gray-300 rounded overflow-hidden focus-within:border-green-500 transition-colors">
           <input
             type="text"
-            placeholder="Search for products, categories, sku..."
-            value={searchVal}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm outline-none text-gray-700 placeholder-gray-400 border-none"
+            placeholder="Pesquisar produtos..."
+            value={valorPesquisa}
+            onChange={(e) => aoMudarPesquisa?.(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && aoClicarPesquisa?.()}
+            className="flex-1 px-3 py-2 text-sm outline-none text-gray-700 placeholder-gray-400"
           />
+
           <select className="border-l border-gray-300 px-2 text-xs text-gray-600 bg-white outline-none cursor-pointer">
-            <option>All Categories</option>
-            {CATEGORIES.map((c) => (
+            <option>Todas as Categorias</option>
+            {CATEGORIAS.map((c) => (
               <option key={c.label}>{c.label}</option>
             ))}
           </select>
+
           <button
-            onClick={onAddToCart}
-            className="px-4 text-white border-none cursor-pointer transition-colors"
-            style={{ background: GREEN }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#009a5a")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = GREEN)}
+            onClick={aoClicarPesquisa}
+            className="px-4 text-white flex items-center justify-center"
+            style={{ background: VERDE }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <Search size={16} strokeWidth={1.5} />
           </button>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-6 ml-auto">
+        {/* AÇÕES */}
+        <div className="flex items-center gap-1 ml-auto">
 
-          {/* My Account */}
-          <button className="flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 border-none bg-transparent cursor-pointer">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-            </svg>
-            My Account
-          </button>
+          <BotaoAccao
+            icone={<User size={20} strokeWidth={1.5} />}
+            rotulo="Conta"
+            aoClicar={() => navigate("/minha-conta")}
+          />
 
-          {/* Wishlist */}
-          <button
-            onClick={onAddToWish}
-            className="relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 border-none bg-transparent cursor-pointer"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
-            Wishlist
-            {wishCount > 0 && (
-              <span
-                className="absolute -top-1 -right-3 w-4 h-4 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white"
-                style={{ background: GREEN }}
-              >
-                {wishCount}
-              </span>
-            )}
-          </button>
+          {utilizadorAutenticado && (
+            <BotaoAccao
+              icone={<Wallet size={20} strokeWidth={1.5} />}
+              rotulo="Carteira"
+              aoClicar={() => navigate("/carteira")}
+            />
+          )}
 
-          {/* Cart */}
-          <button
-            onClick={onAddToCart}
-            className="relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 border-none bg-transparent cursor-pointer"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-            </svg>
-            Cart
-            {cartCount > 0 && (
-              <span
-                className="absolute -top-1 -right-3 w-4 h-4 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white"
-                style={{ background: GREEN }}
-              >
-                {cartCount}
-              </span>
-            )}
-          </button>
+          <BotaoAccao
+            icone={<Heart size={20} strokeWidth={1.5} />}
+            rotulo="Desejos"
+            aoClicar={() => navigate("/desejos")}
+            contagem={contagemWishlist}
+            corBadge={VERDE}
+          />
+
+          <BotaoAccao
+            icone={<MessageCircle size={20} strokeWidth={1.5} />}
+            rotulo="Chat"
+            aoClicar={() => navigate("/chat")}
+            contagem={contagemMensagens}
+            corBadge={VERDE}
+          />
+
+          <BotaoAccao
+            icone={<Bell size={20} strokeWidth={1.5} />}
+            rotulo="Avisos"
+            aoClicar={() => navigate("/notificacoes")}
+            contagem={contagemNotificacoes}
+            corBadge="#e53e3e"
+          />
+
+          <BotaoAccao
+            icone={<ShoppingCart size={20} strokeWidth={1.5} />}
+            rotulo="Carrinho"
+            aoClicar={() => navigate("/carrinho")}
+            contagem={contagemCarrinho}
+            corBadge={VERDE}
+          />
+
         </div>
+
       </div>
     </header>
+  );
+}
+
+/* BOTÃO REUTILIZÁVEL */
+function BotaoAccao({
+  icone,
+  rotulo,
+  aoClicar,
+  contagem = 0,
+  corBadge
+}) {
+  return (
+    <button
+      onClick={aoClicar}
+      className="relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 bg-transparent border-none cursor-pointer px-2 py-1 rounded"
+    >
+      {icone}
+
+      <span className="hidden sm:inline">{rotulo}</span>
+
+      {contagem > 0 && (
+        <span
+          className="absolute -top-1 -right-1 min-w-[16px] h-4 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white px-0.5"
+          style={{ background: corBadge }}
+        >
+          {contagem > 99 ? "99+" : contagem}
+        </span>
+      )}
+    </button>
   );
 }
