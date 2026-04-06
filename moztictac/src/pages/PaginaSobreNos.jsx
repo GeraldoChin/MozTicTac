@@ -10,108 +10,41 @@ import {
   Phone,
   ChevronRight,
   ArrowRight,
-  Star,
   CheckCircle,
   Globe,
   Lock,
   TrendingUp,
   Heart,
   MessageCircle,
+  Star,
 } from "lucide-react";
 
-// ─── Cabecalho placeholder (substitui pelo teu import real) ──────────────────
+// ─── import real do teu Cabecalho ─────────────────────────────────────────────
 // import { Cabecalho } from "../components/Cabecalho";
 function Cabecalho({ valorPesquisa, aoMudarPesquisa }) {
   return (
-    <header
-      style={{
-        background: "#fff",
-        borderBottom: "1px solid #e5e7eb",
-        padding: "12px 24px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
-      <span style={{ fontWeight: 900, fontSize: 20, color: "#00b96b" }}>
-        MozTicTac
-      </span>
-      <input
-        type="text"
-        placeholder="Pesquisar..."
-        value={valorPesquisa}
-        onChange={(e) => aoMudarPesquisa(e.target.value)}
-        style={{
-          border: "1px solid #e5e7eb",
-          borderRadius: 8,
-          padding: "6px 14px",
-          fontSize: 13,
-          outline: "none",
-          width: 220,
-        }}
-      />
+    <header style={{
+      background: "#fff", borderBottom: "1px solid #e5e7eb",
+      padding: "14px 32px", display: "flex", alignItems: "center",
+      justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100,
+      boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
+    }}>
+      <span style={{ fontWeight: 900, fontSize: 22, color: "#00b96b", letterSpacing: -1 }}>MozTicTac</span>
+      <input type="text" placeholder="Pesquisar produtos..."
+        value={valorPesquisa} onChange={(e) => aoMudarPesquisa(e.target.value)}
+        style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "7px 16px", fontSize: 13, outline: "none", width: 240 }} />
     </header>
   );
 }
 
-const VERDE = "#00b96b";
-const VERDE_ESCURO = "#009a5a";
+const V  = "#00b96b";
+const VD = "#009a5a";
+const V2 = "#004d2e";
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-function BotaoVerde({
-  children,
-  onClick,
-  variante = "solid",
-  tamanho = "md",
-}) {
-  const pad = tamanho === "sm" ? "px-4 py-2 text-xs" : "px-6 py-3 text-sm";
-  const base = `${pad} flex items-center justify-center gap-2 font-semibold rounded-xl cursor-pointer transition-colors border-none`;
-  if (variante === "outline") {
-    return (
-      <button
-        onClick={onClick}
-        className={base}
-        style={{
-          border: `2px solid ${VERDE}`,
-          color: VERDE,
-          background: "transparent",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = VERDE;
-          e.currentTarget.style.color = "white";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = VERDE;
-        }}
-      >
-        {children}
-      </button>
-    );
-  }
-  return (
-    <button
-      onClick={onClick}
-      className={base}
-      style={{ background: VERDE, color: "white" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = VERDE_ESCURO)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = VERDE)}
-    >
-      {children}
-    </button>
-  );
+function IcFacebook({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
 }
-
-// ─── ícone Facebook personalizado ─────────────────────────────────────────────
-function IconeFacebook({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-
-function IconeInstagram({ size = 16 }) {
+function IcInstagram({ size = 16 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
@@ -120,153 +53,119 @@ function IconeInstagram({ size = 16 }) {
     </svg>
   );
 }
+function IcTwitter({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+}
 
-function IconeTwitter({ size = 16 }) {
+function Btn({ children, onClick, outline = false, light = false }) {
+  const base = {
+    display: "inline-flex", alignItems: "center", gap: 8,
+    padding: "13px 28px", borderRadius: 6, fontWeight: 700,
+    fontSize: 13, cursor: "pointer", transition: "all .2s",
+    letterSpacing: 0.5, textTransform: "uppercase",
+  };
+  if (light) return (
+    <button onClick={onClick} style={{ ...base, background: "rgba(255,255,255,0.12)", color: "#fff", border: "2px solid rgba(255,255,255,0.35)" }}
+      onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.22)"}
+      onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>
+      {children}
+    </button>
+  );
+  if (outline) return (
+    <button onClick={onClick} style={{ ...base, background: "transparent", color: V, border: `2px solid ${V}` }}
+      onMouseEnter={e => { e.currentTarget.style.background = V; e.currentTarget.style.color = "#fff"; }}
+      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = V; }}>
+      {children}
+    </button>
+  );
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    </svg>
+    <button onClick={onClick} style={{ ...base, background: V, color: "#fff", border: "none" }}
+      onMouseEnter={e => e.currentTarget.style.background = VD}
+      onMouseLeave={e => e.currentTarget.style.background = V}>
+      {children}
+    </button>
   );
 }
 
-// ─── secção hero ──────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section
-      className="relative overflow-hidden py-20 px-4"
-      style={{
-        background: "linear-gradient(135deg, #004d2e 0%, #00b96b 100%)",
-      }}
-    >
-      <div className="max-w-4xl mx-auto text-center text-white relative z-10">
-        <span
-          className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6"
-          style={{ background: "rgba(255,255,255,0.15)" }}
-        >
-          Mercado Moçambicano
-        </span>
-        <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-5">
-          Uma plataforma feita
-          <br />
-          <span style={{ color: "#a7f3d0" }}>para Moçambique.</span>
-        </h1>
-        <p className="text-base text-green-100 max-w-xl mx-auto leading-relaxed">
-          O MozTicTac nasceu para ligar compradores e vendedores de todo o país
-          numa única plataforma segura, local e em Meticais.
-        </p>
-      </div>
-
-      {/* círculos decorativos */}
-      <div
-        className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10"
-        style={{ background: "white" }}
-      />
-      <div
-        className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-10"
-        style={{ background: "white" }}
-      />
-    </section>
-  );
-}
-
-// ─── missão ───────────────────────────────────────────────────────────────────
-function Missao() {
-  return (
-    <section className="py-16 px-4 bg-white">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-12 items-center">
-          {/* texto */}
-          <div className="flex-1 space-y-5">
-            <span
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: VERDE }}
-            >
-              A Nossa Missão
-            </span>
-            <h2 className="text-3xl font-black text-gray-900 leading-tight">
-              Compra. Vende. Cresce.
-              <br />
-              <span style={{ color: VERDE }}>Tudo numa conta.</span>
-            </h2>
-            <p className="text-gray-500 leading-relaxed">
-              Criámos o MozTicTac para resolver um problema real: Moçambique
-              precisava de um marketplace local, seguro, que falasse a língua
-              dos moçambicanos e usasse os meios de pagamento que já conhecem —
-              M-Pesa, E-Mola e mKesh.
-            </p>
-            <p className="text-gray-500 leading-relaxed">
-              Sem burocracia. Sem papéis separados. Uma única conta para
-              comprar, vender e ganhar como afiliado — com pagamento retido em
-              escrow para garantir a segurança de todos.
-            </p>
-            <BotaoVerde>
-              Começar agora
-              <ArrowRight size={15} />
-            </BotaoVerde>
-          </div>
-
-          {/* cartões de valores */}
-          <div className="flex-1 grid grid-cols-2 gap-4">
-            {[
-              {
-                Icone: Shield,
-                titulo: "Segurança",
-                desc: "Pagamento em escrow protegido até à entrega.",
-              },
-              {
-                Icone: Wallet,
-                titulo: "Pagamentos Locais",
-                desc: "M-Pesa, E-Mola e mKesh. Tudo em Meticais.",
-              },
-              {
-                Icone: Globe,
-                titulo: "10 Províncias",
-                desc: "Compra e vende em qualquer ponto do país.",
-              },
-              {
-                Icone: Users,
-                titulo: "3-em-1",
-                desc: "Comprador, vendedor e afiliado numa só conta.",
-              },
-            ].map(({ Icone, titulo, desc }) => (
-              <div
-                key={titulo}
-                className="p-4 rounded-2xl border border-gray-100 bg-gray-50 space-y-2 hover:shadow-md transition-shadow"
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: "#e6f9f0" }}
-                >
-                  <Icone size={18} style={{ color: VERDE }} />
-                </div>
-                <p className="text-sm font-bold text-gray-900">{titulo}</p>
-                <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
+    <section style={{ position: "relative", minHeight: 380, overflow: "hidden" }}>
+      <img src="https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80" alt="Equipa"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(0,77,46,.92) 0%, rgba(0,185,107,.75) 100%)" }} />
+      <div style={{ position: "relative", zIndex: 2, maxWidth: 860, margin: "0 auto", padding: "100px 24px 80px", textAlign: "center", color: "#fff" }}>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", opacity: .8, marginBottom: 16 }}>Mercado Moçambicano</p>
+        <h1 style={{ fontSize: "clamp(2.2rem,5vw,3.5rem)", fontWeight: 900, lineHeight: 1.15, margin: "0 0 20px" }}>Sobre Nós</h1>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, opacity: .85 }}>
+          <span style={{ cursor: "pointer" }}>Início</span>
+          <ChevronRight size={14} />
+          <span style={{ fontWeight: 700 }}>Sobre Nós</span>
         </div>
       </div>
     </section>
   );
 }
 
-// ─── números ──────────────────────────────────────────────────────────────────
-function Numeros() {
-  const stats = [
-    { valor: "10+", label: "Províncias cobertas", Icone: MapPin },
-    { valor: "5.000+", label: "Utilizadores activos", Icone: Users },
-    { valor: "1.200+", label: "Produtos listados", Icone: Store },
-    { valor: "98%", label: "Satisfação dos clientes", Icone: Star },
-  ];
-
+function Sobre() {
   return (
-    <section className="py-14 px-4" style={{ background: VERDE }}>
-      <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6">
-        {stats.map(({ valor, label, Icone }) => (
-          <div key={label} className="text-center text-white">
-            <Icone size={22} className="mx-auto mb-2 opacity-80" />
-            <p className="text-3xl font-black">{valor}</p>
-            <p className="text-sm opacity-80 mt-1">{label}</p>
+    <section style={{ background: "#fff", padding: "80px 24px" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 64, alignItems: "center" }}>
+        <div style={{ flex: "1 1 380px", position: "relative", minHeight: 380 }}>
+          <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80" alt="Equipa"
+            style={{ width: "75%", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,.12)", display: "block" }} />
+          <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80" alt="Pessoa"
+            style={{ width: "50%", borderRadius: 12, position: "absolute", bottom: 0, right: 0,
+              boxShadow: "0 12px 40px rgba(0,0,0,.15)", border: "4px solid #fff" }} />
+          <div style={{ position: "absolute", top: 24, right: "26%", background: V2, color: "#fff",
+            borderRadius: 10, padding: "18px 22px", textAlign: "center", boxShadow: "0 8px 24px rgba(0,77,46,.35)" }}>
+            <p style={{ fontSize: 32, fontWeight: 900, margin: 0, lineHeight: 1 }}>5+</p>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 4, opacity: .85 }}>Anos de<br/>Experiência</p>
+          </div>
+        </div>
+        <div style={{ flex: "1 1 360px" }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 14 }}>Sobre a Empresa</p>
+          <h2 style={{ fontSize: "clamp(1.7rem,3vw,2.4rem)", fontWeight: 900, lineHeight: 1.2, color: "#0f1a12", margin: "0 0 20px" }}>
+            A forma mais rápida de ter<br/><em style={{ fontStyle: "italic", color: V }}>sucesso comercial em Moçambique</em>
+          </h2>
+          <p style={{ color: "#64748b", lineHeight: 1.75, marginBottom: 16, fontSize: 14 }}>
+            Criámos o MozTicTac para resolver um problema real: Moçambique precisava de um marketplace local, seguro, que falasse a língua dos moçambicanos e usasse os meios de pagamento que já conhecem — M-Pesa, E-Mola e mKesh.
+          </p>
+          <p style={{ color: "#64748b", lineHeight: 1.75, marginBottom: 28, fontSize: 14 }}>
+            Sem burocracia. Uma única conta para comprar, vender e ganhar como afiliado — com pagamento retido em escrow para garantir a segurança de todos.
+          </p>
+          <p style={{ fontWeight: 700, color: "#0f1a12", marginBottom: 14, fontSize: 13 }}>Serviços Especiais:</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", marginBottom: 32 }}>
+            {["Escrow garantido", "M-Pesa, E-Mola, mKesh", "Afiliados 5–20%", "Equipa de suporte local"].map(s => (
+              <div key={s} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#374151" }}>
+                <CheckCircle size={15} style={{ color: V, flexShrink: 0 }} />{s}
+              </div>
+            ))}
+          </div>
+          <Btn onClick={() => {}}>Criar conta grátis <ArrowRight size={15} /></Btn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Stats() {
+  const items = [
+    { Ic: MapPin, val: "10+",    label: "Províncias cobertas"    },
+    { Ic: Store,  val: "1.200+", label: "Produtos listados"      },
+    { Ic: Users,  val: "5.000+", label: "Utilizadores activos"   },
+    { Ic: Star,   val: "98%",    label: "Satisfação dos clientes" },
+  ];
+  return (
+    <section style={{ background: V, padding: "50px 24px" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 32, textAlign: "center" }}>
+        {items.map(({ Ic, val, label }) => (
+          <div key={label} style={{ color: "#fff" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid rgba(255,255,255,.3)",
+              display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+              <Ic size={22} />
+            </div>
+            <p style={{ fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1 }}>{val}</p>
+            <p style={{ fontSize: 12, opacity: .85, marginTop: 6, textTransform: "uppercase", letterSpacing: 1 }}>{label}</p>
           </div>
         ))}
       </div>
@@ -274,378 +173,284 @@ function Numeros() {
   );
 }
 
-// ─── como funciona ────────────────────────────────────────────────────────────
-function ComoFunciona() {
-  const passos = [
-    {
-      num: "01",
-      Icone: Users,
-      titulo: "Cria a tua conta",
-      desc: "Regista-te com email, confirma com OTP e já tens acesso a tudo — compra, venda e afiliados.",
-    },
-    {
-      num: "02",
-      Icone: Store,
-      titulo: "Compra ou publica",
-      desc: "Pesquisa produtos perto de ti, filtra por província, preço e entrega. Ou publica o teu produto em segundos.",
-    },
-    {
-      num: "03",
-      Icone: Wallet,
-      titulo: "Paga com segurança",
-      desc: "O pagamento fica retido em escrow. O vendedor só recebe depois de confirmares a entrega.",
-    },
-    {
-      num: "04",
-      Icone: Share2,
-      titulo: "Ganha como afiliado",
-      desc: "Partilha links de produtos e ganha comissão por cada venda gerada. Entre 5% e 20% por venda.",
-    },
+function Missao() {
+  const [tab, setTab] = useState(0);
+  const tabs = [
+    { label: "A Nossa Missão", titulo: "Missão da Empresa",
+      texto: "Nascemos para democratizar o comércio em Moçambique. Queremos que qualquer cidadão — em Maputo, Nampula ou Niassa — consiga vender os seus produtos online com segurança, receber em Meticais e crescer o seu negócio sem burocracia." },
+    { label: "A Nossa Visão", titulo: "Visão para o Futuro",
+      texto: "Ser a plataforma de comércio electrónico de referência em Moçambique e na África Austral até 2030, conectando milhões de compradores e vendedores numa economia digital inclusiva e segura." },
+    { label: "O Nosso Objetivo", titulo: "Objetivo Estratégico",
+      texto: "Criar um ecossistema de confiança onde compradores, vendedores e afiliados prosperam juntos — com ferramentas de pagamento locais, escrow automático e comissões transparentes em cada transacção." },
   ];
-
+  const t = tabs[tab];
   return (
-    <section className="py-16 px-4 bg-white">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <span
-            className="text-xs font-bold uppercase tracking-widest"
-            style={{ color: VERDE }}
-          >
-            Como Funciona
-          </span>
-          <h2 className="text-3xl font-black text-gray-900 mt-2">
-            Uma conta.{" "}
-            <span style={{ color: VERDE }}>Três formas de ganhar.</span>
+    <section style={{ padding: "80px 24px", background: "#f8faf9" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 64, alignItems: "center" }}>
+        <div style={{ flex: "1 1 380px" }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 14 }}>Sobre a Missão</p>
+          <h2 style={{ fontSize: "clamp(1.6rem,3vw,2.3rem)", fontWeight: 900, lineHeight: 1.2, color: "#0f1a12", margin: "0 0 28px" }}>
+            O nosso principal objetivo é<br/><em style={{ fontStyle: "italic", color: V }}>satisfazer clientes locais &amp; globais</em>
           </h2>
-          <p className="text-gray-500 mt-3 max-w-lg mx-auto text-sm">
-            Sem burocracia. Activa o papel que queres, quando quiseres — tudo
-            na mesma conta e carteira digital.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {passos.map(({ num, Icone, titulo, desc }) => (
-            <div
-              key={num}
-              className="relative p-5 rounded-2xl border border-gray-100 bg-gray-50 space-y-3 hover:shadow-md transition-shadow"
-            >
-              <span
-                className="text-xs font-black uppercase tracking-widest"
-                style={{ color: VERDE }}
-              >
-                Passo {num}
-              </span>
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center"
-                style={{ background: "#e6f9f0" }}
-              >
-                <Icone size={22} style={{ color: VERDE }} />
-              </div>
-              <p className="text-sm font-bold text-gray-900">{titulo}</p>
-              <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── valores ──────────────────────────────────────────────────────────────────
-function Valores() {
-  const valores = [
-    {
-      Icone: Lock,
-      titulo: "Segurança total",
-      desc: "Todas as transacções são protegidas por escrow e autenticação reforçada com OTP por email.",
-    },
-    {
-      Icone: Heart,
-      titulo: "Confiança",
-      desc: "Avaliações verificadas, histórico transparente e suporte humano para qualquer disputa.",
-    },
-    {
-      Icone: TrendingUp,
-      titulo: "Crescimento",
-      desc: "Ferramentas de venda, afiliados e estatísticas para ajudar qualquer moçambicano a crescer.",
-    },
-    {
-      Icone: Globe,
-      titulo: "Alcance nacional",
-      desc: "Filtra por província, cidade e bairro. Chegamos a todas as 10 províncias de Moçambique.",
-    },
-    {
-      Icone: CheckCircle,
-      titulo: "Transparência",
-      desc: "Preços claros, taxas visíveis e trilha de auditoria completa para todas as operações.",
-    },
-    {
-      Icone: Wallet,
-      titulo: "Pagamentos locais",
-      desc: "M-Pesa, E-Mola, mKesh — sem conversões, sem surpresas. Tudo em Meticais.",
-    },
-  ];
-
-  return (
-    <section className="py-16 px-4 bg-gray-50">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <span
-            className="text-xs font-bold uppercase tracking-widest"
-            style={{ color: VERDE }}
-          >
-            Os Nossos Valores
-          </span>
-          <h2 className="text-3xl font-black text-gray-900 mt-2">
-            Construído com propósito
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {valores.map(({ Icone, titulo, desc }) => (
-            <div
-              key={titulo}
-              className="p-5 bg-white rounded-2xl border border-gray-100 hover:shadow-md transition-shadow space-y-3"
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: "#e6f9f0" }}
-              >
-                <Icone size={18} style={{ color: VERDE }} />
-              </div>
-              <p className="text-sm font-bold text-gray-900">{titulo}</p>
-              <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── equipa ───────────────────────────────────────────────────────────────────
-function Equipa() {
-  const membros = [
-    {
-      iniciais: "AM",
-      nome: "Ana Machava",
-      cargo: "CEO & Co-fundadora",
-      cor: VERDE,
-    },
-    {
-      iniciais: "JM",
-      nome: "João Machava",
-      cargo: "CTO & Co-fundador",
-      cor: "#3b82f6",
-    },
-    {
-      iniciais: "FL",
-      nome: "Fátima Langa",
-      cargo: "Head de Produto",
-      cor: "#f97316",
-    },
-    {
-      iniciais: "CS",
-      nome: "Carlos Sitoe",
-      cargo: "Head de Operações",
-      cor: "#8b5cf6",
-    },
-  ];
-
-  return (
-    <section className="py-16 px-4 bg-white">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <span
-            className="text-xs font-bold uppercase tracking-widest"
-            style={{ color: VERDE }}
-          >
-            A Nossa Equipa
-          </span>
-          <h2 className="text-3xl font-black text-gray-900 mt-2">
-            Pessoas reais, missão real
-          </h2>
-          <p className="text-gray-500 mt-3 text-sm max-w-md mx-auto">
-            Moçambicanos que acreditam que a tecnologia pode transformar o
-            comércio local.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          {membros.map((m) => (
-            <div key={m.nome} className="text-center space-y-3">
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-black mx-auto"
-                style={{ background: m.cor }}
-              >
-                {m.iniciais}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900">{m.nome}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{m.cargo}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── contacto ─────────────────────────────────────────────────────────────────
-function Contacto() {
-  const [form, setForm] = useState({ nome: "", email: "", mensagem: "" });
-
-  return (
-    <section className="py-16 px-4 bg-gray-50">
-      <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-12">
-        {/* info */}
-        <div className="flex-1 space-y-6">
-          <span
-            className="text-xs font-bold uppercase tracking-widest"
-            style={{ color: VERDE }}
-          >
-            Contacto
-          </span>
-          <h2 className="text-3xl font-black text-gray-900">Fala connosco</h2>
-          <p className="text-gray-500 text-sm leading-relaxed">
-            Tens uma dúvida, sugestão ou queres saber mais sobre o MozTicTac? A
-            nossa equipa está disponível para te ajudar.
-          </p>
-
-          <div className="space-y-4">
-            {[
-              { Icone: Mail, texto: "support@moztictac.com" },
-              { Icone: Phone, texto: "+258 844 565 456" },
-              { Icone: MapPin, texto: "Maputo, Moçambique" },
-            ].map(({ Icone, texto }) => (
-              <div key={texto} className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: "#e6f9f0" }}
-                >
-                  <Icone size={16} style={{ color: VERDE }} />
-                </div>
-                <p className="text-sm text-gray-700">{texto}</p>
-              </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+            {tabs.map((tb, i) => (
+              <button key={i} onClick={() => setTab(i)} style={{
+                padding: "9px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                border: "none", transition: "all .2s",
+                background: tab === i ? V : "#fff", color: tab === i ? "#fff" : "#64748b",
+                boxShadow: tab === i ? "0 4px 14px rgba(0,185,107,.3)" : "0 1px 4px rgba(0,0,0,.08)",
+              }}>{tb.label}</button>
             ))}
           </div>
+          <h3 style={{ fontWeight: 800, color: "#0f1a12", fontSize: 16, marginBottom: 12 }}>{t.titulo}</h3>
+          <p style={{ color: "#64748b", lineHeight: 1.8, fontSize: 14 }}>{t.texto}</p>
+        </div>
+        <div style={{ flex: "1 1 380px" }}>
+          <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=700&q=80" alt="Missão"
+            style={{ width: "100%", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.12)", display: "block" }} />
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          {/* redes sociais */}
-          <div className="flex gap-3 pt-2">
-            {[
-              { Icone: IconeInstagram, label: "Instagram" },
-              { Icone: IconeFacebook, label: "Facebook" },
-              { Icone: IconeTwitter, label: "Twitter" },
-            ].map(({ Icone, label }) => (
-              <button
-                key={label}
-                className="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-200 bg-white hover:border-green-500 cursor-pointer transition-colors"
-                aria-label={label}
-              >
-                <Icone size={16} className="text-gray-500" />
+function ComoFunciona() {
+  const passos = [
+    { num: "01", Ic: Users,  titulo: "Cria a tua conta",    desc: "Regista-te com email, confirma com OTP e já tens acesso a compra, venda e afiliados." },
+    { num: "02", Ic: Store,  titulo: "Compra ou publica",   desc: "Pesquisa produtos perto de ti ou publica o teu produto em segundos." },
+    { num: "03", Ic: Wallet, titulo: "Paga com segurança",  desc: "Pagamento em escrow. O vendedor recebe apenas após confirmares a entrega." },
+    { num: "04", Ic: Share2, titulo: "Ganha como afiliado", desc: "Partilha links e ganha entre 5% e 20% de comissão por cada venda gerada." },
+  ];
+  return (
+    <section style={{ padding: "80px 24px", background: "#fff" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 52 }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 12 }}>Como Funciona</p>
+          <h2 style={{ fontSize: "clamp(1.7rem,3vw,2.4rem)", fontWeight: 900, color: "#0f1a12", margin: 0 }}>
+            Uma conta. <span style={{ color: V }}>Três formas de ganhar.</span>
+          </h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 24 }}>
+          {passos.map(({ num, Ic, titulo, desc }) => (
+            <div key={num} style={{ padding: 28, border: "1px solid #e9f5f0", borderRadius: 14, background: "#f9fffe", transition: "box-shadow .2s", cursor: "default" }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,185,107,.15)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+              <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: V, textTransform: "uppercase", marginBottom: 16 }}>Passo {num}</p>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                <Ic size={22} style={{ color: V }} />
+              </div>
+              <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 15, marginBottom: 10 }}>{titulo}</p>
+              <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Valores() {
+  const vals = [
+    { Ic: Lock,        t: "Segurança total",   d: "Transacções protegidas por escrow e autenticação reforçada com OTP." },
+    { Ic: Heart,       t: "Confiança",         d: "Avaliações verificadas, histórico transparente e suporte humano." },
+    { Ic: TrendingUp,  t: "Crescimento",       d: "Ferramentas de venda, afiliados e estatísticas para crescer." },
+    { Ic: Globe,       t: "Alcance nacional",  d: "Chegamos a todas as 10 províncias de Moçambique." },
+    { Ic: CheckCircle, t: "Transparência",     d: "Preços claros, taxas visíveis e trilha de auditoria completa." },
+    { Ic: Wallet,      t: "Pagamentos locais", d: "M-Pesa, E-Mola, mKesh — tudo em Meticais, sem surpresas." },
+  ];
+  return (
+    <section style={{ padding: "80px 24px", background: "#f8faf9" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 12 }}>Os Nossos Valores</p>
+          <h2 style={{ fontSize: "clamp(1.7rem,3vw,2.4rem)", fontWeight: 900, color: "#0f1a12", margin: 0 }}>Construído com propósito</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 20 }}>
+          {vals.map(({ Ic, t, d }) => (
+            <div key={t} style={{ background: "#fff", borderRadius: 14, padding: 24, border: "1px solid #e9f5f0", transition: "box-shadow .2s", cursor: "default" }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,185,107,.12)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                <Ic size={20} style={{ color: V }} />
+              </div>
+              <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 15, marginBottom: 8 }}>{t}</p>
+              <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>{d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Equipa() {
+  const membros = [
+    { nome: "Ana Machava",  cargo: "CEO & Co-fundadora", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80", cor: V },
+    { nome: "João Machava", cargo: "CTO & Co-fundador",  img: "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=400&q=80", cor: "#3b82f6" },
+    { nome: "Fátima Langa", cargo: "Head de Produto",    img: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&q=80", cor: "#f97316" },
+    { nome: "Carlos Sitoe", cargo: "Head de Operações",  img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80", cor: "#8b5cf6" },
+  ];
+  return (
+    <section style={{ padding: "80px 24px", background: "#fff" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 12 }}>A Nossa Equipa</p>
+          <h2 style={{ fontSize: "clamp(1.7rem,3vw,2.2rem)", fontWeight: 900, color: "#0f1a12", margin: "0 0 8px" }}>
+            Servimos com paixão porque<br/><em style={{ fontStyle: "italic", color: V }}>Moçambique é a nossa missão</em>
+          </h2>
+          <div style={{ width: 48, height: 3, background: V, margin: "16px auto 0", borderRadius: 4 }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 28, marginTop: 48 }}>
+          {membros.map(m => (
+            <div key={m.nome} style={{ textAlign: "center" }}>
+              <div style={{ position: "relative", paddingBottom: "110%", borderRadius: 14, overflow: "hidden", marginBottom: 16, boxShadow: "0 8px 24px rgba(0,0,0,.1)" }}
+                onMouseEnter={e => { const ov = e.currentTarget.querySelector(".ov"); if (ov) ov.style.opacity = "1"; }}
+                onMouseLeave={e => { const ov = e.currentTarget.querySelector(".ov"); if (ov) ov.style.opacity = "0"; }}>
+                <img src={m.img} alt={m.nome}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                <div className="ov" style={{ position: "absolute", inset: 0, background: "rgba(0,77,46,.75)",
+                  display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16, opacity: 0, transition: "opacity .3s" }}>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {[IcFacebook, IcTwitter, IcInstagram].map((Ic, i) => (
+                      <div key={i} style={{ width: 32, height: 32, borderRadius: 6, background: "#fff",
+                        display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        <Ic size={14} style={{ color: V2 }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 15, marginBottom: 4 }}>{m.nome}</p>
+              <p style={{ fontSize: 12, color: "#64748b", fontWeight: 500 }}>{m.cargo}</p>
+              <div style={{ width: 32, height: 3, background: m.cor, margin: "10px auto 0", borderRadius: 4 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Depoimentos() {
+  const deps = [
+    { texto: "O MozTicTac transformou o meu negócio! Comecei a vender online e em 3 meses triplicei as minhas vendas. O pagamento em escrow deu-me confiança para comprar de vendedores que não conhecia.",
+      nome: "Maria José Cossa", cargo: "Vendedora, Maputo", img: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&q=80" },
+    { texto: "Excelente plataforma! Uso como afiliado e já ganhei mais de 15.000 MT em comissões. A interface é simples e os pagamentos chegam sempre no prazo. Recomendo a todos os moçambicanos!",
+      nome: "Eduardo Nhantumbo", cargo: "Afiliado, Beira", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&q=80" },
+    { texto: "Finalmente uma plataforma que aceita M-Pesa! Comprei um computador de um vendedor em Nampula sem sair de casa. O escrow garantiu que o produto chegou em perfeitas condições.",
+      nome: "Glória Tembe", cargo: "Compradora, Quelimane", img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&q=80" },
+  ];
+  return (
+    <section style={{ padding: "80px 24px", background: "#f8faf9" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 12 }}>As Nossas Experiências</p>
+          <h2 style={{ fontSize: "clamp(1.7rem,3vw,2.2rem)", fontWeight: 900, color: "#0f1a12", margin: 0 }}>Confiado por clientes de todo o país</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 24 }}>
+          {deps.map((d, i) => (
+            <div key={i} style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,.06)", border: "1px solid #e9f5f0" }}>
+              <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.8, marginBottom: 24, fontStyle: "italic" }}>"{d.texto}"</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <img src={d.img} alt={d.nome} style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover" }} />
+                  <div>
+                    <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 14, marginBottom: 2 }}>{d.nome}</p>
+                    <p style={{ fontSize: 12, color: "#64748b" }}>{d.cargo}</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 2 }}>
+                  {[...Array(5)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" style={{ color: "#f59e0b" }} />)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Contacto() {
+  const [form, setForm] = useState({ nome: "", email: "", mensagem: "" });
+  return (
+    <section style={{ padding: "80px 24px", background: "#fff" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 64 }}>
+        <div style={{ flex: "1 1 320px" }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: V, marginBottom: 14 }}>Contacto</p>
+          <h2 style={{ fontSize: "clamp(1.6rem,3vw,2.2rem)", fontWeight: 900, color: "#0f1a12", margin: "0 0 16px" }}>Fala connosco</h2>
+          <p style={{ color: "#64748b", lineHeight: 1.8, fontSize: 14, marginBottom: 32 }}>
+            Tens uma dúvida, sugestão ou queres saber mais sobre o MozTicTac? A nossa equipa está disponível para te ajudar.
+          </p>
+          {[{ Ic: Mail, t: "support@moztictac.com" }, { Ic: Phone, t: "+258 844 565 456" }, { Ic: MapPin, t: "Maputo, Moçambique" }].map(({ Ic, t }) => (
+            <div key={t} style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 10, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Ic size={17} style={{ color: V }} />
+              </div>
+              <p style={{ fontSize: 14, color: "#374151" }}>{t}</p>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
+            {[IcInstagram, IcFacebook, IcTwitter].map((Ic, i) => (
+              <button key={i} style={{ width: 40, height: 40, borderRadius: 8, border: "1px solid #e5e7eb",
+                background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all .2s", color: "#6b7280" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = V; e.currentTarget.style.color = V; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.color = "#6b7280"; }}>
+                <Ic size={16} />
               </button>
             ))}
           </div>
         </div>
-
-        {/* formulário */}
-        <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              {
-                label: "Nome completo",
-                key: "nome",
-                type: "text",
-                placeholder: "O teu nome",
-              },
-              {
-                label: "Email",
-                key: "email",
-                type: "email",
-                placeholder: "O teu email",
-              },
-            ].map(({ label, key, type, placeholder }) => (
+        <div style={{ flex: "1 1 380px", background: "#f8faf9", borderRadius: 20, padding: 36, border: "1px solid #e9f5f0" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+            {[{ label: "Nome completo", key: "nome", type: "text", ph: "O teu nome" },
+              { label: "Email", key: "email", type: "email", ph: "O teu email" }].map(({ label, key, type, ph }) => (
               <div key={key}>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
-                  {label}
-                </label>
-                <input
-                  type={type}
-                  placeholder={placeholder}
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-green-500 transition-colors"
-                />
+                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{label}</label>
+                <input type={type} placeholder={ph} value={form[key]}
+                  onChange={e => setForm({ ...form, [key]: e.target.value })}
+                  style={{ width: "100%", border: "1px solid #d1fae5", borderRadius: 8, padding: "11px 14px", fontSize: 13, outline: "none", boxSizing: "border-box", background: "#fff" }} />
               </div>
             ))}
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
-              Mensagem
-            </label>
-            <textarea
-              rows={5}
-              placeholder="Como podemos ajudar?"
-              value={form.mensagem}
-              onChange={(e) => setForm({ ...form, mensagem: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-green-500 transition-colors resize-none"
-            />
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Mensagem</label>
+            <textarea rows={5} placeholder="Como podemos ajudar?" value={form.mensagem}
+              onChange={e => setForm({ ...form, mensagem: e.target.value })}
+              style={{ width: "100%", border: "1px solid #d1fae5", borderRadius: 8, padding: "11px 14px", fontSize: 13, outline: "none", resize: "none", boxSizing: "border-box", background: "#fff" }} />
           </div>
-          <BotaoVerde onClick={() => {}} tamanho="md">
-            <MessageCircle size={15} />
-            Enviar Mensagem
-          </BotaoVerde>
+          <Btn onClick={() => {}}><MessageCircle size={15} /> Enviar Mensagem</Btn>
         </div>
       </div>
     </section>
   );
 }
 
-// ─── CTA final ────────────────────────────────────────────────────────────────
 function CtaFinal() {
   return (
-    <section
-      className="py-16 px-4 text-white text-center"
-      style={{ background: "linear-gradient(135deg, #004d2e 0%, #00b96b 100%)" }}
-    >
-      <div className="max-w-2xl mx-auto space-y-5">
-        <h2 className="text-3xl font-black">Pronto para começar?</h2>
-        <p className="text-green-100 text-sm leading-relaxed">
-          Junta-te a milhares de moçambicanos que já compram, vendem e ganham no
-          MozTicTac.
+    <section style={{ position: "relative", overflow: "hidden", padding: "80px 24px", textAlign: "center" }}>
+      <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1400&q=80" alt=""
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(0,77,46,.94) 0%, rgba(0,185,107,.85) 100%)" }} />
+      <div style={{ position: "relative", zIndex: 2, maxWidth: 680, margin: "0 auto", color: "#fff" }}>
+        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", opacity: .8, marginBottom: 16 }}>Começa hoje</p>
+        <h2 style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 900, lineHeight: 1.2, margin: "0 0 16px" }}>Pronto para começar?</h2>
+        <p style={{ color: "rgba(255,255,255,.82)", lineHeight: 1.8, fontSize: 15, marginBottom: 36 }}>
+          Junta-te a milhares de moçambicanos que já compram, vendem e ganham no MozTicTac.
         </p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <BotaoVerde onClick={() => {}} variante="outline">
-            Criar conta grátis
-            <ArrowRight size={15} />
-          </BotaoVerde>
-          <button
-            className="px-6 py-3 text-sm font-semibold rounded-xl cursor-pointer transition-colors"
-            style={{
-              background: "rgba(255,255,255,0.15)",
-              color: "white",
-              border: "2px solid rgba(255,255,255,0.3)",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.25)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.15)")
-            }
-          >
-            Saber mais
-          </button>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "center" }}>
+          <Btn outline onClick={() => {}}>Criar conta grátis <ArrowRight size={15} /></Btn>
+          <Btn light onClick={() => {}}>Saber mais</Btn>
         </div>
       </div>
     </section>
   );
 }
 
-// ─── página principal ─────────────────────────────────────────────────────────
 export default function PaginaSobreNos() {
   const [pesquisa, setPesquisa] = useState("");
-
   return (
-    <div className="min-h-screen bg-white">
+    <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <Cabecalho
         utilizadorAutenticado
         valorPesquisa={pesquisa}
@@ -658,24 +463,14 @@ export default function PaginaSobreNos() {
         aoClicarNotificacoes={() => {}}
         aoClicarChat={() => {}}
       />
-
-      {/* breadcrumb */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">
-          <button className="hover:text-green-600 cursor-pointer transition-colors">
-            Início
-          </button>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="font-semibold text-gray-900">Sobre Nós</span>
-        </div>
-      </div>
-
       <Hero />
+      <Sobre />
+      <Stats />
       <Missao />
-      <Numeros />
       <ComoFunciona />
       <Valores />
       <Equipa />
+      <Depoimentos />
       <Contacto />
       <CtaFinal />
     </div>
