@@ -25,65 +25,79 @@ const SECCOES = {
 };
 
 export default function MinhaConta() {
-  const [activo, setActivo]         = useState("perfil");
-  const [pesquisa, setPesquisa]     = useState("");
+  const [activo, setActivo]     = useState("perfil");
+  const [pesquisa, setPesquisa] = useState("");
 
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* header */}
-      <Cabecalho
-        utilizadorAutenticado
-        valorPesquisa={pesquisa}
-        aoMudarPesquisa={setPesquisa}
-        aoClicarPesquisa={() => {}}
-        aoClicarConta={() => {}}
-        aoClicarCarteira={() => setActivo("carteira")}
-        aoClicarCarrinho={() => {}}
-        aoClicarWishlist={() => {}}
-        aoClicarNotificacoes={() => setActivo("notificacoes")}
-        aoClicarChat={() => {}}
-      />
+      {/* SIDEBAR FIXA */}
+      <SidebarConta activo={activo} aoMudar={setActivo} />
 
-      {/* breadcrumb */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+      {/* HEADER */}
+      <div className="md:ml-64">
+        <Cabecalho
+          utilizadorAutenticado
+          valorPesquisa={pesquisa}
+          aoMudarPesquisa={setPesquisa}
+          aoClicarPesquisa={() => {}}
+          aoClicarConta={() => {}}
+          aoClicarCarteira={() => setActivo("carteira")}
+          aoClicarCarrinho={() => {}}
+          aoClicarWishlist={() => {}}
+          aoClicarNotificacoes={() => setActivo("notificacoes")}
+          aoClicarChat={() => {}}
+        />
+      </div>
+
+      {/* BREADCRUMB */}
+      <div className="md:ml-64 bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">
-          <button className="hover:text-green-600 cursor-pointer transition-colors">Início</button>
+          <button className="hover:text-green-600 cursor-pointer transition-colors">
+            Início
+          </button>
           <ChevronRight size={14} className="text-gray-400" />
           <span className="font-semibold text-gray-900">Minha Conta</span>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6 items-start">
+      {/* CONTEÚDO */}
+      <div className="md:ml-64">
+        <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6 items-start">
 
-        {/* sidebar — desktop */}
-        <SidebarConta activo={activo} aoMudar={setActivo} />
+          <main className="flex-1 min-w-0">
 
-        <main className="flex-1 min-w-0">
+            {/* MOBILE NAV */}
+            <div className="md:hidden flex gap-2 overflow-x-auto pb-3 mb-4">
+              {MENUS.map(({ id, Icone, rotulo }) => (
+                <button
+                  key={id}
+                  onClick={() => setActivo(id)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold shrink-0 border cursor-pointer transition-colors"
+                  style={{
+                    background:  activo === id ? VERDE   : "white",
+                    color:       activo === id ? "white" : "#374151",
+                    borderColor: activo === id ? VERDE   : "#e5e7eb",
+                  }}
+                >
+                  <Icone
+                    size={13}
+                    style={{ color: activo === id ? "white" : "#9ca3af" }}
+                  />
+                  {rotulo}
+                </button>
+              ))}
+            </div>
 
-          {/* nav chips — mobile */}
-          <div className="md:hidden flex gap-2 overflow-x-auto pb-3 mb-4">
-            {MENUS.map(({ id, Icone, rotulo }) => (
-              <button key={id} onClick={() => setActivo(id)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold shrink-0 border cursor-pointer transition-colors"
-                style={{
-                  background:  activo === id ? VERDE   : "white",
-                  color:       activo === id ? "white" : "#374151",
-                  borderColor: activo === id ? VERDE   : "#e5e7eb",
-                }}>
-                <Icone size={13} style={{ color: activo === id ? "white" : "#9ca3af" }} />
-                {rotulo}
-              </button>
-            ))}
-          </div>
+            {/* SECÇÃO ATIVA */}
+            <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+              {SECCOES[activo]}
+            </div>
 
-          {/* secção activa */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-            {SECCOES[activo]}
-          </div>
-
-        </main>
+          </main>
+        </div>
       </div>
+
     </div>
   );
 }
