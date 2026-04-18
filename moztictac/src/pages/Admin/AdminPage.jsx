@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PageAfiliados from "./PageAfiliados";
+import PageProdutos from "./PageProdutos";
 
 // ─── Design tokens — dark sidebar + white content, green accent ───────────────
 const C = {
@@ -432,46 +433,6 @@ function PageUtilizadores() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function PageProdutos() {
-  return (
-    <div>
-      <SectionHeader
-        title="Produtos & Serviços"
-        sub="Aprovar, rejeitar e gerir todos os produtos da plataforma"
-        action={<Btn label="Exportar" icon="download" variant="secondary" size="sm" />}
-      />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Total"        value="50 840" icon="package"  color={C.blue} />
-        <StatCard label="Ativos"       value="48 120" icon="check"    color={C.green} />
-        <StatCard label="Pendentes"    value="312"    icon="bell"     color={C.amber} />
-        <StatCard label="Rejeitados"   value="408"    icon="x"        color={C.red} />
-      </div>
-
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200 }}><Input placeholder="Pesquisar produto..." icon="search" /></div>
-          <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
-            <option>Todas as categorias</option><option>Roupa</option><option>Calçado</option><option>Electrónica</option><option>Serviços</option>
-          </select>
-          <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
-            <option>Todos os estados</option><option>Ativo</option><option>Pendente</option><option>Rejeitado</option>
-          </select>
-        </div>
-        <Table
-          cols={["Produto", "Vendedor", "Categoria", "Preço (MZN)", "Estado", "Ações"]}
-          rows={[
-            ["Ténis Nike Air Max 2024", "Ana Lopes",    "Calçado",    "3 200", <Badge label="Ativo"    type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver" icon="eye" size="sm" variant="ghost" /><Btn label="Desativar" icon="x" size="sm" variant="secondary" /></div>],
-            ["Conjunto Capulana",       "Fátima Dique", "Roupa",      "1 850", <Badge label="Ativo"    type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver" icon="eye" size="sm" variant="ghost" /><Btn label="Desativar" icon="x" size="sm" variant="secondary" /></div>],
-            ["Perfume Chanel Nº5",      "Carlos Nhaca", "Acessórios", "4 500", <Badge label="Pendente" type="warning" />, <div style={{display:"flex",gap:6}}><Btn label="Aprovar" icon="check" size="sm" variant="ghost" /><Btn label="Rejeitar" icon="x" size="sm" variant="secondary" /></div>],
-            ["Aulas de Inglês Online",  "João Matos",   "Serviços",   "800",   <Badge label="Pendente" type="warning" />, <div style={{display:"flex",gap:6}}><Btn label="Aprovar" icon="check" size="sm" variant="ghost" /><Btn label="Rejeitar" icon="x" size="sm" variant="secondary" /></div>],
-            ["Produto Suspeito XYZ",    "spam99",       "Outros",     "50",    <Badge label="Rejeitado" type="danger" />, <div style={{display:"flex",gap:6}}><Btn label="Ver" icon="eye" size="sm" variant="ghost" /><Btn label="Banir" icon="shield" size="sm" variant="secondary" /></div>],
-          ]}
-        />
       </div>
     </div>
   );

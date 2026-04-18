@@ -419,7 +419,7 @@ function TabelaProdutos({ lista, onVer, onToggleEstado, onAprovar, onRejeitar, o
               </td>
               <td style={{ padding: "12px 14px" }}>{estadoBadge(p.estado)}</td>
               <td style={{ padding: "12px 14px" }}>
-                <div style={{ display: "flex", gap: 4", flexWrap: "nowrap", gap: 4 }}>
+                <div style={{ display: "flex", gap: 4, flexWrap: "nowrap", gap: 4 }}>
                   <Btn label="Ver"  icon="eye"  size="sm" variant="ghost"     onClick={() => onVer(p)} />
                   {p.estado === "pendente" && <>
                     <Btn label="✓" size="sm" variant="ghost"    onClick={() => onAprovar(p.id)} />
