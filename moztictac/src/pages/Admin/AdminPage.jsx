@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PageAfiliados from "./PageAfiliados";
 
 // ─── Design tokens — dark sidebar + white content, green accent ───────────────
 const C = {
@@ -509,59 +510,6 @@ function PagePedidos() {
   );
 }
 
-function PageAfiliados() {
-  return (
-    <div>
-      <SectionHeader title="Gestão de Afiliados" sub="Controlar comissões, desempenho e fraudes de afiliados" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Total Afiliados"    value="892"    icon="link"       color={C.green} />
-        <StatCard label="Comissões Pagas"    value="148k MZN" icon="dollar"   color={C.amber} />
-        <StatCard label="Suspeitos"          value="12"     icon="alert-triangle" color={C.red} />
-        <StatCard label="Afiliados Bronze"   value="498"    icon="user"       color={C.blue} />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 16 }}>Todos os Afiliados</h3>
-          <Table
-            cols={["Nome", "Nível", "Vendas", "Comissão", "Estado", "Ações"]}
-            rows={[
-              ["João Matos",    <Badge label="Ouro"   type="warning" />, "312", "18 400 MZN", <Badge label="Ativo"     type="success" />, <Btn label="Gerir" icon="settings" size="sm" variant="ghost" />],
-              ["Ana Lopes",     <Badge label="Ouro"   type="warning" />, "278", "15 200 MZN", <Badge label="Ativo"     type="success" />, <Btn label="Gerir" icon="settings" size="sm" variant="ghost" />],
-              ["Carlos Nhaca",  <Badge label="Prata"  type="info" />,    "201", "11 800 MZN", <Badge label="Ativo"     type="success" />, <Btn label="Gerir" icon="settings" size="sm" variant="ghost" />],
-              ["spam_afilX",    <Badge label="Bronze" type="default" />, "489", "28 000 MZN", <Badge label="Suspeito"  type="danger" />,  <div style={{display:"flex",gap:6}}><Btn label="Bloquear" icon="x" size="sm" variant="danger" /><Btn label="Remover ganhos" icon="dollar" size="sm" variant="secondary" /></div>],
-            ]}
-          />
-        </div>
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 16 }}>⚙️ Regras de Comissão</h3>
-          {[
-            { level: "Bronze", rate: "5–10%" },
-            { level: "Prata",  rate: "11–20%" },
-            { level: "Ouro",   rate: "21–30%" },
-          ].map((r, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 2 ? `1px solid ${C.border}` : "none" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{r.level}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13, color: C.textSub }}>{r.rate}</span>
-                <Btn label="Editar" size="sm" variant="ghost" />
-              </div>
-            </div>
-          ))}
-          <div style={{ marginTop: 16 }}>
-            <Toggle label="Ativar auto-pagamento afiliados" active={true} />
-            <div style={{ marginTop: 10 }}>
-              <Toggle label="Bloquear auto-referência" active={true} />
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <Toggle label="Alertas de tráfego inválido" active={true} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function PageFinanceiro() {
   return (
