@@ -32,7 +32,7 @@ function ProductCardInterno({ p, onAddToCart }) {
   return (
     <div
       onClick={() => navigate(`/produto/${p.id}`)}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
+      className="bg-white  border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
     >
       {/* Imagem */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -85,7 +85,7 @@ function ProductCardInterno({ p, onAddToCart }) {
 
           {/* Entrega */}
           {p.hasDelivery && (
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-green-50 text-green-600">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5  bg-green-50 text-green-600">
               Entrega
             </span>
           )}
@@ -227,7 +227,7 @@ export function FashionProducts({ onAddToCart }) {
 
           {/* ══ Sidebar filtros ══ */}
           {filtersOpen && (
-            <aside className="w-56 flex-shrink-0 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-4">
+            <aside className="w-56 flex-shrink-0 bg-white  border border-gray-100 shadow-sm p-5 sticky top-4">
 
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-bold text-gray-800" style={{ fontFamily: "Manrope, sans-serif" }}>Filtros</span>

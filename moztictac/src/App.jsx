@@ -4,11 +4,13 @@ import MinhaConta from "./pages/Minhaconta";
 import PaginaCarrinho from "./pages/Paginacarrinho";
 import PaginaProdutoDetalhe from "./pages/Paginaprodutodetalhe";
 import PaginaSobreNos from "./pages/Paginasobrenos";
+import AdminPanel from "./pages/Admin/AdminPage";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/admin" element={<AdminPanel />} />
       <Route path="/minha-conta" element={<MinhaConta />} />
          <Route path="/carrinho" element={<PaginaCarrinho />} />
       {/* <Route path="/comprar" element={<h1>Comprar</h1>} /> */}

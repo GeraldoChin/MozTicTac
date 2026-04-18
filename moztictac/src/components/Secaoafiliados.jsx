@@ -1,21 +1,28 @@
 import { useState } from "react";
-import {
-  CreditCard, MousePointerClick, CheckCircle, Link, Copy, TrendingUp,
-  Search, Filter, Star, Shield, AlertTriangle, ChevronDown, ChevronUp,
-  Share2, ExternalLink, Award, Zap, BarChart2, Clock, XCircle,
-  CheckSquare, Package, RefreshCw, ArrowUpRight, Info
-} from "lucide-react";
 
-// ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const VERDE = "#00A86B";
-const VERDE_DARK = "#007A4D";
-const VERDE_LIGHT = "#E6F7F0";
+// ─── Ícones SVG inline ────────────────────────────────────────────────────────
+const IcoBar     = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+const IcoLink    = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;
+const IcoSearch  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+const IcoWallet  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8L4 7h16l-4-4z"/><circle cx="17" cy="13" r="1"/></svg>;
+const IcoShield  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const IcoAward   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>;
+const IcoCopy    = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>;
+const IcoCheck   = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>;
+const IcoShare   = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>;
+const IcoChevD   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>;
+const IcoChevU   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>;
+const IcoInfo    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+const IcoAlert   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+const IcoSpin    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{animation:"spin 1s linear infinite"}}><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>;
+const IcoTrend   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;
+const IcoX       = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
+// ─── Dados ────────────────────────────────────────────────────────────────────
 const NIVEIS = {
-  bronze: { label: "Bronze", cor: "#CD7F32", bg: "#FFF3E8", icon: "🥉", min: 0,    max: 5000  },
-  prata:  { label: "Prata",  cor: "#A8A9AD", bg: "#F4F4F6", icon: "🥈", min: 5000, max: 20000 },
-  ouro:   { label: "Ouro",   cor: "#FFD700", bg: "#FFFBEA", icon: "🥇", min: 20000, max: null },
+  bronze: { label: "Bronze", cor: "#CD7F32", bg: "#FFF3E8", icon: "🥉", min: 0,     max: 5000  },
+  prata:  { label: "Prata",  cor: "#A8A9AD", bg: "#F4F4F6", icon: "🥈", min: 5000,  max: 20000 },
+  ouro:   { label: "Ouro",   cor: "#FFD700", bg: "#FFFBEA", icon: "🥇", min: 20000, max: null  },
 };
 
 const AFILIADO = {
@@ -31,217 +38,156 @@ const AFILIADO = {
   ganhosPagos: 0,
 };
 
-const LINKS = [
-  {
-    id: "L001",
-    produto: "Smartphone Samsung A55",
-    produtoId: "P123",
-    categoria: "Electrónica",
-    comissao: 8,
-    preco: 28500,
-    cliques: 142,
-    conversoes: 7,
-    ganho: 3300,
-    estado: "activo",
-    imagem: "📱",
-    criadoEm: "12 Mar 2025",
-  },
-  {
-    id: "L002",
-    produto: "Mochila Escolar ProMax",
-    produtoId: "P456",
-    categoria: "Acessórios",
-    comissao: 12,
-    preco: 2800,
-    cliques: 89,
-    conversoes: 4,
-    ganho: 1800,
-    estado: "activo",
-    imagem: "🎒",
-    criadoEm: "28 Mar 2025",
-  },
+const LINKS_INICIAIS = [
+  { id: "L001", produto: "Smartphone Samsung A55", produtoId: "P123", categoria: "Electrónica", comissao: 8, preco: 28500, cliques: 142, conversoes: 7, ganho: 3300, estado: "activo",  imagem: "📱", criadoEm: "12 Mar 2025" },
+  { id: "L002", produto: "Mochila Escolar ProMax",  produtoId: "P456", categoria: "Acessórios",  comissao: 12, preco: 2800, cliques: 89,  conversoes: 4, ganho: 1800, estado: "activo",  imagem: "🎒", criadoEm: "28 Mar 2025" },
 ];
 
 const PRODUTOS_DISPONIVEIS = [
-  { id: "P789", nome: "Laptop Lenovo IdeaPad", categoria: "Electrónica", comissao: 6,  preco: 65000, vendas: 312, imagem: "💻", popular: true  },
-  { id: "P012", nome: "Fone Bluetooth JBL",    categoria: "Electrónica", comissao: 10, preco: 4500,  vendas: 189, imagem: "🎧", popular: false },
-  { id: "P345", nome: "Bicicleta City Tour",   categoria: "Desporto",    comissao: 9,  preco: 18000, vendas: 54,  imagem: "🚲", popular: false },
-  { id: "P678", nome: "Máquina de Costura",    categoria: "Casa",        comissao: 7,  preco: 12000, vendas: 98,  imagem: "🪡", popular: true  },
+  { id: "P789", nome: "Laptop Lenovo IdeaPad",  categoria: "Electrónica", comissao: 6,  preco: 65000, vendas: 312, imagem: "💻", popular: true  },
+  { id: "P012", nome: "Fone Bluetooth JBL",     categoria: "Electrónica", comissao: 10, preco: 4500,  vendas: 189, imagem: "🎧", popular: false },
+  { id: "P345", nome: "Bicicleta City Tour",    categoria: "Desporto",    comissao: 9,  preco: 18000, vendas: 54,  imagem: "🚲", popular: false },
+  { id: "P678", nome: "Máquina de Costura",     categoria: "Casa",        comissao: 7,  preco: 12000, vendas: 98,  imagem: "🪡", popular: true  },
+  { id: "P901", nome: "Cadeira de Escritório",  categoria: "Casa",        comissao: 11, preco: 22000, vendas: 41,  imagem: "🪑", popular: false },
+  { id: "P234", nome: "Tênis Nike Air Max",     categoria: "Moda",        comissao: 13, preco: 9500,  vendas: 207, imagem: "👟", popular: true  },
 ];
 
 const HISTORICO_COMISSOES = [
-  { id: "C001", produto: "Samsung A55",   data: "10 Abr 2025", valor: 456,  estado: "disponivel" },
-  { id: "C002", produto: "Mochila Pro",   data: "08 Abr 2025", valor: 336,  estado: "disponivel" },
-  { id: "C003", produto: "Samsung A55",   data: "05 Abr 2025", valor: 228,  estado: "pago"       },
-  { id: "C004", produto: "Samsung A55",   data: "01 Abr 2025", valor: 228,  estado: "pendente"   },
-  { id: "C005", produto: "Mochila Pro",   data: "28 Mar 2025", valor: 168,  estado: "cancelado"  },
+  { id: "C001", produto: "Samsung A55",  data: "10 Abr 2025", valor: 456, estado: "disponivel" },
+  { id: "C002", produto: "Mochila Pro",  data: "08 Abr 2025", valor: 336, estado: "disponivel" },
+  { id: "C003", produto: "Samsung A55",  data: "05 Abr 2025", valor: 228, estado: "pago"       },
+  { id: "C004", produto: "Samsung A55",  data: "01 Abr 2025", valor: 228, estado: "pendente"   },
+  { id: "C005", produto: "Mochila Pro",  data: "28 Mar 2025", valor: 168, estado: "cancelado"  },
+  { id: "C006", produto: "Mochila Pro",  data: "20 Mar 2025", valor: 168, estado: "pago"       },
 ];
 
 const CATEGORIAS = ["Todas", "Electrónica", "Acessórios", "Desporto", "Casa", "Moda"];
 
-// ─── SUB-COMPONENTS ───────────────────────────────────────────────────────────
+const TABS = [
+  { id: "visao",     label: "Visão Geral", icon: IcoBar    },
+  { id: "links",     label: "Meus Links",  icon: IcoLink   },
+  { id: "explorar",  label: "Explorar",    icon: IcoSearch },
+  { id: "comissoes", label: "Comissões",   icon: IcoWallet },
+  { id: "seguranca", label: "Segurança",   icon: IcoShield },
+];
 
-function Badge({ texto, cor = "verde" }) {
-  const estilos = {
-    verde:    { background: VERDE_LIGHT,  color: VERDE_DARK },
-    cinza:    { background: "#F3F4F6",    color: "#6B7280"  },
-    amarelo:  { background: "#FFFBEA",    color: "#B45309"  },
-    vermelho: { background: "#FEF2F2",    color: "#DC2626"  },
-    azul:     { background: "#EFF6FF",    color: "#1D4ED8"  },
-  };
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n) => Number(n).toLocaleString("pt-MZ") + " MZN";
+
+// ─── StatCard ─────────────────────────────────────────────────────────────────
+function StatCard({ label, valor, sub, delta }) {
   return (
-    <span style={{ ...estilos[cor], borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
-      {texto}
-    </span>
-  );
-}
-
-function EstadoBadge({ estado }) {
-  const map = {
-    disponivel: { cor: "verde",    texto: "Disponível" },
-    pendente:   { cor: "amarelo",  texto: "Pendente"   },
-    pago:       { cor: "cinza",    texto: "Pago"       },
-    cancelado:  { cor: "vermelho", texto: "Cancelado"  },
-    activo:     { cor: "verde",    texto: "Activo"     },
-  };
-  const { cor, texto } = map[estado] || { cor: "cinza", texto: estado };
-  return <Badge cor={cor} texto={texto} />;
-}
-
-function StatCard({ label, valor, Icone, destaque }) {
-  return (
-    <div style={{
-      background: destaque ? VERDE : "#F9FAFB",
-      borderRadius: 16,
-      padding: "16px 12px",
-      textAlign: "center",
-      border: destaque ? "none" : "1px solid #F0F0F0",
-    }}>
-      <Icone size={20} style={{ color: destaque ? "#fff" : VERDE, margin: "0 auto" }} />
-      <p style={{ fontSize: 17, fontWeight: 800, color: destaque ? "#fff" : "#111", marginTop: 6 }}>{valor}</p>
-      <p style={{ fontSize: 11, color: destaque ? "rgba(255,255,255,0.8)" : "#9CA3AF", marginTop: 2 }}>{label}</p>
+    <div className="bg-gray-50 rounded-xl p-3 relative overflow-hidden">
+      <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{label}</div>
+      <div className="text-xl font-semibold text-gray-900 font-mono tracking-tight">{valor}</div>
+      <div className="text-xs text-gray-400 mt-1">
+        {sub} {delta && <span className="text-green-600 font-medium">{delta}</span>}
+      </div>
     </div>
   );
 }
 
+// ─── NivelBar ─────────────────────────────────────────────────────────────────
 function NivelBar({ nivel, totalGanho }) {
   const info = NIVEIS[nivel];
   const proximo = nivel === "bronze" ? NIVEIS.prata : nivel === "prata" ? NIVEIS.ouro : null;
-  const pct = proximo ? Math.min(100, ((totalGanho - info.min) / (proximo.min - info.min)) * 100) : 100;
+  const pct = proximo ? Math.min(100, Math.round(((totalGanho - info.min) / (proximo.min - info.min)) * 100)) : 100;
 
   return (
-    <div style={{
-      background: info.bg,
-      border: `1.5px solid ${info.cor}30`,
-      borderRadius: 16,
-      padding: 16,
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div className="p-4 bg-white border border-gray-100 rounded-xl">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           <span style={{ fontSize: 22 }}>{info.icon}</span>
           <div>
-            <p style={{ fontWeight: 800, fontSize: 14, color: "#111" }}>Nível {info.label}</p>
-            <p style={{ fontSize: 11, color: "#777" }}>Afiliado MozTicTac</p>
+            <p className="text-sm font-semibold text-gray-900">Nível {info.label}</p>
+            <p className="text-xs text-gray-400">Afiliado MozTicTac</p>
           </div>
         </div>
-        <Award size={20} style={{ color: info.cor }} />
+        <div className="text-right">
+          <p className="text-xs text-gray-400">Total acumulado</p>
+          <p className="text-sm font-semibold font-mono" style={{ color: info.cor }}>{fmt(totalGanho)}</p>
+        </div>
       </div>
       {proximo && (
         <>
-          <div style={{ height: 6, background: "#E5E7EB", borderRadius: 99, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${pct}%`, background: info.cor, borderRadius: 99, transition: "width 1s ease" }} />
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: info.cor }} />
           </div>
-          <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>
-            {(proximo.min - totalGanho).toLocaleString("pt-MZ")} MZN até {NIVEIS[nivel === "bronze" ? "prata" : "ouro"].icon} {NIVEIS[nivel === "bronze" ? "prata" : "ouro"].label}
+          <p className="text-xs text-gray-400 mt-2">
+            {pct}% completo · faltam {fmt(proximo.min - totalGanho)} para {nivel === "bronze" ? "🥈 Prata" : "🥇 Ouro"}
           </p>
         </>
       )}
+      {!proximo && <p className="text-xs text-gray-400 mt-2">Nível máximo atingido 🏆</p>}
     </div>
   );
 }
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
-const TABS = [
-  { id: "visao",     label: "Visão Geral",  icon: BarChart2   },
-  { id: "links",     label: "Meus Links",   icon: Link        },
-  { id: "explorar",  label: "Explorar",     icon: Search      },
-  { id: "comissoes", label: "Comissões",    icon: CreditCard  },
-  { id: "seguranca", label: "Segurança",    icon: Shield      },
-];
-
-// ─── VISÃO GERAL ──────────────────────────────────────────────────────────────
+// ─── ABA VISÃO GERAL ──────────────────────────────────────────────────────────
 function AbaVisaoGeral() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="space-y-4">
       <NivelBar nivel={AFILIADO.nivel} totalGanho={AFILIADO.totalGanho} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <StatCard label="Total Ganho"   valor={`${AFILIADO.totalGanho.toLocaleString("pt-MZ")} MZN`} Icone={CreditCard}        destaque />
-        <StatCard label="Links Activos" valor={AFILIADO.linksAtivos}                                  Icone={Link}              />
-        <StatCard label="Cliques"       valor={AFILIADO.cliquesTotal}                                 Icone={MousePointerClick} />
-        <StatCard label="Conversões"    valor={AFILIADO.conversoesTotal}                              Icone={CheckCircle}       />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <StatCard label="Total Ganho"   valor="5.1k"   sub="MZN"       delta="+18%" />
+        <StatCard label="Links Activos" valor={AFILIADO.linksAtivos}   sub="criados" />
+        <StatCard label="Cliques"       valor={AFILIADO.cliquesTotal}  sub="total acumulado" />
+        <StatCard label="Conversões"    valor={AFILIADO.conversoesTotal} sub="vendas geradas" />
       </div>
 
-      {/* Conversão */}
-      <div style={{ background: "#F9FAFB", borderRadius: 16, padding: 16, border: "1px solid #F0F0F0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ fontWeight: 700, fontSize: 13 }}>Taxa de Conversão</p>
-          <span style={{ fontWeight: 800, fontSize: 18, color: VERDE }}>{AFILIADO.taxaConversao}%</span>
+      {/* Taxa de conversão */}
+      <div className="p-4 bg-white border border-gray-100 rounded-xl">
+        <div className="flex justify-between items-center mb-2">
+          <p className="text-sm font-semibold text-gray-800">Taxa de Conversão</p>
+          <span className="text-lg font-semibold font-mono text-green-600">{AFILIADO.taxaConversao}%</span>
         </div>
-        <div style={{ height: 8, background: "#E5E7EB", borderRadius: 99, overflow: "hidden", marginTop: 10 }}>
-          <div style={{ height: "100%", width: `${AFILIADO.taxaConversao * 5}%`, background: VERDE, borderRadius: 99 }} />
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.min(100, AFILIADO.taxaConversao * 5)}%` }} />
         </div>
-        <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6 }}>
-          {AFILIADO.conversoesTotal} vendas de {AFILIADO.cliquesTotal} cliques
-        </p>
+        <p className="text-xs text-gray-400 mt-2">{AFILIADO.conversoesTotal} vendas de {AFILIADO.cliquesTotal} cliques</p>
       </div>
 
-      {/* Carteira de comissões */}
-      <div style={{ borderRadius: 16, border: "1px solid #F0F0F0", overflow: "hidden" }}>
-        <div style={{ padding: "12px 16px", background: "#F9FAFB", borderBottom: "1px solid #F0F0F0" }}>
-          <p style={{ fontWeight: 700, fontSize: 13 }}>Carteira de Comissões</p>
+      {/* Carteira */}
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <p className="text-sm font-semibold text-gray-800">Carteira de Comissões</p>
         </div>
         {[
-          { label: "Disponível para saque", valor: AFILIADO.ganhosDisponiveis, cor: VERDE,   Icone: CheckCircle },
-          { label: "Pendente",              valor: AFILIADO.ganhosPendentes,   cor: "#F59E0B", Icone: Clock      },
-          { label: "Total pago",            valor: AFILIADO.ganhosPagos,       cor: "#9CA3AF", Icone: CreditCard },
-        ].map(({ label, valor, cor, Icone }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid #F9FAFB" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Icone size={16} style={{ color: cor }} />
-              <p style={{ fontSize: 13, color: "#555" }}>{label}</p>
-            </div>
-            <p style={{ fontWeight: 700, color: cor }}>{valor.toLocaleString("pt-MZ")} MZN</p>
+          { label: "Disponível para saque", valor: AFILIADO.ganhosDisponiveis, cor: "text-green-600" },
+          { label: "Pendente",              valor: AFILIADO.ganhosPendentes,   cor: "text-amber-500" },
+          { label: "Total pago",            valor: AFILIADO.ganhosPagos,       cor: "text-gray-400"  },
+        ].map(({ label, valor, cor }) => (
+          <div key={label} className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+            <p className="text-sm text-gray-600">{label}</p>
+            <p className={`text-sm font-semibold font-mono ${cor}`}>{fmt(valor)}</p>
           </div>
         ))}
-        <div style={{ padding: 12 }}>
-          <button style={{
-            width: "100%", padding: "10px 0", background: VERDE, color: "#fff",
-            borderRadius: 10, fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer"
-          }}>
-            Levantar {AFILIADO.ganhosDisponiveis.toLocaleString("pt-MZ")} MZN
+        <div className="p-3">
+          <button className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg border-0 cursor-pointer transition-colors">
+            Levantar {fmt(AFILIADO.ganhosDisponiveis)}
           </button>
         </div>
       </div>
 
-      {/* Insights */}
-      <div style={{ background: "#EFF6FF", borderRadius: 16, padding: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <Zap size={16} style={{ color: "#1D4ED8" }} />
-          <p style={{ fontWeight: 700, fontSize: 13, color: "#1D4ED8" }}>Dica de Performance</p>
+      {/* Dica */}
+      <div className="flex gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl items-start">
+        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-700"><IcoTrend /></div>
+        <div>
+          <p className="text-xs font-semibold text-blue-800">Dica de Performance</p>
+          <p className="text-xs text-blue-700 mt-0.5">O link do Samsung A55 tem 7 conversões. Partilha mais em grupos de tecnologia para escalar os ganhos!</p>
         </div>
-        <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>
-          O teu link do <strong>Samsung A55</strong> tem 7 conversões. Partilha mais em grupos de tecnologia para escalar os ganhos!
-        </p>
       </div>
     </div>
   );
 }
 
-// ─── MEUS LINKS ───────────────────────────────────────────────────────────────
-function AbaMeusLinks() {
-  const [copiado, setCopiado] = useState(null);
+// ─── ABA MEUS LINKS ───────────────────────────────────────────────────────────
+function AbaMeusLinks({ links, setLinks }) {
+  const [copiado, setCopiado]     = useState(null);
   const [expandido, setExpandido] = useState(null);
+  const [pausando, setPausando]   = useState(null);
+  const [confirmDel, setConfirmDel] = useState(null);
 
   const copiar = (id, link) => {
     navigator.clipboard?.writeText(link).catch(() => {});
@@ -249,122 +195,117 @@ function AbaMeusLinks() {
     setTimeout(() => setCopiado(null), 2000);
   };
 
+  const toggleEstado = (id) => {
+    setPausando(id);
+    setTimeout(() => {
+      setLinks(prev => prev.map(l => l.id === id ? { ...l, estado: l.estado === "activo" ? "pausado" : "activo" } : l));
+      setPausando(null);
+    }, 800);
+  };
+
+  const removerLink = (id) => {
+    setLinks(prev => prev.filter(l => l.id !== id));
+    setConfirmDel(null);
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <p style={{ fontWeight: 700, fontSize: 14, color: "#111" }}>Os Meus Links Activos</p>
-        <Badge texto={`${LINKS.length} links`} />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-gray-800">Os meus links <span className="text-xs text-gray-400 font-normal">({links.length})</span></p>
       </div>
 
-      {LINKS.map(l => {
-        const link = `moztictac.mz/p/${l.produtoId}?ref=${l.produto.slice(0,4).replace(/ /g,"")}ANA`;
+      {links.length === 0 && (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-sm">Nenhum link activo. Explora produtos para criar o teu primeiro link!</p>
+        </div>
+      )}
+
+      {links.map(l => {
+        const link = `moztictac.mz/p/${l.produtoId}?ref=ANA${l.id}`;
         const aberto = expandido === l.id;
+        const comissaoVenda = Math.round(l.preco * l.comissao / 100);
         return (
-          <div key={l.id} style={{
-            background: "#fff",
-            border: "1.5px solid #F0F0F0",
-            borderRadius: 16,
-            overflow: "hidden",
-            transition: "all .2s",
-          }}>
-            <div style={{ padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 26 }}>{l.imagem}</span>
-                  <div>
-                    <p style={{ fontWeight: 700, fontSize: 13 }}>{l.produto}</p>
-                    <p style={{ fontSize: 11, color: "#9CA3AF" }}>{l.categoria} · Criado {l.criadoEm}</p>
+          <div key={l.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:border-green-200 transition-all">
+            <div className="p-4">
+              <div className="flex items-start gap-3 mb-3">
+                <span style={{ fontSize: 28 }}>{l.imagem}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{l.produto}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{l.categoria} · Criado {l.criadoEm}</p>
+                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${l.estado === "activo" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"}`}>{l.estado}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-800">Comissão {l.comissao}%</span>
                   </div>
                 </div>
-                <EstadoBadge estado={l.estado} />
+                {/* Ações */}
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => toggleEstado(l.id)}
+                    disabled={pausando === l.id}
+                    title={l.estado === "activo" ? "Pausar link" : "Activar link"}
+                    className={`w-8 h-8 flex items-center justify-center border rounded-lg transition-colors cursor-pointer bg-transparent text-xs font-bold
+                      ${l.estado === "activo" ? "border-gray-200 text-gray-400 hover:border-amber-400 hover:text-amber-500" : "border-gray-200 text-gray-400 hover:border-green-500 hover:text-green-600"}`}
+                  >
+                    {pausando === l.id ? "…" : l.estado === "activo" ? "⏸" : "▶"}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDel(l.id)}
+                    title="Remover link"
+                    className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors cursor-pointer bg-transparent"
+                  >
+                    <IcoX />
+                  </button>
+                </div>
               </div>
 
               {/* Link box */}
-              <div style={{
-                background: "#F9FAFB", borderRadius: 10,
-                padding: "8px 12px",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                marginBottom: 12,
-              }}>
-                <p style={{ fontSize: 11, color: "#6B7280", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {link}
-                </p>
-                <button
-                  onClick={() => copiar(l.id, link)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 4,
-                    fontSize: 11, fontWeight: 700,
-                    color: copiado === l.id ? VERDE : "#6B7280",
-                    background: "none", border: "none", cursor: "pointer",
-                    marginLeft: 8, flexShrink: 0,
-                  }}
-                >
-                  {copiado === l.id ? <><CheckCircle size={12} /> Copiado!</> : <><Copy size={12} /> Copiar</>}
+              <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 mb-3">
+                <p className="text-xs text-gray-500 font-mono flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{link}</p>
+                <button onClick={() => copiar(l.id, link)} className="flex items-center gap-1 text-xs font-medium border-0 bg-transparent cursor-pointer flex-shrink-0" style={{ color: copiado === l.id ? "#16a34a" : "#9CA3AF" }}>
+                  {copiado === l.id ? <><IcoCheck /> Copiado!</> : <><IcoCopy /> Copiar</>}
                 </button>
               </div>
 
               {/* Stats rápidas */}
-              <div style={{ display: "flex", gap: 16 }}>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: "#111" }}>{l.cliques}</p>
-                  <p style={{ fontSize: 10, color: "#9CA3AF" }}>Cliques</p>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: "#111" }}>{l.conversoes}</p>
-                  <p style={{ fontSize: 10, color: "#9CA3AF" }}>Vendas</p>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: VERDE }}>{((l.conversoes / l.cliques) * 100).toFixed(1)}%</p>
-                  <p style={{ fontSize: 10, color: "#9CA3AF" }}>Conversão</p>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: VERDE }}>{l.ganho.toLocaleString("pt-MZ")}</p>
-                  <p style={{ fontSize: 10, color: "#9CA3AF" }}>MZN Ganhos</p>
-                </div>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                {[
+                  { label: "Cliques",    val: l.cliques },
+                  { label: "Vendas",     val: l.conversoes },
+                  { label: "Conversão",  val: `${((l.conversoes / l.cliques) * 100).toFixed(1)}%`, green: true },
+                  { label: "MZN Ganhos", val: l.ganho.toLocaleString("pt-MZ"), green: true },
+                ].map(({ label, val, green }) => (
+                  <div key={label}>
+                    <p className={`text-sm font-semibold font-mono ${green ? "text-green-600" : "text-gray-900"}`}>{val}</p>
+                    <p className="text-xs text-gray-400">{label}</p>
+                  </div>
+                ))}
               </div>
 
-              {/* Toggle detalhes */}
-              <button
-                onClick={() => setExpandido(aberto ? null : l.id)}
-                style={{
-                  marginTop: 12, display: "flex", alignItems: "center", gap: 4,
-                  fontSize: 12, color: VERDE, fontWeight: 600,
-                  background: "none", border: "none", cursor: "pointer", padding: 0,
-                }}
-              >
-                {aberto ? <><ChevronUp size={14} /> Ocultar detalhes</> : <><ChevronDown size={14} /> Ver detalhes</>}
+              <button onClick={() => setExpandido(aberto ? null : l.id)} className="mt-3 flex items-center gap-1 text-xs text-green-600 font-medium border-0 bg-transparent cursor-pointer p-0">
+                {aberto ? <><IcoChevU /> Ocultar detalhes</> : <><IcoChevD /> Ver detalhes e partilhar</>}
               </button>
             </div>
 
-            {/* Detalhes expandidos */}
+            {/* Expandido */}
             {aberto && (
-              <div style={{ padding: "0 16px 16px" }}>
-                <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 14 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>Detalhes do Produto</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {[
-                      ["Comissão",     `${l.comissao}%`],
-                      ["Preço produto", `${l.preco.toLocaleString("pt-MZ")} MZN`],
-                      ["Comissão/venda", `${Math.round(l.preco * l.comissao / 100).toLocaleString("pt-MZ")} MZN`],
-                    ].map(([k, v]) => (
-                      <div key={k} style={{ display: "flex", justifyContent: "space-between" }}>
-                        <p style={{ fontSize: 12, color: "#9CA3AF" }}>{k}</p>
-                        <p style={{ fontSize: 12, fontWeight: 700, color: "#111" }}>{v}</p>
-                      </div>
-                    ))}
-                  </div>
+              <div className="px-4 pb-4 border-t border-gray-50 pt-3">
+                <div className="bg-gray-50 rounded-lg p-3 mb-3 space-y-2">
+                  {[
+                    ["Preço do produto",   fmt(l.preco)],
+                    ["Comissão",           `${l.comissao}%`],
+                    ["Ganho por venda",    fmt(comissaoVenda)],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between text-xs">
+                      <span className="text-gray-400">{k}</span>
+                      <span className="font-semibold text-gray-800">{v}</span>
+                    </div>
+                  ))}
                 </div>
-                {/* Partilhar */}
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <p className="text-xs text-gray-400 mb-2 font-medium">Partilhar via</p>
+                <div className="flex gap-2">
                   {["WhatsApp", "Facebook", "Telegram"].map(r => (
-                    <button key={r} style={{
-                      flex: 1, padding: "8px 0",
-                      background: VERDE_LIGHT, color: VERDE_DARK,
-                      borderRadius: 10, fontWeight: 700, fontSize: 11,
-                      border: `1px solid ${VERDE}30`, cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-                    }}>
-                      <Share2 size={11} /> {r}
+                    <button key={r} className="flex-1 py-2 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition-colors cursor-pointer flex items-center justify-center gap-1">
+                      <IcoShare /> {r}
                     </button>
                   ))}
                 </div>
@@ -373,123 +314,147 @@ function AbaMeusLinks() {
           </div>
         );
       })}
+
+      {/* Modal confirmar remoção */}
+      {confirmDel && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setConfirmDel(null)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <p className="text-base font-semibold text-gray-900 mb-2">Remover link?</p>
+            <p className="text-sm text-gray-500 mb-5">Este link será removido. Perderás o rastreamento de cliques e conversões associados.</p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmDel(null)} className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-500 bg-transparent cursor-pointer hover:border-gray-300">Cancelar</button>
+              <button onClick={() => removerLink(confirmDel)} className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg border-0 cursor-pointer transition-colors">Remover</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── EXPLORAR PRODUTOS ────────────────────────────────────────────────────────
-function AbaExplorar() {
-  const [busca, setBusca] = useState("");
-  const [cat, setCat] = useState("Todas");
+// ─── ABA EXPLORAR ─────────────────────────────────────────────────────────────
+function AbaExplorar({ links, setLinks }) {
+  const [busca, setBusca]         = useState("");
+  const [cat, setCat]             = useState("Todas");
   const [afiliados, setAfiliados] = useState([]);
-  const [confirmando, setConfirmando] = useState(null);
+  const [gerando, setGerando]     = useState(null);
+  const [ordenar, setOrdenar]     = useState("popular");
 
-  const filtrados = PRODUTOS_DISPONIVEIS.filter(p =>
+  const jaAfiliado = (id) => afiliados.includes(id) || links.some(l => l.produtoId === id);
+
+  const tornarAfiliado = (p) => {
+    setGerando(p.id);
+    setTimeout(() => {
+      const novoLink = {
+        id: `L${Date.now()}`,
+        produto: p.nome,
+        produtoId: p.id,
+        categoria: p.categoria,
+        comissao: p.comissao,
+        preco: p.preco,
+        cliques: 0,
+        conversoes: 0,
+        ganho: 0,
+        estado: "activo",
+        imagem: p.imagem,
+        criadoEm: new Date().toLocaleDateString("pt-MZ", { day: "2-digit", month: "short", year: "numeric" }),
+      };
+      setLinks(prev => [novoLink, ...prev]);
+      setAfiliados(prev => [...prev, p.id]);
+      setGerando(null);
+    }, 1200);
+  };
+
+  let filtrados = PRODUTOS_DISPONIVEIS.filter(p =>
     (cat === "Todas" || p.categoria === cat) &&
     p.nome.toLowerCase().includes(busca.toLowerCase())
   );
 
-  const tornarAfiliado = (id) => {
-    setConfirmando(id);
-    setTimeout(() => {
-      setAfiliados(prev => [...prev, id]);
-      setConfirmando(null);
-    }, 1200);
-  };
+  if (ordenar === "comissao") filtrados = [...filtrados].sort((a, b) => b.comissao - a.comissao);
+  else if (ordenar === "preco")    filtrados = [...filtrados].sort((a, b) => b.preco - a.preco);
+  else                             filtrados = [...filtrados].sort((a, b) => b.vendas - a.vendas);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="space-y-4">
       {/* Busca */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 10,
-        background: "#F9FAFB", borderRadius: 12, padding: "10px 14px",
-        border: "1.5px solid #F0F0F0"
-      }}>
-        <Search size={16} style={{ color: "#9CA3AF" }} />
+      <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+        <IcoSearch />
         <input
           value={busca}
           onChange={e => setBusca(e.target.value)}
-          placeholder="Procurar produtos..."
-          style={{ background: "none", border: "none", outline: "none", fontSize: 13, width: "100%", color: "#111" }}
+          placeholder="Procurar produtos para promover..."
+          className="bg-transparent border-none outline-none text-sm flex-1 text-gray-800 placeholder-gray-400"
         />
       </div>
 
       {/* Categorias */}
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {CATEGORIAS.map(c => (
-          <button
-            key={c}
-            onClick={() => setCat(c)}
-            style={{
-              padding: "6px 14px", borderRadius: 20,
-              fontWeight: 600, fontSize: 12, cursor: "pointer",
-              border: `1.5px solid ${cat === c ? VERDE : "#E5E7EB"}`,
-              background: cat === c ? VERDE : "#fff",
-              color: cat === c ? "#fff" : "#6B7280",
-              flexShrink: 0, whiteSpace: "nowrap",
-            }}
-          >{c}</button>
+          <button key={c} onClick={() => setCat(c)}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer flex-shrink-0
+              ${cat === c ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 hover:border-green-400 bg-transparent"}`}>
+            {c}
+          </button>
         ))}
       </div>
 
+      {/* Ordenar */}
+      <div className="flex items-center gap-2">
+        <p className="text-xs text-gray-400 flex-shrink-0">Ordenar por:</p>
+        <div className="flex gap-2">
+          {[{ id: "popular", label: "Mais vendidos" }, { id: "comissao", label: "Comissão" }, { id: "preco", label: "Preço" }].map(o => (
+            <button key={o.id} onClick={() => setOrdenar(o.id)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border cursor-pointer transition-all
+                ${ordenar === o.id ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 bg-transparent hover:border-green-400"}`}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Produtos */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="flex flex-col gap-3">
+        {filtrados.length === 0 && <p className="text-center text-sm text-gray-400 py-8">Nenhum produto encontrado.</p>}
         {filtrados.map(p => {
-          const jaAfiliado = afiliados.includes(p.id) || LINKS.some(l => l.produtoId === p.id);
-          const a_confirmar = confirmando === p.id;
+          const jA = jaAfiliado(p.id);
+          const emGeracao = gerando === p.id;
           return (
-            <div key={p.id} style={{
-              background: "#fff", border: "1.5px solid #F0F0F0",
-              borderRadius: 16, padding: 16,
-              display: "flex", flexDirection: "column", gap: 10,
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span style={{ fontSize: 28 }}>{p.imagem}</span>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                      <p style={{ fontWeight: 700, fontSize: 13 }}>{p.nome}</p>
-                      {p.popular && <Badge texto="⭐ Popular" cor="amarelo" />}
-                    </div>
-                    <p style={{ fontSize: 11, color: "#9CA3AF" }}>{p.categoria}</p>
+            <div key={p.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:border-green-200 transition-all">
+              <div className="flex items-start gap-3 mb-3">
+                <span style={{ fontSize: 28 }}>{p.imagem}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-sm font-semibold text-gray-900">{p.nome}</p>
+                    {p.popular && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800">⭐ Popular</span>}
                   </div>
+                  <p className="text-xs text-gray-400 mt-0.5">{p.categoria}</p>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <p style={{ fontWeight: 800, fontSize: 16, color: VERDE }}>{p.comissao}%</p>
-                  <p style={{ fontSize: 10, color: "#9CA3AF" }}>comissão</p>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-base font-semibold font-mono text-green-600">{p.comissao}%</p>
+                  <p className="text-xs text-gray-400">comissão</p>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", gap: 16 }}>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 700 }}>{p.preco.toLocaleString("pt-MZ")} MZN</p>
-                    <p style={{ fontSize: 10, color: "#9CA3AF" }}>Preço</p>
+              <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                {[
+                  { label: "Preço",       val: `${(p.preco / 1000).toFixed(0)}k MZN` },
+                  { label: "Ganho/venda", val: `${Math.round(p.preco * p.comissao / 100).toLocaleString("pt-MZ")} MZN` },
+                  { label: "Vendas totais", val: p.vendas },
+                ].map(({ label, val }) => (
+                  <div key={label} className="bg-gray-50 rounded-lg py-2">
+                    <p className="text-xs font-semibold font-mono text-gray-800">{val}</p>
+                    <p className="text-xs text-gray-400">{label}</p>
                   </div>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 700 }}>{Math.round(p.preco * p.comissao / 100).toLocaleString("pt-MZ")} MZN</p>
-                    <p style={{ fontSize: 10, color: "#9CA3AF" }}>Ganho/venda</p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 700 }}>{p.vendas}</p>
-                    <p style={{ fontSize: 10, color: "#9CA3AF" }}>Vendas totais</p>
-                  </div>
-                </div>
+                ))}
               </div>
               <button
-                disabled={jaAfiliado || a_confirmar}
-                onClick={() => tornarAfiliado(p.id)}
-                style={{
-                  padding: "10px 0",
-                  background: jaAfiliado ? VERDE_LIGHT : a_confirmar ? "#E5E7EB" : VERDE,
-                  color: jaAfiliado ? VERDE_DARK : a_confirmar ? "#9CA3AF" : "#fff",
-                  borderRadius: 10, fontWeight: 700, fontSize: 13,
-                  border: "none", cursor: jaAfiliado ? "default" : "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                }}
+                disabled={jA || emGeracao}
+                onClick={() => tornarAfiliado(p)}
+                className={`w-full py-2.5 rounded-lg text-sm font-medium border-0 transition-colors flex items-center justify-center gap-2
+                  ${jA ? "bg-green-50 text-green-700 cursor-default" : emGeracao ? "bg-gray-100 text-gray-400 cursor-default" : "bg-green-600 hover:bg-green-700 text-white cursor-pointer"}`}
               >
-                {a_confirmar ? <><RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> A gerar link...</> :
-                 jaAfiliado ? <><CheckCircle size={14} /> Já és afiliado</> :
-                 <><Link size={14} /> Tornar-me afiliado</>}
+                {emGeracao ? <><IcoSpin /> A gerar link...</> :
+                 jA ? <><IcoCheck /> Já és afiliado</> :
+                 <><IcoLink /> Tornar-me afiliado</>}
               </button>
             </div>
           );
@@ -499,269 +464,297 @@ function AbaExplorar() {
   );
 }
 
-// ─── COMISSÕES ────────────────────────────────────────────────────────────────
+// ─── ABA COMISSÕES ────────────────────────────────────────────────────────────
 function AbaComissoes() {
   const [filtro, setFiltro] = useState("todos");
+  const [modalSaque, setModalSaque] = useState(false);
+  const [metodo, setMetodo] = useState("mpesa");
+  const [numero, setNumero] = useState("");
+  const [sacando, setSacando] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
 
-  const filtrados = HISTORICO_COMISSOES.filter(c =>
-    filtro === "todos" || c.estado === filtro
-  );
+  const filtrados = HISTORICO_COMISSOES.filter(c => filtro === "todos" || c.estado === filtro);
+
+  const estadoCor = {
+    disponivel: "bg-green-100 text-green-800",
+    pendente:   "bg-amber-100 text-amber-800",
+    pago:       "bg-gray-100 text-gray-500",
+    cancelado:  "bg-red-100 text-red-700",
+  };
+
+  const handleSaque = () => {
+    if (!numero) return;
+    setSacando(true);
+    setTimeout(() => {
+      setSacando(false);
+      setSucesso(true);
+      setTimeout(() => { setSucesso(false); setModalSaque(false); setNumero(""); }, 2000);
+    }, 1500);
+  };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Resumo carteira */}
-      <div style={{
-        background: `linear-gradient(135deg, ${VERDE}, ${VERDE_DARK})`,
-        borderRadius: 16, padding: 20, color: "#fff"
-      }}>
-        <p style={{ fontSize: 12, opacity: 0.8 }}>Disponível para Saque</p>
-        <p style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>
-          {AFILIADO.ganhosDisponiveis.toLocaleString("pt-MZ")} <span style={{ fontSize: 14, fontWeight: 500 }}>MZN</span>
-        </p>
-        <div style={{ display: "flex", gap: 16, marginTop: 12 }}>
+    <div className="space-y-4">
+      {/* Cartão principal */}
+      <div className="p-5 bg-green-600 rounded-xl text-white">
+        <p className="text-xs opacity-75">Disponível para saque</p>
+        <p className="text-3xl font-semibold font-mono mt-1">{AFILIADO.ganhosDisponiveis.toLocaleString("pt-MZ")} <span className="text-base font-normal opacity-75">MZN</span></p>
+        <div className="flex gap-6 mt-3">
           <div>
-            <p style={{ fontSize: 11, opacity: 0.7 }}>Pendente</p>
-            <p style={{ fontWeight: 700 }}>{AFILIADO.ganhosPendentes.toLocaleString("pt-MZ")} MZN</p>
+            <p className="text-xs opacity-70">Pendente</p>
+            <p className="text-sm font-semibold font-mono">{fmt(AFILIADO.ganhosPendentes)}</p>
           </div>
           <div>
-            <p style={{ fontSize: 11, opacity: 0.7 }}>Total pago</p>
-            <p style={{ fontWeight: 700 }}>{AFILIADO.ganhosPagos.toLocaleString("pt-MZ")} MZN</p>
+            <p className="text-xs opacity-70">Total pago</p>
+            <p className="text-sm font-semibold font-mono">{fmt(AFILIADO.ganhosPagos)}</p>
           </div>
         </div>
-        <button style={{
-          marginTop: 16, width: "100%", padding: "10px 0",
-          background: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)",
-          borderRadius: 10, color: "#fff", fontWeight: 700, fontSize: 13,
-          border: "1px solid rgba(255,255,255,0.3)", cursor: "pointer",
-        }}>
-          Solicitar Saque →
+        <button onClick={() => setModalSaque(true)} className="mt-4 w-full py-2.5 rounded-lg text-sm font-medium border border-white/30 bg-white/15 hover:bg-white/25 text-white cursor-pointer transition-colors">
+          Solicitar saque →
         </button>
       </div>
 
       {/* Info mínimo */}
-      <div style={{
-        background: "#FFFBEA", border: "1px solid #FCD34D40",
-        borderRadius: 12, padding: 12,
-        display: "flex", alignItems: "center", gap: 10
-      }}>
-        <Info size={14} style={{ color: "#B45309", flexShrink: 0 }} />
-        <p style={{ fontSize: 12, color: "#92400E" }}>
-          Saque mínimo: <strong>500 MZN</strong> · Taxa de levantamento: <strong>2%</strong>
-        </p>
+      <div className="flex gap-2 items-start p-3 bg-amber-50 border border-amber-100 rounded-xl">
+        <div style={{ flexShrink: 0, marginTop: 1, color: "#B45309" }}><IcoInfo /></div>
+        <p className="text-xs text-amber-800">Saque mínimo: <strong>500 MZN</strong> · Taxa de levantamento: <strong>2%</strong> · Processamento em 1-2 dias úteis</p>
       </div>
 
-      {/* Filtro */}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {/* Filtros */}
+      <div className="flex gap-2 flex-wrap">
         {[
-          { id: "todos",      label: "Todos"      },
+          { id: "todos",      label: "Todos" },
           { id: "disponivel", label: "Disponível" },
-          { id: "pendente",   label: "Pendente"   },
-          { id: "pago",       label: "Pago"       },
-          { id: "cancelado",  label: "Cancelado"  },
+          { id: "pendente",   label: "Pendente" },
+          { id: "pago",       label: "Pago" },
+          { id: "cancelado",  label: "Cancelado" },
         ].map(f => (
-          <button key={f.id} onClick={() => setFiltro(f.id)} style={{
-            padding: "6px 12px", borderRadius: 20, fontWeight: 600, fontSize: 12,
-            border: `1.5px solid ${filtro === f.id ? VERDE : "#E5E7EB"}`,
-            background: filtro === f.id ? VERDE : "#fff",
-            color: filtro === f.id ? "#fff" : "#6B7280",
-            cursor: "pointer",
-          }}>{f.label}</button>
+          <button key={f.id} onClick={() => setFiltro(f.id)}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer
+              ${filtro === f.id ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 bg-transparent hover:border-green-400"}`}>
+            {f.label}
+          </button>
         ))}
       </div>
 
-      {/* Lista */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Histórico */}
+      <div className="flex flex-col gap-2">
+        {filtrados.length === 0 && <p className="text-center text-sm text-gray-400 py-8">Sem comissões nesta categoria.</p>}
         {filtrados.map(c => (
-          <div key={c.id} style={{
-            background: "#fff", border: "1.5px solid #F0F0F0",
-            borderRadius: 14, padding: "12px 16px",
-            display: "flex", justifyContent: "space-between", alignItems: "center"
-          }}>
+          <div key={c.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl">
             <div>
-              <p style={{ fontWeight: 700, fontSize: 13 }}>{c.produto}</p>
-              <p style={{ fontSize: 11, color: "#9CA3AF" }}>{c.data}</p>
+              <p className="text-sm font-semibold text-gray-900">{c.produto}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{c.data}</p>
             </div>
-            <div style={{ textAlign: "right" }}>
-              <p style={{ fontWeight: 800, fontSize: 14, color: c.estado === "cancelado" ? "#DC2626" : VERDE }}>
-                {c.estado === "cancelado" ? "-" : "+"}{c.valor.toLocaleString("pt-MZ")} MZN
+            <div className="text-right">
+              <p className={`text-sm font-semibold font-mono ${c.estado === "cancelado" ? "text-red-500" : "text-green-600"}`}>
+                {c.estado === "cancelado" ? "−" : "+"}{fmt(c.valor)}
               </p>
-              <EstadoBadge estado={c.estado} />
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${estadoCor[c.estado]}`}>
+                {c.estado.charAt(0).toUpperCase() + c.estado.slice(1)}
+              </span>
             </div>
           </div>
         ))}
-        {filtrados.length === 0 && (
-          <div style={{ textAlign: "center", padding: 32, color: "#9CA3AF" }}>
-            <p style={{ fontSize: 13 }}>Sem comissões nesta categoria.</p>
-          </div>
-        )}
       </div>
+
+      {/* Modal Saque */}
+      {modalSaque && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalSaque(false)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            {sucesso ? (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-3">✅</div>
+                <p className="text-base font-semibold text-green-700">Saque solicitado com sucesso!</p>
+                <p className="text-sm text-gray-500 mt-1">Processamento em 1-2 dias úteis.</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-5">
+                  <p className="text-base font-semibold text-gray-900">Solicitar Saque</p>
+                  <button onClick={() => setModalSaque(false)} className="text-gray-400 hover:text-gray-600 bg-transparent border-0 cursor-pointer"><IcoX /></button>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg mb-4 flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Valor disponível</span>
+                  <span className="text-sm font-semibold font-mono text-green-600">{fmt(AFILIADO.ganhosDisponiveis)}</span>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 block mb-1">Método de pagamento</label>
+                    <div className="flex gap-2">
+                      {[{ id: "mpesa", label: "M-Pesa" }, { id: "emola", label: "e-Mola" }, { id: "banco", label: "Banco" }].map(m => (
+                        <button key={m.id} onClick={() => setMetodo(m.id)}
+                          className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all cursor-pointer
+                            ${metodo === m.id ? "border-green-500 text-green-700 bg-green-50" : "border-gray-200 text-gray-500 bg-transparent"}`}>
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 block mb-1">
+                      {metodo === "banco" ? "Número da conta" : "Número de telefone"}
+                    </label>
+                    <input value={numero} onChange={e => setNumero(e.target.value)}
+                      placeholder={metodo === "banco" ? "0000 0000 0000 0000" : "84 XXX XXXX"}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-gray-500">Valor solicitado</span><span className="font-mono">{fmt(AFILIADO.ganhosDisponiveis)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Taxa (2%)</span><span className="font-mono text-red-500">−{fmt(Math.round(AFILIADO.ganhosDisponiveis * 0.02))}</span></div>
+                    <div className="flex justify-between pt-1.5 border-t border-gray-200 font-semibold"><span>Você recebe</span><span className="font-mono text-green-600">{fmt(Math.round(AFILIADO.ganhosDisponiveis * 0.98))}</span></div>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-5">
+                  <button onClick={() => setModalSaque(false)} className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-500 bg-transparent cursor-pointer">Cancelar</button>
+                  <button onClick={handleSaque} disabled={sacando || !numero}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-0 transition-colors flex items-center justify-center gap-2
+                      ${sacando || !numero ? "bg-gray-200 text-gray-400 cursor-default" : "bg-green-600 hover:bg-green-700 text-white cursor-pointer"}`}>
+                    {sacando ? <><IcoSpin /> A processar...</> : "Confirmar saque"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── SEGURANÇA ────────────────────────────────────────────────────────────────
+// ─── ABA SEGURANÇA ────────────────────────────────────────────────────────────
 function AbaSeguranca() {
   const REGRAS = [
-    { icon: "🚫", titulo: "Auto-referência proibida",         desc: "Não podes usar o teu próprio link para comprar produtos."                             },
-    { icon: "🤖", titulo: "Sem tráfego artificial",           desc: "Geração de cliques falsos ou bots resulta em banimento imediato."                     },
-    { icon: "🔒", titulo: "Links validados no servidor",      desc: "Todos os links são verificados no backend. Falsificações são detectadas."             },
-    { icon: "👁",  titulo: "Monitorização contínua",           desc: "O sistema analisa padrões suspeitos em tempo real 24/7."                              },
-    { icon: "⚖️", titulo: "Comissões por confirmação",        desc: "A comissão só é creditada após confirmação definitiva da compra."                     },
-    { icon: "🔄", titulo: "Cancelamentos anulam comissão",    desc: "Se a compra for cancelada, a comissão é automaticamente removida."                    },
+    { icon: "🚫", titulo: "Auto-referência proibida",      desc: "Não podes usar o teu próprio link para comprar produtos." },
+    { icon: "🤖", titulo: "Sem tráfego artificial",        desc: "Cliques falsos ou bots resultam em banimento imediato." },
+    { icon: "🔒", titulo: "Links validados no servidor",   desc: "Todos os links são verificados no backend. Falsificações são detectadas." },
+    { icon: "👁",  titulo: "Monitorização 24/7",            desc: "O sistema analisa padrões suspeitos em tempo real." },
+    { icon: "⚖️", titulo: "Comissões por confirmação",     desc: "Comissão só é creditada após confirmação definitiva da compra." },
+    { icon: "🔄", titulo: "Cancelamentos anulam comissão", desc: "Se a compra for cancelada, a comissão é automaticamente removida." },
   ];
 
   const PENALIDADES = [
-    { acao: "Comprar com próprio link",  penalidade: "Comissão cancelada"  },
-    { acao: "Cliques falsos detectados", penalidade: "Conta suspensa"      },
-    { acao: "Fraude confirmada",         penalidade: "Banimento permanente" },
-    { acao: "Métodos ilegais",           penalidade: "Acção legal"          },
+    { acao: "Comprar com próprio link",   penalidade: "Comissão cancelada"   },
+    { acao: "Cliques falsos detectados",  penalidade: "Conta suspensa"       },
+    { acao: "Fraude confirmada",          penalidade: "Banimento permanente" },
+    { acao: "Métodos ilegais",            penalidade: "Acção legal"          },
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="space-y-4">
       {/* Aviso */}
-      <div style={{
-        background: "#FEF2F2", border: "1px solid #FECACA",
-        borderRadius: 16, padding: 16,
-        display: "flex", gap: 12,
-      }}>
-        <AlertTriangle size={20} style={{ color: "#DC2626", flexShrink: 0 }} />
+      <div className="flex gap-3 p-4 bg-red-50 border border-red-100 rounded-xl items-start">
+        <div className="flex-shrink-0 mt-0.5" style={{ color: "#DC2626" }}><IcoAlert /></div>
         <div>
-          <p style={{ fontWeight: 700, fontSize: 13, color: "#DC2626" }}>Política de Uso Justo</p>
-          <p style={{ fontSize: 12, color: "#7F1D1D", lineHeight: 1.6, marginTop: 4 }}>
-            O sistema de afiliados é monitorizado 24h. Fraudes resultam em banimento e perda de todas as comissões acumuladas.
-          </p>
+          <p className="text-sm font-semibold text-red-700">Política de Uso Justo</p>
+          <p className="text-xs text-red-700 mt-1 leading-relaxed">O sistema de afiliados é monitorizado 24h. Fraudes resultam em banimento e perda de todas as comissões acumuladas.</p>
         </div>
       </div>
 
       {/* Regras */}
-      <div style={{ borderRadius: 16, border: "1px solid #F0F0F0", overflow: "hidden" }}>
-        <div style={{ padding: "12px 16px", background: "#F9FAFB", borderBottom: "1px solid #F0F0F0" }}>
-          <p style={{ fontWeight: 700, fontSize: 13 }}>Regras do Programa</p>
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <p className="text-sm font-semibold text-gray-800">Regras do Programa</p>
         </div>
         {REGRAS.map((r, i) => (
-          <div key={i} style={{
-            padding: "12px 16px",
-            borderBottom: i < REGRAS.length - 1 ? "1px solid #F9FAFB" : "none",
-            display: "flex", gap: 12,
-          }}>
+          <div key={i} className={`flex gap-3 px-4 py-3 ${i < REGRAS.length - 1 ? "border-b border-gray-50" : ""}`}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>{r.icon}</span>
             <div>
-              <p style={{ fontWeight: 700, fontSize: 13 }}>{r.titulo}</p>
-              <p style={{ fontSize: 12, color: "#6B7280", marginTop: 2, lineHeight: 1.5 }}>{r.desc}</p>
+              <p className="text-sm font-semibold text-gray-900">{r.titulo}</p>
+              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{r.desc}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Penalidades */}
-      <div style={{ borderRadius: 16, border: "1px solid #F0F0F0", overflow: "hidden" }}>
-        <div style={{ padding: "12px 16px", background: "#FEF2F2", borderBottom: "1px solid #FECACA" }}>
-          <p style={{ fontWeight: 700, fontSize: 13, color: "#DC2626" }}>Tabela de Penalidades</p>
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 bg-red-50 border-b border-red-100">
+          <p className="text-sm font-semibold text-red-700">Tabela de Penalidades</p>
         </div>
         {PENALIDADES.map((p, i) => (
-          <div key={i} style={{
-            padding: "10px 16px",
-            borderBottom: i < PENALIDADES.length - 1 ? "1px solid #F9FAFB" : "none",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}>
-            <p style={{ fontSize: 13, color: "#374151" }}>{p.acao}</p>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", background: "#FEF2F2", padding: "3px 8px", borderRadius: 8 }}>
-              {p.penalidade}
-            </span>
+          <div key={i} className={`flex items-center justify-between px-4 py-3 ${i < PENALIDADES.length - 1 ? "border-b border-gray-50" : ""}`}>
+            <p className="text-sm text-gray-700">{p.acao}</p>
+            <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-lg">{p.penalidade}</span>
           </div>
         ))}
       </div>
 
-      {/* Estado conta */}
-      <div style={{
-        background: VERDE_LIGHT, border: `1px solid ${VERDE}30`,
-        borderRadius: 16, padding: 16,
-        display: "flex", alignItems: "center", gap: 12,
-      }}>
-        <Shield size={24} style={{ color: VERDE }} />
+      {/* Estado da conta */}
+      <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-100 rounded-xl">
+        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0" style={{ color: "#16a34a" }}>
+          <IcoShield />
+        </div>
         <div>
-          <p style={{ fontWeight: 700, fontSize: 13, color: VERDE_DARK }}>Conta em Bom Estado</p>
-          <p style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>Nenhuma violação detectada. Continua assim! ✅</p>
+          <p className="text-sm font-semibold text-green-800">Conta em Bom Estado</p>
+          <p className="text-xs text-green-700 mt-0.5">Nenhuma violação detectada. Continua assim! ✅</p>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 export function SecaoAfiliados() {
-  const [tabActiva, setTabActiva] = useState("visao");
+  const [tab, setTab]     = useState("visao");
+  const [links, setLinks] = useState(LINKS_INICIAIS);
+  const nivel = NIVEIS[AFILIADO.nivel];
 
   const conteudo = {
     visao:     <AbaVisaoGeral />,
-    links:     <AbaMeusLinks />,
-    explorar:  <AbaExplorar />,
+    links:     <AbaMeusLinks links={links} setLinks={setLinks} />,
+    explorar:  <AbaExplorar links={links} setLinks={setLinks} />,
     comissoes: <AbaComissoes />,
     seguranca: <AbaSeguranca />,
   };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: 480, margin: "0 auto", background: "#fff" }}>
-      {/* Header */}
-      <div style={{ padding: "20px 20px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+    <div className="space-y-4">
+      {/* Cabeçalho */}
+      <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AM</div>
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#111", margin: 0 }}>Programa de Afiliados</h2>
-            <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>Ganha comissões partilhando produtos</p>
-          </div>
-          <div style={{
-            background: NIVEIS[AFILIADO.nivel].bg,
-            border: `1.5px solid ${NIVEIS[AFILIADO.nivel].cor}50`,
-            borderRadius: 12, padding: "6px 10px", textAlign: "center"
-          }}>
-            <p style={{ fontSize: 18 }}>{NIVEIS[AFILIADO.nivel].icon}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: NIVEIS[AFILIADO.nivel].cor }}>
-              {NIVEIS[AFILIADO.nivel].label}
-            </p>
+            <div className="text-base font-semibold text-gray-900">Área de Afiliado</div>
+            <div className="text-xs text-gray-400">{AFILIADO.nome} · Afiliado MozTicTac</div>
           </div>
         </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border" style={{ background: nivel.bg, borderColor: `${nivel.cor}40` }}>
+          <span style={{ fontSize: 16 }}>{nivel.icon}</span>
+          <span className="text-xs font-semibold" style={{ color: nivel.cor }}>{nivel.label}</span>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <StatCard label="Total Ganho"    valor="5.1k"  sub="MZN" delta="+18%" />
+        <StatCard label="Links Activos"  valor={links.filter(l => l.estado === "activo").length} sub="activos" />
+        <StatCard label="Cliques Total"  valor={AFILIADO.cliquesTotal} sub="acumulado" />
+        <StatCard label="Taxa Conversão" valor={`${AFILIADO.taxaConversao}%`} sub="das visitas" />
       </div>
 
       {/* Tabs */}
-      <div style={{ padding: "14px 20px 0" }}>
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 14, borderBottom: "1.5px solid #F0F0F0" }}>
-          {TABS.map(({ id, label, icon: Icon }) => {
-            const activa = tabActiva === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setTabActiva(id)}
-                style={{
-                  display: "flex", flexDirection: "column", alignItems: "center",
-                  gap: 4, padding: "8px 14px",
-                  borderRadius: 12,
-                  background: activa ? VERDE : "transparent",
-                  border: activa ? "none" : "1.5px solid #F0F0F0",
-                  cursor: "pointer", flexShrink: 0,
-                  transition: "all .15s",
-                }}
-              >
-                <Icon size={15} style={{ color: activa ? "#fff" : "#9CA3AF" }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: activa ? "#fff" : "#9CA3AF", whiteSpace: "nowrap" }}>
-                  {label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+        {TABS.map(t => {
+          const Icon = t.icon;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer border-0
+                ${tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700 bg-transparent"}`}>
+              <Icon />
+              <span className="hidden sm:inline">{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Content */}
-      <div style={{ padding: 20 }}>
-        {conteudo[tabActiva]}
-      </div>
+      {/* Conteúdo */}
+      {conteudo[tab]}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
         * { box-sizing: border-box; }
         button { font-family: inherit; }
-        input { font-family: inherit; }
+        input, select, textarea { font-family: inherit; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
