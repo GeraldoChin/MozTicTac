@@ -1,6 +1,10 @@
 import { useState } from "react";
 import PageAfiliados from "./PageAfiliados";
 import PageProdutos from "./PageProdutos";
+import PageUtilizadores from "./PageUtilizadores";
+import PagePedidos from "./PagePedidos";
+import PageFinanceiro from "./PageFinanceiro";
+import PageSaques from "./PageSaques";
 
 // ─── Design tokens — dark sidebar + white content, green accent ───────────────
 const C = {
@@ -390,196 +394,90 @@ function PageDashboard() {
   );
 }
 
-function PageUtilizadores() {
-  return (
-    <div>
-      <SectionHeader
-        title="Gestão de Utilizadores"
-        sub="Ver, filtrar e gerir todos os utilizadores da plataforma"
-        action={<Btn label="Exportar Excel" icon="download" variant="secondary" size="sm" />}
-      />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Total"     value="12 480" icon="users"        color={C.blue} />
-        <StatCard label="Compradores" value="9 840" icon="shopping-bag" color={C.green} />
-        <StatCard label="Vendedores"  value="1 340" icon="package"      color={C.amber} />
-        <StatCard label="Afiliados"   value="892"   icon="link"         color={C.blue} />
-      </div>
+// function PageUtilizadores() {
+//   return (
+//     <div>
+//       <SectionHeader
+//         title="Gestão de Utilizadores"
+//         sub="Ver, filtrar e gerir todos os utilizadores da plataforma"
+//         action={<Btn label="Exportar Excel" icon="download" variant="secondary" size="sm" />}
+//       />
+//       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
+//         <StatCard label="Total"     value="12 480" icon="users"        color={C.blue} />
+//         <StatCard label="Compradores" value="9 840" icon="shopping-bag" color={C.green} />
+//         <StatCard label="Vendedores"  value="1 340" icon="package"      color={C.amber} />
+//         <StatCard label="Afiliados"   value="892"   icon="link"         color={C.blue} />
+//       </div>
 
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200 }}><Input placeholder="Pesquisar por nome ou email..." icon="search" /></div>
-          <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
-            <option>Todos os tipos</option><option>Comprador</option><option>Vendedor</option><option>Afiliado</option>
-          </select>
-          <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
-            <option>Todos os estados</option><option>Ativo</option><option>Bloqueado</option><option>Pendente</option>
-          </select>
-        </div>
-        <Table
-          cols={["Utilizador", "Email", "Tipo", "Registo", "Estado", "Ações"]}
-          rows={[
-            ["João Matos",    "joao@gmail.com",    <Badge label="Afiliado Ouro" type="warning" />, "12 Jan 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
-            ["Ana Lopes",     "ana@gmail.com",     <Badge label="Vendedora"     type="info" />,    "08 Fev 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
-            ["Carlos Nhaca",  "carlos@hotmail.com",<Badge label="Comprador"     type="default" />, "20 Mar 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
-            ["spam_user99",   "spam99@test.com",   <Badge label="Comprador"     type="default" />, "01 Abr 2025", <Badge label="Bloqueado" type="danger" />,  <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Ativar"   icon="check" size="sm" variant="ghost" /></div>],
-            ["Fátima Dique",  "fatima@gmail.com",  <Badge label="Afiliada Prata" type="info" />,  "15 Mar 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
-          ]}
-        />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, fontSize: 12, color: C.textMute }}>
-          <span>Mostrando 5 de 12 480 utilizadores</span>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[1,2,3,"...",420].map((p,i) => (
-              <button key={i} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${p===1?C.green:C.border}`, background: p===1?C.green:"transparent", color: p===1?"#fff":C.textSub, fontSize: 12, cursor: "pointer" }}>{p}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+//       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
+//         <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+//           <div style={{ flex: 1, minWidth: 200 }}><Input placeholder="Pesquisar por nome ou email..." icon="search" /></div>
+//           <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
+//             <option>Todos os tipos</option><option>Comprador</option><option>Vendedor</option><option>Afiliado</option>
+//           </select>
+//           <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
+//             <option>Todos os estados</option><option>Ativo</option><option>Bloqueado</option><option>Pendente</option>
+//           </select>
+//         </div>
+//         <Table
+//           cols={["Utilizador", "Email", "Tipo", "Registo", "Estado", "Ações"]}
+//           rows={[
+//             ["João Matos",    "joao@gmail.com",    <Badge label="Afiliado Ouro" type="warning" />, "12 Jan 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
+//             ["Ana Lopes",     "ana@gmail.com",     <Badge label="Vendedora"     type="info" />,    "08 Fev 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
+//             ["Carlos Nhaca",  "carlos@hotmail.com",<Badge label="Comprador"     type="default" />, "20 Mar 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
+//             ["spam_user99",   "spam99@test.com",   <Badge label="Comprador"     type="default" />, "01 Abr 2025", <Badge label="Bloqueado" type="danger" />,  <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Ativar"   icon="check" size="sm" variant="ghost" /></div>],
+//             ["Fátima Dique",  "fatima@gmail.com",  <Badge label="Afiliada Prata" type="info" />,  "15 Mar 2025", <Badge label="Ativo"     type="success" />, <div style={{display:"flex",gap:6}}><Btn label="Ver"      icon="eye"   size="sm" variant="ghost" /><Btn label="Bloquear" icon="x" size="sm" variant="secondary" /></div>],
+//           ]}
+//         />
+//         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, fontSize: 12, color: C.textMute }}>
+//           <span>Mostrando 5 de 12 480 utilizadores</span>
+//           <div style={{ display: "flex", gap: 6 }}>
+//             {[1,2,3,"...",420].map((p,i) => (
+//               <button key={i} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${p===1?C.green:C.border}`, background: p===1?C.green:"transparent", color: p===1?"#fff":C.textSub, fontSize: 12, cursor: "pointer" }}>{p}</button>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
-function PagePedidos() {
-  return (
-    <div>
-      <SectionHeader title="Gestão de Pedidos" sub="Acompanhar e intervir em todos os pedidos da plataforma" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Total"      value="8 420" icon="shopping-bag" color={C.blue} />
-        <StatCard label="Pendentes"  value="314"   icon="bell"         color={C.amber} />
-        <StatCard label="Em trânsito" value="892"  icon="activity"     color={C.blue} />
-        <StatCard label="Concluídos" value="7 100" icon="check"        color={C.green} />
-        <StatCard label="Cancelados" value="114"   icon="x"            color={C.red} />
-      </div>
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-          <div style={{ flex: 1 }}><Input placeholder="Pesquisar pedido #..." icon="search" /></div>
-          <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
-            <option>Todos os estados</option><option>Pendente</option><option>Pago</option><option>Enviado</option><option>Concluído</option><option>Cancelado</option>
-          </select>
-        </div>
-        <Table
-          cols={["Pedido #", "Comprador", "Vendedor", "Total (MZN)", "Data", "Estado", "Ações"]}
-          rows={[
-            ["#4821", "João M.",   "Ana L.",    "3 400", "18 Abr", <Badge label="Concluído"  type="success" />, <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
-            ["#4820", "Carlos N.", "Fátima D.", "1 900", "18 Abr", <Badge label="Enviado"    type="info" />,    <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
-            ["#4819", "Maria S.",  "Pedro M.",  "4 200", "17 Abr", <Badge label="Pago"       type="info" />,    <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
-            ["#4818", "André F.",  "Ana L.",    "800",   "17 Abr", <Badge label="Disputa"    type="danger" />,  <div style={{display:"flex",gap:6}}><Btn label="Intervir" icon="shield" size="sm" variant="ghost" /><Btn label="Cancelar" icon="x" size="sm" variant="secondary" /></div>],
-            ["#4817", "Luísa T.",  "João M.",   "2 100", "16 Abr", <Badge label="Cancelado"  type="danger" />,  <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
-          ]}
-        />
-      </div>
-    </div>
-  );
-}
+// function PagePedidos() {
+//   return (
+//     <div>
+//       <SectionHeader title="Gestão de Pedidos" sub="Acompanhar e intervir em todos os pedidos da plataforma" />
+//       <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 20 }}>
+//         <StatCard label="Total"      value="8 420" icon="shopping-bag" color={C.blue} />
+//         <StatCard label="Pendentes"  value="314"   icon="bell"         color={C.amber} />
+//         <StatCard label="Em trânsito" value="892"  icon="activity"     color={C.blue} />
+//         <StatCard label="Concluídos" value="7 100" icon="check"        color={C.green} />
+//         <StatCard label="Cancelados" value="114"   icon="x"            color={C.red} />
+//       </div>
+//       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
+//         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+//           <div style={{ flex: 1 }}><Input placeholder="Pesquisar pedido #..." icon="search" /></div>
+//           <select style={{ padding: "8px 12px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 8, color: C.text, background: C.bg, fontFamily: "inherit" }}>
+//             <option>Todos os estados</option><option>Pendente</option><option>Pago</option><option>Enviado</option><option>Concluído</option><option>Cancelado</option>
+//           </select>
+//         </div>
+//         <Table
+//           cols={["Pedido #", "Comprador", "Vendedor", "Total (MZN)", "Data", "Estado", "Ações"]}
+//           rows={[
+//             ["#4821", "João M.",   "Ana L.",    "3 400", "18 Abr", <Badge label="Concluído"  type="success" />, <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
+//             ["#4820", "Carlos N.", "Fátima D.", "1 900", "18 Abr", <Badge label="Enviado"    type="info" />,    <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
+//             ["#4819", "Maria S.",  "Pedro M.",  "4 200", "17 Abr", <Badge label="Pago"       type="info" />,    <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
+//             ["#4818", "André F.",  "Ana L.",    "800",   "17 Abr", <Badge label="Disputa"    type="danger" />,  <div style={{display:"flex",gap:6}}><Btn label="Intervir" icon="shield" size="sm" variant="ghost" /><Btn label="Cancelar" icon="x" size="sm" variant="secondary" /></div>],
+//             ["#4817", "Luísa T.",  "João M.",   "2 100", "16 Abr", <Badge label="Cancelado"  type="danger" />,  <Btn label="Ver detalhes" icon="eye" size="sm" variant="ghost" />],
+//           ]}
+//         />
+//       </div>
+//     </div>
+//   );
+// }
 
 
-function PageFinanceiro() {
-  return (
-    <div>
-      <SectionHeader
-        title="Gestão Financeira"
-        sub="Coração do negócio — receita, taxas, saques e fluxo de caixa"
-        action={<div style={{ display: "flex", gap: 8 }}><Btn label="Exportar PDF" icon="download" variant="secondary" size="sm" /><Btn label="Exportar Excel" icon="download" variant="secondary" size="sm" /></div>}
-      />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Receita Total (MZN)"     value="2.4M"   icon="dollar"       color={C.green} trend={18.7} />
-        <StatCard label="Saldo da Plataforma"     value="380k"   icon="credit-card"  color={C.blue}  />
-        <StatCard label="Comissões Pagas"         value="148k"   icon="link"         color={C.amber} />
-        <StatCard label="Taxas Cobradas"          value="240k"   icon="zap"          color={C.green} />
-      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-        {/* Configuração de taxas */}
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 16 }}>⚙️ Configuração de Taxas</h3>
-          {[
-            { label: "Taxa por venda de produto (%)", value: "10" },
-            { label: "Taxa por venda de serviço (%)", value: "8" },
-            { label: "Taxa de levantamento (%)",       value: "2" },
-            { label: "Valor mínimo de saque (MZN)",    value: "500" },
-            { label: "Tempo liberação saldo (dias)",   value: "3" },
-          ].map((f, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 4 }}>{f.label}</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input defaultValue={f.value} style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: `1.5px solid ${C.border}`, borderRadius: 7, fontFamily: "inherit", color: C.text, background: C.bg }} />
-                <Btn label="Guardar" size="sm" variant="ghost" />
-              </div>
-            </div>
-          ))}
-          <div style={{ marginTop: 8, padding: "10px 12px", background: C.amberDim, borderRadius: 8, fontSize: 12, color: C.amber, fontWeight: 500 }}>
-            🔐 Alterações requerem OTP por email
-          </div>
-        </div>
-
-        {/* Fluxo de caixa diário */}
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>📈 Receita — últimos 10 dias</h3>
-          <p style={{ fontSize: 12, color: C.textMute, marginBottom: 16 }}>Receita líquida diária (MZN '000)</p>
-          <MiniBar data={[42, 38, 55, 61, 48, 70, 88, 65, 92, 110]} />
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: C.textMute }}>
-            <span>9 Abr</span><span>Hoje</span>
-          </div>
-          <div style={{ marginTop: 20, borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 12 }}>Gateways de pagamento</h3>
-            {["M-Pesa", "E-Mola", "mKesh", "Transferência bancária"].map((g, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>{g}</span>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <Badge label="Ativo" type="success" />
-                  <Btn label="Config" size="sm" variant="secondary" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Transações recentes */}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 16 }}>🔄 Transações Recentes</h3>
-        <Table
-          cols={["ID Transação", "Tipo", "Valor (MZN)", "De → Para", "Data", "Estado"]}
-          rows={[
-            ["TXN-00821", "Venda",        "3 400", "João → Ana",     "18 Abr 14:32", <Badge label="Concluído"  type="success" />],
-            ["TXN-00820", "Comissão",     "340",   "Sistema → João", "18 Abr 14:32", <Badge label="Concluído"  type="success" />],
-            ["TXN-00819", "Levantamento", "5 000", "Carlos → M-Pesa","18 Abr 13:40", <Badge label="Pendente"   type="warning" />],
-            ["TXN-00818", "Reembolso",    "1 900", "Plataforma → Maria","17 Abr 18:10", <Badge label="Concluído" type="success" />],
-            ["TXN-00817", "Suspeito",     "28 000","spam_afilX → ?", "17 Abr 02:14", <Badge label="Bloqueado"  type="danger" />],
-          ]}
-        />
-      </div>
-    </div>
-  );
-}
-
-function PageSaques() {
-  return (
-    <div>
-      <SectionHeader title="Saques (Cashout)" sub="Processar, aprovar e monitorar pedidos de levantamento" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Pedidos Pendentes" value="48"     icon="bell"           color={C.amber} />
-        <StatCard label="Aprovados Hoje"    value="120"    icon="check"          color={C.green} />
-        <StatCard label="Total Processado"  value="380k MZN" icon="dollar"       color={C.blue} />
-        <StatCard label="Rejeitados"        value="7"      icon="x"              color={C.red} />
-      </div>
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20 }}>
-        <Table
-          cols={["Utilizador", "Valor (MZN)", "Método", "Taxa", "Líquido", "Data Pedido", "Estado", "Ação"]}
-          rows={[
-            ["João Matos",   "5 000",  "M-Pesa",  "100",  "4 900",  "18 Abr 14:00", <Badge label="Pendente"  type="warning" />, <div style={{display:"flex",gap:6}}><Btn label="Aprovar" icon="check" size="sm" variant="ghost" /><Btn label="Rejeitar" icon="x" size="sm" variant="secondary" /></div>],
-            ["Ana Lopes",    "12 000", "E-Mola",  "240",  "11 760", "18 Abr 13:30", <Badge label="Pendente"  type="warning" />, <div style={{display:"flex",gap:6}}><Btn label="Aprovar" icon="check" size="sm" variant="ghost" /><Btn label="Rejeitar" icon="x" size="sm" variant="secondary" /></div>],
-            ["Carlos Nhaca", "2 000",  "mKesh",   "40",   "1 960",  "18 Abr 12:00", <Badge label="Aprovado"  type="success" />, <Btn label="Comprovativo" icon="download" size="sm" variant="ghost" />],
-            ["spam_afilX",   "28 000", "M-Pesa",  "560",  "27 440", "17 Abr 02:00", <Badge label="Bloqueado" type="danger" />,  <Btn label="Investigar" icon="shield" size="sm" variant="secondary" />],
-          ]}
-        />
-        <div style={{ marginTop: 16, padding: "12px 16px", background: C.greenMuted, borderRadius: 8, fontSize: 12, color: C.green, fontWeight: 500 }}>
-          ✅ Saques até 5 000 MZN são aprovados automaticamente. Acima disso, requerem aprovação manual do admin.
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function PageRelatorios() {
   return (
