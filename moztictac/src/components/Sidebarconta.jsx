@@ -45,7 +45,7 @@ export function SidebarConta({ activo, aoMudar }) {
   const menuPorId = Object.fromEntries(MENUS.map((m) => [m.id, m]));
 
   return (
-    <aside className="w-64 fixed left-0 top-28 h-[calc(100vh-4rem)] z-40 hidden md:flex flex-col gap-3">
+    <aside className="w-64 fixed left-0 top-20 h-[calc(100vh-4rem)] z-40 hidden md:flex flex-col gap-3">
       {/* Card utilizador */}
       <div
         className="rounded-xl p-4 flex items-center gap-3 overflow-hidden relative"
