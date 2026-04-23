@@ -276,17 +276,17 @@ export default function PaginaProdutoDetalhe() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-1">
+              {/* <p className="text-xs text-gray-400 mt-1">
                 Vendedor recebe{" "}
                 <span className="font-semibold" style={{ color: VERDE }}>
                   {vendedorRecebe.toLocaleString("pt-MZ")} MZN
                 </span>
                 {" "}(após taxa de plataforma de 5%)
-              </p>
+              </p> */}
             </div>
 
             {/* atacado */}
-            {p.atacado && (
+            {/* {p.atacado && (
               <div className="flex items-center gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50">
                 <Tag size={14} className="text-orange-500 shrink-0" />
                 <p className="text-sm text-gray-700">
@@ -294,7 +294,7 @@ export default function PaginaProdutoDetalhe() {
                   {" "}a partir de <b>{p.atacadoMin} unidades</b>
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* vendedor (compacto) */}
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
