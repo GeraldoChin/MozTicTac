@@ -3,7 +3,7 @@ import {
   ArrowLeft, Minus, Plus, Trash2, ShoppingCart,
   Lock, ChevronRight, Tag, Truck, CheckCircle,
 } from "lucide-react";
-import { Cabecalho } from "../components/Cabecalho";
+import { Header } from "../components/Header";
 
 const VERDE        = "#00b96b";
 const VERDE_ESCURO = "#009a5a";
@@ -250,7 +250,7 @@ export default function PaginaCarrinho() {
   if (finalizado) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Cabecalho utilizadorAutenticado valorPesquisa={pesquisa} aoMudarPesquisa={setPesquisa} aoClicarPesquisa={() => {}} aoClicarConta={() => {}} aoClicarCarteira={() => {}} aoClicarCarrinho={() => {}} aoClicarWishlist={() => {}} aoClicarNotificacoes={() => {}} aoClicarChat={() => {}} />
+        <Header utilizadorAutenticado valorPesquisa={pesquisa} aoMudarPesquisa={setPesquisa} aoClicarPesquisa={() => {}} aoClicarConta={() => {}} aoClicarCarteira={() => {}} aoClicarCarrinho={() => {}} aoClicarWishlist={() => {}} aoClicarNotificacoes={() => {}} aoClicarChat={() => {}} />
         <div className="flex flex-col items-center justify-center py-24 text-center px-4">
           <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
             style={{ background: "#e6f9f0" }}>
@@ -271,7 +271,7 @@ export default function PaginaCarrinho() {
     <div className="min-h-screen bg-gray-50">
 
       {/* header */}
-      <Cabecalho
+      <Header
         utilizadorAutenticado
         contagemCarrinho={itens.reduce((a, i) => a + i.quantidade, 0)}
         valorPesquisa={pesquisa}

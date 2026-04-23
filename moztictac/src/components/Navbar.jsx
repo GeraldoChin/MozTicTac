@@ -7,10 +7,8 @@ import {
 const VERDE = "#00b96b";
 
 const LINKS_NAV = [
-  { rotulo: "Início",    Icone: Home,        temSeta: false, para: "/" },
-  { rotulo: "Comprar",   Icone: ShoppingBag, temSeta: true,  para: "/comprar" },
-  { rotulo: "Vender",    Icone: Store,       temSeta: true,  para: "/vender" },
-  { rotulo: "Afiliados", Icone: Share2,      temSeta: true,  para: "/afiliados" },
+  { rotulo: "Home",    Icone: Home,        temSeta: false, para: "/" },
+  { rotulo: "Shop",   Icone: ShoppingBag, temSeta: true,  para: "/comprar" },
   { rotulo: "Ajuda",     Icone: HelpCircle,  temSeta: false, para: "/ajuda" },
   { rotulo: "Sobre Nós", Icone: Info,        temSeta: false, para: "/sobre-nos" },
 ];
