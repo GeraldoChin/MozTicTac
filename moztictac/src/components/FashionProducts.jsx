@@ -26,13 +26,14 @@ const PROVINCES = ["Todas", "Maputo", "Sofala", "Nampula", "Gaza", "Inhambane", 
 const TABS = ["Todos", "Novos", "Mais Vendidos", "Melhor Avaliados"];
 
 /* ── ProductCard com navegação ──────────────────────────────────── */
+/* ── ProductCard com navegação ──────────────────────────────────── */
 function ProductCardInterno({ p, onAddToCart }) {
   const navigate = useNavigate();
 
   return (
     <div
       onClick={() => navigate(`/produto/${p.id}`)}
-      className="bg-white  border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
+      className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
     >
       {/* Imagem */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -41,6 +42,43 @@ function ProductCardInterno({ p, onAddToCart }) {
           alt={p.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
+
+        {/* ── Overlay com ícones ao hover ── */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 gap-2">
+          {/* Botão Adicionar ao Carrinho */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onAddToCart?.(p); }}
+            className="flex items-center gap-1.5 bg-white text-gray-800 text-[11px] font-semibold px-3 py-1 rounded shadow-sm hover:bg-green-500 hover:text-white transition-all duration-150"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            Add to cart
+          </button>
+
+          {/* Botão Wishlist */}
+          <button
+            onClick={(e) => e.stopPropagation()}
+            className="w-6 h-6 rounded  bg-white flex items-center justify-center shadow-sm hover:bg-red-50 hover:text-red-500 text-gray-600 transition-all duration-150"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+
+          {/* Botão Ver detalhes */}
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/produto/${p.id}`); }}
+            className="w-6 h-6 rounded bg-white flex items-center justify-center shadow-sm hover:bg-green-50 hover:text-green-600 text-gray-600 transition-all duration-150"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
         {p.badge && (
           <span className="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full"
             style={{
@@ -57,19 +95,17 @@ function ProductCardInterno({ p, onAddToCart }) {
         )}
       </div>
 
-      {/* Info */}
+      {/* Info — sem alterações */}
       <div className="p-3">
         <p className="text-[11px] text-gray-400 font-medium mb-0.5">{p.category}</p>
         <p className="text-sm font-bold text-gray-900 leading-tight line-clamp-2 mb-2">{p.name}</p>
 
-        {/* Rating */}
         <div className="flex items-center gap-1 mb-2">
           <span className="text-yellow-400 text-xs">★</span>
           <span className="text-xs font-semibold text-gray-700">{p.rating}</span>
           <span className="text-xs text-gray-400">({p.reviews})</span>
         </div>
 
-        {/* Preço */}
         <div className="flex items-end justify-between gap-1">
           <div>
             <p className="text-base font-black text-gray-900">
@@ -82,36 +118,19 @@ function ProductCardInterno({ p, onAddToCart }) {
               </p>
             )}
           </div>
-
-          {/* Entrega */}
           {p.hasDelivery && (
-            <span className="text-[10px] font-semibold px-1.5 py-0.5  bg-green-50 text-green-600">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-green-50 text-green-600">
               Entrega
             </span>
           )}
         </div>
 
-        {/* Localização */}
         <p className="text-[11px] text-gray-400 mt-1.5 flex items-center gap-1">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
           </svg>
           {p.city}, {p.province}
         </p>
-
-        {/* Botão adicionar ao carrinho */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // Evita navegar ao clicar no botão
-            onAddToCart && onAddToCart(p);
-          }}
-          className="mt-3 w-full py-2 text-xs font-bold rounded-xl text-white border-none cursor-pointer transition-colors"
-          style={{ background: GREEN }}
-          onMouseEnter={e => (e.currentTarget.style.background = "#17a349")}
-          onMouseLeave={e => (e.currentTarget.style.background = GREEN)}
-        >
-          Adicionar ao Carrinho
-        </button>
       </div>
     </div>
   );

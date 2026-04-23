@@ -241,15 +241,15 @@ function WishlistCard({ produto, onRemove, onAddCart }) {
 
         {/* acções */}
         <div className="flex gap-2 pt-1">
-          <Btn variant="solid" size="sm" fullWidth onClick={addCart}>
+          {/* <Btn variant="solid" size="sm" fullWidth onClick={addCart}>
             {adicionado ? <CheckCircle size={13} /> : <ShoppingCart size={13} />}
             {adicionado ? "Adicionado!" : "Adicionar"}
-          </Btn>
-          <button onClick={e => { e.stopPropagation(); onRemove(produto.id); }}
+          </Btn> */}
+          {/* <button onClick={e => { e.stopPropagation(); onRemove(produto.id); }}
             className="w-9 h-9 flex items-center justify-center  border border-gray-200 cursor-pointer hover:bg-red-50 hover:border-red-200 transition-colors bg-white"
             title="Remover">
             <Trash2 size={13} className="text-gray-400 hover:text-red-400" />
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
