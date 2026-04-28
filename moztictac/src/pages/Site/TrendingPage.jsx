@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Header } from "../../components/Header";
 
 const GREEN = "#00b96b";
 const GREEN_DARK = "#009a5a";
@@ -92,7 +93,7 @@ function ProductCard({ p, onAddToCart, wishlist, onToggleWish }) {
   const wished = wishlist.has(p.id);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden cursor-pointer group transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative">
+    <div className="bg-white border border-gray-100  overflow-hidden cursor-pointer group transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative">
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: "1" }}>
         <img
@@ -210,6 +211,7 @@ export default function TrendingPage({ onAddToCart }) {
   return (
     <div className="min-h-screen" style={{ background: "#f9fafb", fontFamily: "Manrope, sans-serif" }}>
 
+<Header/>
       {/* ── HERO ── */}
       <div className="relative overflow-hidden py-10 px-5" style={{ background: "linear-gradient(135deg,#0f2b1a 0%,#1a4a2e 60%,#00b96b12 100%)" }}>
         {/* glow */}
@@ -259,7 +261,7 @@ export default function TrendingPage({ onAddToCart }) {
           <div className="flex gap-3 flex-shrink-0">
             {[ALL_PRODUCTS[2], ALL_PRODUCTS[0]].map((p, i) => (
               <div key={p.id}
-                className="rounded-xl p-3 cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                className=" p-3 cursor-pointer transition-all duration-200 hover:-translate-y-1"
                 style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", width: 130, marginTop: i === 1 ? 20 : 0 }}>
                 <img src={p.img} alt={p.name} className="w-full rounded-lg mb-2 object-cover" style={{ aspectRatio: "1" }} />
                 <p className="text-[11px] font-bold text-white leading-tight mb-1">{p.name}</p>
@@ -337,7 +339,7 @@ export default function TrendingPage({ onAddToCart }) {
 
           <div className="flex items-center gap-2">
             {/* Tabs */}
-            <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5">
+            <div className="flex bg-white border border-gray-200  p-1 gap-0.5">
               {TABS.map((tab) => (
                 <button
                   key={tab}
@@ -356,7 +358,7 @@ export default function TrendingPage({ onAddToCart }) {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200 rounded-xl px-3 py-2 cursor-pointer outline-none"
+              className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200  px-3 py-2 cursor-pointer outline-none"
             >
               <option value="">Ordenar</option>
               <option value="price-asc">Preço ↑</option>

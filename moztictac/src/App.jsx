@@ -8,6 +8,9 @@ import AdminPanel from "./pages/Admin/AdminPage";
 import PaginaDesejos from "./pages/Site/Paginadesejos";
 import ShopPage from "./pages/Site/ProductPage";
 import ChatPage from "./pages/Site/ChatPage";
+import TrendingPage from "./pages/Site/TrendingPage";
+import BlogPage from "./pages/Site/Blogpage";
+import PromoBannersPage from "./pages/Site/PromobannerPage";
 
 export default function App() {
   return (
@@ -22,6 +25,9 @@ export default function App() {
       <Route path="/desejos" element={<PaginaDesejos />} />
       <Route path="/produtos" element={<ShopPage />} />
       <Route path="/chat" element={<ChatPage />} />
+      <Route path="/trending" element={<TrendingPage />} />
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/promos" element={<PromoBannersPage />} />
       {/* Resto das rotas... */}
     </Routes>
   );

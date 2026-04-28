@@ -11,7 +11,7 @@ export function TrendingNow() {
       <div className="max-w-7xl mx-auto px-4">
         <SectionHeader title="Em Alta Agora">
           <a
-            href="#"
+            href="/trending"
             className="text-sm font-semibold"
             style={{ color: GREEN, textDecoration: "none" }}
           >

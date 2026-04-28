@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ALL_PRODUCTS } from "../../components/FashionProducts";
+import { Header } from "../../components/Header";
 
 const GREEN       = "#00b96b";
 const GREEN_DARK  = "#009a5a";
@@ -318,7 +319,7 @@ export function ChatPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden" style={{ fontFamily: "Manrope, sans-serif" }}>
-
+<Header/>
       {/* ── Top bar ── */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 flex-shrink-0">
         <button

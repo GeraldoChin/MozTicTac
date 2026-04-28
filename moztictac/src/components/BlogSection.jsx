@@ -10,7 +10,7 @@ export function BlogSection() {
       <div className="max-w-7xl mx-auto px-4">
         <SectionHeader title="Do Blog">
           <a
-            href="#"
+            href="/blog"
             className="text-sm font-semibold"
             style={{ color: GREEN, textDecoration: "none" }}
           >
