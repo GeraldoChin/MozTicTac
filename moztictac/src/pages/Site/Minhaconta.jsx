@@ -1,36 +1,35 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 
-import { VERDE } from "../components/contaConstantes";
-import { SidebarConta, MENUS } from "../components/SidebarConta";
-import { Cabecalho }           from "../components/Cabecalho";
-import { SecaoPerfil }         from "../components/SecaoPerfil";
-import { SecaoCarteira }       from "../components/SecaoCarteira";
-import { SecaoCompras }        from "../components/SecaoCompras";
-import { SecaoVendas }         from "../components/SecaoVendas";
-import { SecaoAfiliados }      from "../components/SecaoAfiliados";
-import { SecaoHistorico }      from "../components/SecaoHistorico";
-import { SecaoNotificacoes }   from "../components/SecaoNotificacoes";
-import { SecaoSeguranca }      from "../components/SecaoSeguranca";
+import { VERDE } from "../../components/contaConstantes";
+import { SidebarConta, MENUS } from "../../components/SidebarConta";
+import { Cabecalho } from "../../components/Cabecalho";
+import { SecaoPerfil } from "../../components/SecaoPerfil";
+import { SecaoCarteira } from "../../components/SecaoCarteira";
+import { SecaoCompras } from "../../components/SecaoCompras";
+import { SecaoVendas } from "../../components/SecaoVendas";
+import { SecaoAfiliados } from "../../components/SecaoAfiliados";
+import { SecaoHistorico } from "../../components/SecaoHistorico";
+import { SecaoNotificacoes } from "../../components/SecaoNotificacoes";
+import { SecaoSeguranca } from "../../components/SecaoSeguranca";
 
 const SECCOES = {
-  perfil:       <SecaoPerfil />,
-  carteira:     <SecaoCarteira />,
-  compras:      <SecaoCompras />,
-  vendas:       <SecaoVendas />,
-  afiliados:    <SecaoAfiliados />,
-  historico:    <SecaoHistorico />,
+  perfil: <SecaoPerfil />,
+  carteira: <SecaoCarteira />,
+  compras: <SecaoCompras />,
+  vendas: <SecaoVendas />,
+  afiliados: <SecaoAfiliados />,
+  historico: <SecaoHistorico />,
   notificacoes: <SecaoNotificacoes />,
-  seguranca:    <SecaoSeguranca />,
+  seguranca: <SecaoSeguranca />,
 };
 
 export default function MinhaConta() {
-  const [activo, setActivo]     = useState("perfil");
+  const [activo, setActivo] = useState("perfil");
   const [pesquisa, setPesquisa] = useState("");
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* SIDEBAR FIXA */}
       <SidebarConta activo={activo} aoMudar={setActivo} />
 
@@ -64,9 +63,7 @@ export default function MinhaConta() {
       {/* CONTEÚDO */}
       <div className="md:ml-64">
         <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6 items-start">
-
           <main className="flex-1 min-w-0">
-
             {/* MOBILE NAV */}
             <div className="md:hidden flex gap-2 overflow-x-auto pb-3 mb-4">
               {MENUS.map(({ id, Icone, rotulo }) => (
@@ -75,9 +72,9 @@ export default function MinhaConta() {
                   onClick={() => setActivo(id)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold shrink-0 border cursor-pointer transition-colors"
                   style={{
-                    background:  activo === id ? VERDE   : "white",
-                    color:       activo === id ? "white" : "#374151",
-                    borderColor: activo === id ? VERDE   : "#e5e7eb",
+                    background: activo === id ? VERDE : "white",
+                    color: activo === id ? "white" : "#374151",
+                    borderColor: activo === id ? VERDE : "#e5e7eb",
                   }}
                 >
                   <Icone
@@ -93,11 +90,9 @@ export default function MinhaConta() {
             <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
               {SECCOES[activo]}
             </div>
-
           </main>
         </div>
       </div>
-
     </div>
   );
 }

@@ -194,7 +194,7 @@ export function FashionProducts({ onAddToCart }) {
         {/* ── Tabs header ── */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Manrope, sans-serif" }}>
+            <h2 className=" text-xl font-bold text-gray-900" style={{ fontFamily: "Manrope, sans-serif" }}>
               Todos os Produtos
             </h2>
             <p className="text-sm text-gray-400 mt-0.5">

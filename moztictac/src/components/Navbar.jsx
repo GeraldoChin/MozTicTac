@@ -1,16 +1,16 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  LayoutGrid, Home, ShoppingBag, Store,
-  Share2, HelpCircle, Info, ChevronDown,
+  LayoutGrid, Home, ShoppingBag,
+  HelpCircle, Info, ChevronDown,
 } from "lucide-react";
 
 const VERDE = "#00b96b";
 
 const LINKS_NAV = [
-  { rotulo: "Home",    Icone: Home,        temSeta: false, para: "/" },
-  { rotulo: "Shop",   Icone: ShoppingBag, temSeta: true,  para: "/comprar" },
-  { rotulo: "Ajuda",     Icone: HelpCircle,  temSeta: false, para: "/ajuda" },
-  { rotulo: "Sobre Nós", Icone: Info,        temSeta: false, para: "/sobre-nos" },
+  { rotulo: "Home", Icone: Home, para: "/" },
+  { rotulo: "Shop", Icone: ShoppingBag, para: "/produtos", temSeta: true },
+  { rotulo: "Ajuda", Icone: HelpCircle, para: "/ajuda" },
+  { rotulo: "Sobre Nós", Icone: Info, para: "/sobre-nos" },
 ];
 
 export function Navbar({ aoClicarCategorias }) {
@@ -18,50 +18,68 @@ export function Navbar({ aoClicarCategorias }) {
   const location = useLocation();
 
   return (
-    <nav className="text-white text-sm" style={{ background: VERDE }}>
+    <nav className="text-white text-sm shadow-md" style={{ background: VERDE }}>
       <div className="max-w-7xl mx-auto px-4 flex items-stretch">
 
         {/* Categorias */}
         <button
           onClick={aoClicarCategorias}
-          className="flex items-center gap-2 px-5 py-3 font-semibold text-sm"
-          style={{ background: "rgba(0,0,0,.15)" }}
+          className="
+            flex items-center gap-2 px-5 py-3 font-semibold
+            bg-black/20
+            hover:bg-black/30
+            transition-all duration-300
+          "
         >
           <LayoutGrid size={16} />
           Categorias
-          <ChevronDown size={13} />
+          <ChevronDown size={14} className="opacity-80" />
         </button>
 
-        {/* LINKS */}
-        {LINKS_NAV.map(({ rotulo, Icone, temSeta, para }) => {
-          const activo = location.pathname === para;
+        {/* Links */}
+        <div className="flex">
+          {LINKS_NAV.map(({ rotulo, Icone, para, temSeta }) => {
+            const activo = location.pathname === para;
 
-          return (
-            <button
-              key={rotulo}
-              onClick={() => navigate(para)}
-              className="flex items-center gap-1.5 px-4 py-3 font-medium relative transition-colors"
-              style={{
-                color: "white",
-                background: activo ? "rgba(0,0,0,.2)" : "transparent"
-              }}
-              onMouseEnter={e => {
-                if (!activo) e.currentTarget.style.background = "rgba(0,0,0,.15)";
-              }}
-              onMouseLeave={e => {
-                if (!activo) e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <Icone size={15} />
-              {rotulo}
-              {temSeta && <ChevronDown size={13} className="opacity-70" />}
+            return (
+              <button
+                key={rotulo}
+                onClick={() => navigate(para)}
+                className={`
+                  relative flex items-center gap-1.5 px-5 py-3 font-medium
+                  transition-all duration-300
+                  ${activo ? "text-white" : "text-white/90 hover:text-white"}
+                `}
+              >
+                <Icone size={16} />
+                {rotulo}
 
-              {activo && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-              )}
-            </button>
-          );
-        })}
+                {temSeta && (
+                  <ChevronDown size={13} className="opacity-70" />
+                )}
+
+                {/* Hover background suave */}
+                <span
+                  className="
+                    absolute inset-0 bg-black/10 opacity-0
+                    hover:opacity-100
+                    transition-opacity duration-300
+                    rounded-sm
+                  "
+                />
+
+                {/* Linha animada (ativo + hover) */}
+                <span
+                  className={`
+                    absolute bottom-0 left-0 h-[2px] bg-white
+                    transition-all duration-300
+                    ${activo ? "w-full" : "w-0 group-hover:w-full"}
+                  `}
+                />
+              </button>
+            );
+          })}
+        </div>
 
       </div>
     </nav>

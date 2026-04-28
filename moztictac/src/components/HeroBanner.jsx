@@ -13,7 +13,7 @@ const SLIDES = [
     stat2: { val: "+50k", label: "Produtos" },
     stat3: { val: "MZN",  label: "Pagamento local" },
     chip:  { icon: "bag",    text: "Escrow Protegido",       sub: "Pagamento seguro garantido" },
-    image: "/public/img/img7.jpg",
+    image: "/img/img7.jpg",
     pos:   "center 30%",
   },
   {
@@ -28,7 +28,7 @@ const SLIDES = [
     stat2: { val: "3 Níveis", label: "Bronze · Prata · Ouro" },
     stat3: { val: "Auto",    label: "Pagamento automático" },
     chip:  { icon: "link",   text: "Link Rastreável",        sub: "Cliques e conversões em tempo real" },
-    image: "/public/img/img19.jpg",
+    image: "/img/img19.jpg",
     pos:   "center 20%",
   },
   {
@@ -43,7 +43,7 @@ const SLIDES = [
     stat2: { val: "100%", label: "Transações seguras" },
     stat3: { val: "24h",  label: "Suporte disponível" },
     chip:  { icon: "shield", text: "Carteira Segura",       sub: "Fundos protegidos com escrow" },
-    image: "/public/img/img5.jpg",
+    image: "/img/img5.jpg",
     pos:   "center 25%",
   },
   {
@@ -58,7 +58,7 @@ const SLIDES = [
     stat2: { val: "Escrow",label: "Pagamento garantido" },
     stat3: { val: "Local", label: "Em todo Moçambique" },
     chip:  { icon: "star",  text: "Avaliações Verificadas", sub: "Sistema de reputação real" },
-    image: "/public/img/img4.jpg",
+    image: "/img/img4.jpg",
     pos:   "center 20%",
   },
 ];

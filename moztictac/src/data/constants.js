@@ -65,11 +65,29 @@ export const TRENDING = [
   { cat: "Watches",    name: "Minimalist Silver Watch",   price: "$199.00", rating: 4, img: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&q=80" },
   { cat: "Sunglasses", name: "Retro Round Sunglasses",    price: "$35.00",  rating: 5, img: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400&q=80" },
 ];
-
 export const BLOG_POSTS = [
-  { date: "March 12, 2024", cat: "Fashion Tips", title: "10 Must-Have Summer Accessories for 2024",         excerpt: "From woven bags to statement sunglasses, discover the season's key pieces that every wardrobe needs.", img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80" },
-  { date: "March 8, 2024",  cat: "Style Guide",  title: "How to Style a Leather Jacket for Every Occasion", excerpt: "The leather jacket is the ultimate wardrobe staple. Here's how to wear it from brunch to boardroom.",  img: "https://images.unsplash.com/photo-1520975954732-35dd22299614?w=400&q=80" },
-  { date: "Feb 28, 2024",   cat: "Trends",       title: "The Return of 90s Footwear — What's Worth Buying", excerpt: "Chunky soles, platform trainers and classic canvas are all back. We break down what's actually wearable.", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" },
+  {
+    date: "12 Março 2024",
+    cat: "Dicas de Moda",
+    title: "10 acessórios de verão indispensáveis para 2024",
+    excerpt: "De bolsas de palha a óculos marcantes, descubra as peças-chave da estação que todo guarda-roupa precisa.",
+    img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80"
+  },
+  {
+    date: "8 Março 2024",
+    cat: "Guia de Estilo",
+    title: "Como usar uma jaqueta de couro em qualquer ocasião",
+    excerpt: "A jaqueta de couro é uma peça essencial. Veja como usá-la do brunch ao ambiente de trabalho.",
+    img: "https://images.unsplash.com/photo-1520975954732-35dd22299614?w=400&q=80"
+  },
+  {
+    date: "28 Fev 2024",
+    cat: "Tendências",
+    title: "O retorno dos calçados dos anos 90 — o que vale a pena comprar",
+    excerpt: "Solas grossas, tênis plataforma e canvas clássicos estão de volta. Veja o que realmente vale usar.",
+    img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80"
+  },
 ];
+
 
 export const BRANDS = ["Nike", "Adidas", "Puma", "Fossil", "Gucci", "Zara", "H&M", "Levi's"];
