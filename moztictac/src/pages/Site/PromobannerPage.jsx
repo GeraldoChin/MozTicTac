@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Header } from "../../components/Header";
+import { useCart } from "../../hooks/useCart";
 
 const GREEN = "#00b96b";
 const GREEN_DARK = "#009a5a";
@@ -539,6 +541,9 @@ function Newsletter() {
 /* ─── PAGE ROOT ─────────────────────────────────────────────────── */
 export default function PromoBannersPage() {
   const [activeFilter, setActiveFilter] = useState("Todos");
+   const [activo, setActivo] = useState("perfil");
+  const { cartCount, wishCount, addToCart, addToWish } = useCart();
+  const [searchVal, setSearchVal] = useState("");
 
   const handleFilterChange = useCallback((cat) => {
     setActiveFilter(cat);
@@ -551,36 +556,14 @@ export default function PromoBannersPage() {
     <div className="min-h-screen" style={{ background: "#f9fafb", fontFamily: "Manrope, sans-serif" }}>
 
       {/* HEADER */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-50" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-3" style={{ height: 60 }}>
-          <div className="text-xl font-black" style={{ color: GREEN, letterSpacing: "-0.5px" }}>MozTicTac</div>
-          <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 gap-2" style={{ height: 38 }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            <input type="text" placeholder="Pesquisar promoções..."
-              className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700"
-              style={{ fontFamily: "Manrope, sans-serif" }} />
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="px-3.5 py-1.5 rounded-full text-xs font-bold border-none cursor-pointer"
-              style={{ background: GREEN_LIGHT, color: GREEN }}>Vender</button>
-            <button className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white border-none cursor-pointer"
-              style={{ background: GREEN }}>Entrar</button>
-            <div className="relative">
-              <button className="w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer"
-                style={{ background: GREEN_LIGHT }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                </svg>
-              </button>
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black text-white"
-                style={{ background: "#ef4444" }}>3</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Header
+        cartCount={cartCount}
+        wishCount={wishCount}
+        searchVal={searchVal}
+        onSearchChange={setSearchVal}
+        onAddToCart={addToCart}
+        onAddToWish={addToWish}
+      />
 
       {/* HERO SLIDER */}
       <HeroSlider onFilterChange={handleFilterChange} />
@@ -592,7 +575,7 @@ export default function PromoBannersPage() {
         <PromoBannersSlider onFilterChange={handleFilterChange} />
 
         {/* Stats bar */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* <div className="grid grid-cols-4 gap-4">
           {[
             { n:"+400", l:"Ofertas activas", icon:"🏷️" },
             { n:"75%",  l:"Desconto máximo", icon:"📉" },
@@ -608,7 +591,7 @@ export default function PromoBannersPage() {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Deals */}
         <DealsSection activeFilter={activeFilter} onFilterChange={setActiveFilter} />
