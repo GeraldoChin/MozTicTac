@@ -93,7 +93,7 @@ function Countdown() {
     <div className="flex items-center gap-1">
       {[h, m, s].map((v, i) => (
         <span key={i} className="flex items-center gap-1">
-          <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-black text-white"
+          <span className="inline-flex items-center justify-center w-9 h-9  text-sm font-black text-white"
             style={{ background: "#111827", fontFamily: "monospace" }}>{v}</span>
           {i < 2 && <span className="text-gray-400 font-bold text-sm">:</span>}
         </span>
@@ -235,7 +235,7 @@ function PromoBannersSlider({ onFilterChange }) {
         {PROMO_BANNERS.slice(startIdx, startIdx + visible).map((promo) => (
           <div key={promo.cat}
             onClick={() => onFilterChange(promo.cat)}
-            className="relative rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
+            className="relative overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
             style={{ height: 190 }}>
             <img src={promo.img} alt={promo.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -261,7 +261,7 @@ function PromoBannersSlider({ onFilterChange }) {
             </div>
 
             {/* Hover ring */}
-            <div className="absolute inset-0 rounded-2xl border-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+            <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
               style={{ borderColor: promo.color }} />
           </div>
         ))}
@@ -282,14 +282,14 @@ function PromoBannersSlider({ onFilterChange }) {
 function DealCard({ d, wished, onWish }) {
   const disc = Math.round((1 - d.price / d.orig) * 100);
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200 hover:shadow-xl hover:-translate-y-1.5">
+    <div className="bg-white border border-gray-100 overflow-hidden cursor-pointer group transition-all duration-200 hover:shadow-xl hover:-translate-y-1.5">
       <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: "1" }}>
         <img src={d.img} alt={d.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-350" />
-        <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-lg text-[11px] font-black text-white"
+        <div className="absolute top-2.5 left-2.5 px-2 py-0.5  text-[11px] font-black text-white"
           style={{ background: "#ef4444" }}>-{disc}%</div>
         {d.isNew && (
-          <div className="absolute top-2.5 left-14 px-2 py-0.5 rounded-lg text-[11px] font-black"
+          <div className="absolute top-2.5 left-14 px-2 py-0.5  text-[11px] font-black"
             style={{ background: GREEN_LIGHT, color: "#15803d" }}>Novo</div>
         )}
         <button onClick={e => { e.stopPropagation(); onWish(d.id); }}
@@ -416,7 +416,7 @@ function DealsSection({ activeFilter, onFilterChange }) {
       <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-1 mb-5 w-fit">
         {["Todos","Novos","Mais Vendidos","Melhor Avaliados"].map(t => (
           <button key={t} onClick={() => { setTab(t); setPage(1); }}
-            className="px-3.5 py-1.5 text-[11px] font-bold rounded-lg border-none cursor-pointer transition-all duration-150"
+            className="px-3.5 py-1.5 text-[11px] font-bold  border-none cursor-pointer transition-all duration-150"
             style={tab === t ? { background: GREEN, color: "#fff" } : { background: "transparent", color: "#6b7280" }}>
             {t}
           </button>
@@ -465,17 +465,17 @@ function DealsSection({ activeFilter, onFilterChange }) {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-8">
           <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1}
-            className="w-8 h-8 rounded-lg border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
+            className="w-8 h-8  border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
             style={{ background:"#fff", color:"#4b5563", borderColor:"#e5e7eb", opacity: page===1 ? 0.4 : 1 }}>‹</button>
           {Array.from({ length: totalPages }).map((_,i) => (
             <button key={i} onClick={() => setPage(i+1)}
-              className="w-8 h-8 rounded-lg border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
+              className="w-8 h-8  border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
               style={page===i+1 ? { background:GREEN, color:"#fff", borderColor:GREEN } : { background:"#fff", color:"#4b5563", borderColor:"#e5e7eb" }}>
               {i+1}
             </button>
           ))}
           <button onClick={() => setPage(p => Math.min(totalPages,p+1))} disabled={page===totalPages}
-            className="w-8 h-8 rounded-lg border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
+            className="w-8 h-8  border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
             style={{ background:"#fff", color:"#4b5563", borderColor:"#e5e7eb", opacity: page===totalPages ? 0.4 : 1 }}>›</button>
         </div>
       )}
@@ -599,7 +599,7 @@ export default function PromoBannersPage() {
             { n:"11",   l:"Províncias",      icon:"📍" },
             { n:"8.4K", l:"Vendedores",      icon:"🛍️" },
           ].map(({ n,l,icon }) => (
-            <div key={l} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3"
+            <div key={l} className="bg-white border border-gray-100 p-4 flex items-center gap-3"
               style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
               <span className="text-2xl">{icon}</span>
               <div>
