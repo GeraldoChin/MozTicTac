@@ -13,6 +13,7 @@ import { BlogSection } from "../../components/BlogSection";
 import { BrandsBar } from "../../components/Marcas";
 import { Newsletter } from "../../components/Newsletter";
 import { Rodape } from "../../components/Rodape";
+import TopTendencias from "../../components/Trendinghero";
 
 export default function Home() {
   const { cartCount, wishCount, addToCart, addToWish } = useCart();
@@ -32,7 +33,8 @@ export default function Home() {
       <Navbar />
       <HeroBanner onShopNow={addToCart} />
       <CategoryBar />
-      <DealsSection onAddToCart={addToCart} />
+      {/* <DealsSection onAddToCart={addToCart} /> */}
+      <TopTendencias/>
       <PromoBanners />
       <FashionProducts onAddToCart={addToCart} />
       <TrendingNow />

@@ -1,5 +1,10 @@
 import { useState, useMemo } from "react";
 import { Header } from "../../components/Header";
+import TopTendencias2 from "../../components/Trendhero2";
+import { VERDE } from "../../components/contaConstantes";
+import { MENUS } from "../../components/SidebarConta"; // só os dados, sem renderizar o sidebar
+import { ChevronRight } from "lucide-react";
+
 
 const GREEN = "#00b96b";
 const GREEN_DARK = "#009a5a";
@@ -212,65 +217,21 @@ export default function TrendingPage({ onAddToCart }) {
     <div className="min-h-screen" style={{ background: "#f9fafb", fontFamily: "Manrope, sans-serif" }}>
 
 <Header/>
-      {/* ── HERO ── */}
-      <div className="relative overflow-hidden py-10 px-5" style={{ background: "linear-gradient(135deg,#0f2b1a 0%,#1a4a2e 60%,#00b96b12 100%)" }}>
-        {/* glow */}
-        <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle,#00b96b14 0%,transparent 70%)" }} />
-
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
-          {/* Left */}
-          <div>
-            <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: GREEN }}>
-              🔥 Tendências de Abril 2026
-            </p>
-            <h1 className="text-3xl font-black text-white leading-tight mb-2" style={{ letterSpacing: "-0.5px" }}>
-              O que Moçambique<br />
-              está a <span style={{ color: GREEN }}>comprar agora</span>
-            </h1>
-            <p className="text-sm text-gray-400 mb-5 max-w-sm">
-              Os produtos mais procurados nas últimas 24h. Actualizados em tempo real.
-            </p>
-            <div className="flex gap-3">
-              <button className="px-5 py-2.5 rounded-full text-sm font-bold text-white border-none cursor-pointer transition-colors"
-                style={{ background: GREEN }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = GREEN_DARK)}
-                onMouseLeave={(e) => (e.currentTarget.style.background = GREEN)}>
-                Ver todos →
-              </button>
-              <button className="px-5 py-2.5 rounded-full text-sm font-bold text-white border border-white/20 cursor-pointer transition-colors"
-                style={{ background: "rgba(255,255,255,0.08)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.14)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}>
-                Activar alertas
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-7 mt-7">
-              {[["12K+", "Produtos"], ["8.4K", "Vendedores"], ["11", "Províncias"]].map(([n, l]) => (
-                <div key={l} className="text-center">
-                  <p className="text-xl font-black" style={{ color: GREEN }}>{n}</p>
-                  <p className="text-[10px] font-semibold text-gray-400 mt-0.5">{l}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — mini cards */}
-          <div className="flex gap-3 flex-shrink-0">
-            {[ALL_PRODUCTS[2], ALL_PRODUCTS[0]].map((p, i) => (
-              <div key={p.id}
-                className=" p-3 cursor-pointer transition-all duration-200 hover:-translate-y-1"
-                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", width: 130, marginTop: i === 1 ? 20 : 0 }}>
-                <img src={p.img} alt={p.name} className="w-full rounded-lg mb-2 object-cover" style={{ aspectRatio: "1" }} />
-                <p className="text-[11px] font-bold text-white leading-tight mb-1">{p.name}</p>
-                <p className="text-sm font-black" style={{ color: GREEN }}>{p.price.toLocaleString("pt-MZ")} MZN</p>
-              </div>
-            ))}
-          </div>
+   <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">
+          <button className="hover:text-green-600 cursor-pointer transition-colors">
+            Início
+          </button>
+          <ChevronRight size={14} className="text-gray-400" />
+          <span className="font-semibold text-gray-900">Minha Conta</span>
+          <ChevronRight size={14} className="text-gray-400" />
+          {/* <span style={{ color: VERDE, fontWeight: 600 }}>
+            {MENUS.find((m) => m.id === activo)?.rotulo}
+          </span> */}
         </div>
       </div>
+      {/* ── HERO ── */}
+<TopTendencias2/>
 
       {/* ── CATEGORIES STRIP ── */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
