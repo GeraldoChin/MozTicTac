@@ -64,15 +64,7 @@ const SLIDES = [
 ];
 
 const ACCENT = "#16a34a";
-
-// Paleta grafite premium
-const G = {
-  900: "#18181b",   // texto principal
-  700: "#3f3f46",   // texto secundário
-  400: "#a1a1aa",   // texto muted
-  100: "#f4f4f5",   // superfícies claras
-  overlay: "rgba(24,24,27,0.52)",   // overlay base grafite
-};
+const DURATION = 6000;
 
 function ChipIcon({ type }) {
   const s = { width: 15, height: 15, stroke: "#fff", fill: "none", strokeWidth: 2.1, strokeLinecap: "round" };
@@ -87,38 +79,52 @@ export function HeroBanner({ onShopNow }) {
   const [current, setCurrent] = useState(0);
   const [phase,   setPhase]   = useState("idle");
   const [mounted, setMounted] = useState(false);
-  const [paused,  setPaused]  = useState(false);
-  const timerRef = useRef(null);
-  const DURATION = 6000;
-
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 80); return () => clearTimeout(t); }, []);
-
-  const goTo = useCallback((idx) => {
-    if (phase !== "idle" || idx === current) return;
-    setPhase("exit");
-    setTimeout(() => {
-      setCurrent(idx);
-      setPhase("enter");
-      setTimeout(() => setPhase("idle"), 700);
-    }, 420);
-  }, [current, phase]);
-
-  const next = useCallback(() => goTo((current + 1) % SLIDES.length), [current, goTo]);
-  const prev = useCallback(() => goTo((current - 1 + SLIDES.length) % SLIDES.length), [current, goTo]);
+  const timerRef  = useRef(null);
+  const currentRef = useRef(0);
+  const phaseRef   = useRef("idle");
 
   useEffect(() => {
-    if (paused) return;
-    timerRef.current = setTimeout(next, DURATION);
-    return () => clearTimeout(timerRef.current);
-  }, [current, paused, next]);
+    const t = setTimeout(() => setMounted(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  const goTo = useCallback((idx) => {
+    if (phaseRef.current !== "idle") return;
+    const next = (idx + SLIDES.length) % SLIDES.length;
+    if (next === currentRef.current) return;
+
+    phaseRef.current = "exit";
+    setPhase("exit");
+
+    setTimeout(() => {
+      currentRef.current = next;
+      setCurrent(next);
+      phaseRef.current = "enter";
+      setPhase("enter");
+
+      setTimeout(() => {
+        phaseRef.current = "idle";
+        setPhase("idle");
+      }, 700);
+    }, 420);
+  }, []);
+
+  const next = useCallback(() => goTo(currentRef.current + 1), [goTo]);
+  const prev = useCallback(() => goTo(currentRef.current - 1), [goTo]);
+
+  // Auto-play sem parar no hover
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      goTo(currentRef.current + 1);
+    }, DURATION);
+    return () => clearInterval(timerRef.current);
+  }, [goTo]);
 
   const slide   = SLIDES[current];
   const visible = phase !== "exit" && mounted;
 
   return (
     <section
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
       style={{
         position: "relative",
         width: "100%",
@@ -127,7 +133,7 @@ export function HeroBanner({ onShopNow }) {
         maxHeight: 700,
         overflow: "hidden",
         fontFamily: "'Inter', system-ui, sans-serif",
-        background: G[900],
+        background: "#18181b",
       }}
     >
       {/* ══ IMAGENS ══ */}
@@ -141,7 +147,6 @@ export function HeroBanner({ onShopNow }) {
             width: "100%", height: "100%",
             objectFit: "cover",
             objectPosition: s.pos,
-            // Dessaturação parcial — imagem fica mais "editorial", menos colorida
             filter: "brightness(0.70) saturate(0.72) contrast(1.04)",
             opacity:   i === current ? 1 : 0,
             transform: i === current
@@ -155,31 +160,24 @@ export function HeroBanner({ onShopNow }) {
         />
       ))}
 
-      {/* ══ OVERLAY GRAFITE ══
-           Camada grafite neutra que unifica a imagem e o conteúdo.
-           Denso à esquerda (onde está o texto), mais fino à direita.
-           A dessaturação + este overlay dão o look "premium cinza". */}
+      {/* Overlay grafite */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
-        background: `
-          linear-gradient(
-            105deg,
-            rgba(24,24,27,0.88) 0%,
-            rgba(24,24,27,0.72) 30%,
-            rgba(24,24,27,0.38) 58%,
-            rgba(24,24,27,0.10) 80%,
-            rgba(24,24,27,0.00) 100%
-          )
-        `,
+        background: `linear-gradient(105deg,
+          rgba(24,24,27,0.88) 0%,
+          rgba(24,24,27,0.72) 30%,
+          rgba(24,24,27,0.38) 58%,
+          rgba(24,24,27,0.10) 80%,
+          rgba(24,24,27,0.00) 100%)`,
       }} />
 
-      {/* Vinheta perimetral subtil — profundidade extra */}
+      {/* Vinheta */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
         boxShadow: "inset 0 0 120px rgba(24,24,27,0.45)",
       }} />
 
-      {/* Gradiente inferior — merge limpo com o branco do site */}
+      {/* Gradiente inferior */}
       <div style={{
         position: "absolute", bottom: 0, left: 0, right: 0,
         height: 90, zIndex: 2, pointerEvents: "none",
@@ -206,7 +204,7 @@ export function HeroBanner({ onShopNow }) {
           {String(current + 1).padStart(2, "0")} / {String(SLIDES.length).padStart(2, "0")}
         </div>
 
-        {/* Dots nav vertical */}
+        {/* Dots nav vertical (esquerda) */}
         <div style={{
           position: "absolute", left: 32, top: "50%",
           transform: "translateY(-50%)",
@@ -231,7 +229,6 @@ export function HeroBanner({ onShopNow }) {
             ? "opacity 0.55s ease 0.06s, transform 0.55s ease 0.06s"
             : "opacity 0.28s ease, transform 0.28s ease",
         }}>
-          {/* Pill tag com fundo grafite translúcido */}
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             padding: "4px 12px 4px 8px",
@@ -260,8 +257,7 @@ export function HeroBanner({ onShopNow }) {
         <h1 style={{
           fontSize: "clamp(38px, 5vw, 66px)",
           fontWeight: 900, lineHeight: 1.0, letterSpacing: "-0.03em",
-          color: "#ffffff",
-          marginBottom: 18,
+          color: "#ffffff", marginBottom: 18,
           opacity:    visible ? 1 : 0,
           transform:  visible ? "translateY(0)" : "translateY(26px)",
           transition: visible
@@ -271,7 +267,6 @@ export function HeroBanner({ onShopNow }) {
           {slide.headline.map((line, i) => (
             <span key={i} style={{
               display: "block",
-              // Linha de accent: cor verde vibrante sobre o grafite escuro
               color: i === slide.accentLine ? ACCENT : "#ffffff",
             }}>
               {line}
@@ -306,7 +301,7 @@ export function HeroBanner({ onShopNow }) {
           <button
             onClick={onShopNow}
             onMouseEnter={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={e => { e.currentTarget.style.filter = "none";             e.currentTarget.style.transform = "translateY(0)"; }}
+            onMouseLeave={e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               padding: "13px 28px",
@@ -402,19 +397,29 @@ export function HeroBanner({ onShopNow }) {
         </div>
       </div>
 
-      {/* ══ Setas ══ */}
+      {/* ══ SETAS LATERAIS (direita) ══ */}
       <div style={{
-        position: "absolute", bottom: 28, left: "50%",
-        transform: "translateX(-50%)",
-        display: "flex", gap: 8, zIndex: 10,
+        position: "absolute", right: 20, top: "50%",
+        transform: "translateY(-50%)",
+        display: "flex", flexDirection: "column", gap: 8, zIndex: 10,
       }}>
         {[
-          { fn: prev, pts: "18 12 12 6 6 12" },
-          { fn: next, pts: "6 12 12 18 18 12" },
+          { fn: prev, pts: "18 15 12 9 6 15" },
+          { fn: next, pts: "6 9 12 15 18 9"  },
         ].map(({ fn, pts }, i) => (
-          <button key={i} onClick={fn}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.16)"}
-            onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+          <button
+            key={i}
+            onClick={fn}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "rgba(22,163,74,0.85)";
+              e.currentTarget.style.borderColor = "rgba(22,163,74,0.6)";
+              e.currentTarget.style.transform = "scale(1.08)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
             style={{
               width: 36, height: 36, borderRadius: "50%",
               background: "rgba(255,255,255,0.08)",
@@ -422,10 +427,10 @@ export function HeroBanner({ onShopNow }) {
               border: "1px solid rgba(255,255,255,0.14)",
               cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "background 0.2s",
+              transition: "all 0.2s",
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2.2" strokeLinecap="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.80)" strokeWidth="2.2" strokeLinecap="round">
               <polyline points={pts}/>
             </svg>
           </button>
@@ -439,7 +444,7 @@ export function HeroBanner({ onShopNow }) {
       }}>
         <div key={`${current}-bar`} style={{
           height: "100%", background: ACCENT,
-          animation: paused ? "none" : `progress-bar ${DURATION}ms linear forwards`,
+          animation: `progress-bar ${DURATION}ms linear forwards`,
         }} />
       </div>
 

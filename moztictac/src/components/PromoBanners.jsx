@@ -6,7 +6,7 @@ import { PROMOS } from "../data/constants";
 export function PromoBanners() {
   return (
     <section className="py-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1450px] mx-auto px-4">
         <div className="grid grid-cols-3 gap-4">
           {PROMOS.map((promo, i) => (
             <div

@@ -109,7 +109,7 @@ export default function TopTendencias() {
   };
 
   return (
-    <div className="bg-white select-none border-b border-gray-100 max-w-7xl mx-auto">
+    <div className="bg-white select-none border-b border-gray-100 max-w-[1450px] mx-auto">
       <style>{`
         .tt-track::-webkit-scrollbar { display: none; }
         @keyframes pulse-hot { 0%,100%{opacity:1} 50%{opacity:0.4} }

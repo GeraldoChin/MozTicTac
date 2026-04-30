@@ -14,6 +14,7 @@ import { SecaoAfiliados } from "../../components/SecaoAfiliados";
 import { SecaoHistorico } from "../../components/SecaoHistorico";
 import { SecaoNotificacoes } from "../../components/SecaoNotificacoes";
 import { SecaoSeguranca } from "../../components/SecaoSeguranca";
+import ChatVendedorPage from "./ChatPageVendedor";
 
 const SECCOES = {
   perfil: <SecaoPerfil />,
@@ -23,7 +24,8 @@ const SECCOES = {
   afiliados: <SecaoAfiliados />,
   historico: <SecaoHistorico />,
   notificacoes: <SecaoNotificacoes />,
-  seguranca: <SecaoSeguranca />,
+  seguranca: <ChatVendedorPage />,
+  chat: <ChatVendedorPage />,
 };
 
 export default function MinhaConta() {

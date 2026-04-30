@@ -189,7 +189,7 @@ export function FashionProducts({ onAddToCart }) {
 
   return (
     <section className="py-10 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1450px] mx-auto px-4">
 
         {/* ── Tabs header ── */}
         <div className="flex items-center justify-between mb-6">

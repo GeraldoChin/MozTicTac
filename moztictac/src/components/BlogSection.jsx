@@ -7,7 +7,7 @@ import { SectionHeader } from "./SectionHeader";
 export function BlogSection() {
   return (
     <section className="py-10 bg-white border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1450px] mx-auto px-4">
         <SectionHeader title="Do Blog">
           <a
             href="/blog"

@@ -65,7 +65,7 @@ export function CategoryBar({ activeCategory = "Todos", onSelect }) {
 
   return (
     <section className="bg-white py-7 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1450px] mx-auto px-4">
         <div className="flex justify-between gap-2">
           {CATEGORIES.map((c) => {
             const isActive = active === c.label;
