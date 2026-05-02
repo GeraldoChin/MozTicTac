@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "../../components/Header";
 import { useCart } from "../../hooks/useCart";
+import PromoBannersSlider from "../../components/PromoBannerSlider";
 
 const GREEN = "#00b96b";
 const GREEN_DARK = "#009a5a";
@@ -41,7 +42,7 @@ const HERO_SLIDES = [
 ];
 
 const PROMO_BANNERS = [
-  { img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80",  title: "Calçados",   sub: "Até 75% desconto",       cat: "Calçados",   color: "#b91c1c", emoji: "👟" },
+  { img: "img/img",  title: "Calçados",   sub: "Até 75% desconto",       cat: "Calçados",   color: "#b91c1c", emoji: "👟" },
   { img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80", title: "Relógios",  sub: "Mín. 45% desconto",      cat: "Acessórios", color: "#1d4ed8", emoji: "⌚" },
   { img: "https://images.unsplash.com/photo-1594938298603-c8148c4b4832?w=600&q=80", title: "Moda",      sub: "Colecção exclusiva",     cat: "Roupa",      color: "#7c3aed", emoji: "👗" },
   { img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80", title: "Tech",      sub: "Marcas internacionais",  cat: "Tech",       color: "#0369a1", emoji: "🎧" },
@@ -202,83 +203,7 @@ function HeroSlider({ onFilterChange }) {
 }
 
 /* ─── PROMO BANNERS SLIDER ──────────────────────────────────────── */
-function PromoBannersSlider({ onFilterChange }) {
-  const [startIdx, setStartIdx] = useState(0);
-  const visible = 3;
-  const canPrev = startIdx > 0;
-  const canNext = startIdx < PROMO_BANNERS.length - visible;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-xl font-black text-gray-900">Categorias em Destaque</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Clica numa categoria para filtrar os produtos abaixo</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => canPrev && setStartIdx(i => i - 1)} disabled={!canPrev}
-            className="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all"
-            style={{ background: "#fff", borderColor: "#e5e7eb", opacity: canPrev ? 1 : 0.35 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </button>
-          <button onClick={() => canNext && setStartIdx(i => i + 1)} disabled={!canNext}
-            className="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all"
-            style={{ background: canNext ? GREEN : "#f9fafb", borderColor: canNext ? GREEN : "#e5e7eb", opacity: canNext ? 1 : 0.35 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={canNext ? "#fff" : "#9ca3af"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-        {PROMO_BANNERS.slice(startIdx, startIdx + visible).map((promo) => (
-          <div key={promo.cat}
-            onClick={() => onFilterChange(promo.cat)}
-            className="relative overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
-            style={{ height: 190 }}>
-            <img src={promo.img} alt={promo.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              style={{ filter: "brightness(0.58)" }} />
-            <div className="absolute inset-0"
-              style={{ background: "linear-gradient(to right,rgba(0,0,0,0.72) 0%,transparent 100%)" }} />
-
-            {/* Accent bottom bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: promo.color }} />
-
-            <div className="absolute inset-0 flex flex-col justify-center px-5">
-              <span className="text-2xl mb-1">{promo.emoji}</span>
-              <p className="text-[10px] font-black uppercase tracking-widest mb-0.5"
-                style={{ color: "rgba(255,255,255,0.55)" }}>{promo.cat}</p>
-              <h3 className="text-lg font-black text-white">{promo.title}</h3>
-              <p className="text-xs mt-0.5 mb-3" style={{ color: "rgba(255,255,255,0.78)" }}>{promo.sub}</p>
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-white/80 group-hover:text-white transition-colors">
-                Filtrar produtos
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </span>
-            </div>
-
-            {/* Hover ring */}
-            <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
-              style={{ borderColor: promo.color }} />
-          </div>
-        ))}
-      </div>
-
-      {/* Dots */}
-      <div className="flex justify-center gap-1.5 mt-4">
-        {Array.from({ length: PROMO_BANNERS.length - visible + 1 }).map((_, i) => (
-          <button key={i} onClick={() => setStartIdx(i)} className="border-none cursor-pointer rounded-full transition-all duration-300"
-            style={{ width: i === startIdx ? 22 : 6, height: 6, background: i === startIdx ? GREEN : "#d1d5db", padding: 0 }} />
-        ))}
-      </div>
-    </div>
-  );
-}
+//  
 
 /* ─── DEAL CARD ─────────────────────────────────────────────────── */
 function DealCard({ d, wished, onWish }) {

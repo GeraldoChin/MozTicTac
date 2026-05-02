@@ -27,7 +27,7 @@ export function Navbar({ aoClicarCategorias }) {
           background: `linear-gradient(90deg, ${VERDE_ESCURO} 0%, ${VERDE} 100%)`,
           boxShadow: "0 2px 12px rgba(0,185,107,0.25)",
         }}
-        className="relative z-40"
+        className="relative "
       >
         <div className="max-w-[1450px] mx-auto px-3 sm:px-4 flex items-stretch">
 

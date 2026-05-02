@@ -27,7 +27,7 @@ function ProductCardInterno({ p, onAddToCart }) {
   return (
     <div
       onClick={() => navigate(`/produto/${p.id}`)}
-      className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group rounded-xl"
+      className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group "
     >
       <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: "4/5" }}>
         <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -115,7 +115,7 @@ function RadioGroup({ options, value, onChange }) {
 /* ── Sidebar de filtros ── */
 function FilterSidebar({ province, setProvince, priceMin, setPriceMin, priceMax, setPriceMax, estado, setEstado, tipo, setTipo, withDelivery, setWithDelivery, withAffiliate, setWithAffiliate, hasActiveFilters, clearFilters }) {
   return (
-    <aside className="w-52 flex-shrink-0 bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden sticky top-4 self-start">
+    <aside className="w-52 flex-shrink-0 bg-white border border-gray-100  shadow-sm overflow-hidden sticky top-4 self-start">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
         <div className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export function FashionProducts({ onAddToCart }) {
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Tabs — scroll horizontal em mobile */}
-            <div className="flex bg-white border border-gray-100 rounded-xl p-1 gap-0.5 overflow-x-auto">
+            <div className="flex bg-white border border-gray-100  p-1 gap-0.5 overflow-x-auto">
               {TABS.map((tab) => (
                 <button
                   key={tab}
@@ -276,7 +276,7 @@ export function FashionProducts({ onAddToCart }) {
             {/* Botão filtros — desktop */}
             <button
               onClick={() => setFiltersOpen((v) => !v)}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2  border text-xs font-semibold transition-all duration-200 cursor-pointer"
               style={{
                 borderColor: filtersOpen ? GREEN : "#e5e7eb",
                 color: filtersOpen ? GREEN : "#6b7280",
@@ -293,7 +293,7 @@ export function FashionProducts({ onAddToCart }) {
             {/* Botão filtros — mobile */}
             <button
               onClick={() => setMobileFilters(true)}
-              className="sm:hidden flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer"
+              className="sm:hidden flex items-center gap-1.5 px-3.5 py-2  border text-xs font-semibold cursor-pointer"
               style={{ borderColor: hasActiveFilters ? GREEN : "#e5e7eb", color: hasActiveFilters ? GREEN : "#6b7280", background: hasActiveFilters ? "#f0fdf4" : "white" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -319,7 +319,7 @@ export function FashionProducts({ onAddToCart }) {
                 <FilterSidebar {...filterProps} />
                 <button
                   onClick={() => setMobileFilters(false)}
-                  className="w-full mt-4 py-3 rounded-xl text-sm font-bold text-white border-none cursor-pointer"
+                  className="w-full mt-4 py-3  text-sm font-bold text-white border-none cursor-pointer"
                   style={{ background: GREEN }}
                 >
                   Ver {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
@@ -348,7 +348,7 @@ export function FashionProducts({ onAddToCart }) {
                 </div>
                 <p className="text-gray-600 font-semibold text-sm">Nenhum produto encontrado</p>
                 <p className="text-gray-400 text-xs mt-1 mb-4">Tente ajustar os filtros</p>
-                <button onClick={clearFilters} className="text-sm font-semibold px-5 py-2 rounded-xl cursor-pointer border-none text-white" style={{ background: GREEN }}>
+                <button onClick={clearFilters} className="text-sm font-semibold px-5 py-2  cursor-pointer border-none text-white" style={{ background: GREEN }}>
                   Limpar filtros
                 </button>
               </div>
