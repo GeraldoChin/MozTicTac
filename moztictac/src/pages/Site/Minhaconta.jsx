@@ -24,10 +24,9 @@ const SECCOES = {
   afiliados: <SecaoAfiliados />,
   historico: <SecaoHistorico />,
   notificacoes: <SecaoNotificacoes />,
-  seguranca: <ChatVendedorPage />,
+  seguranca: <SecaoSeguranca />,
   chat: <ChatVendedorPage />,
 };
-
 export default function MinhaConta() {
   const [activo, setActivo] = useState("perfil");
   const { cartCount, wishCount, addToCart, addToWish } = useCart();
@@ -35,7 +34,6 @@ export default function MinhaConta() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HEADER — aoNavegar liga o dropdown directamente a setActivo */}
       <Header
         cartCount={cartCount}
         wishCount={wishCount}
@@ -48,9 +46,7 @@ export default function MinhaConta() {
       {/* BREADCRUMB */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">
-          <button className="hover:text-green-600 cursor-pointer transition-colors">
-            Início
-          </button>
+          <button className="hover:text-green-600 cursor-pointer transition-colors">Início</button>
           <ChevronRight size={14} className="text-gray-400" />
           <span className="font-semibold text-gray-900">Minha Conta</span>
           <ChevronRight size={14} className="text-gray-400" />
@@ -60,37 +56,58 @@ export default function MinhaConta() {
         </div>
       </div>
 
-      {/* CONTEÚDO */}
+      {/* LAYOUT PRINCIPAL */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <main>
-          {/* TABS — navegação horizontal (substitui o sidebar) */}
-          <div className="flex gap-2 overflow-x-auto pb-3 mb-6">
-            {MENUS.map(({ id, Icone, rotulo }) => (
-              <button
-                key={id}
-                onClick={() => setActivo(id)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold shrink-0 border cursor-pointer transition-all duration-150"
-                style={{
-                  background: activo === id ? VERDE : "white",
-                  color: activo === id ? "white" : "#374151",
-                  borderColor: activo === id ? VERDE : "#e5e7eb",
-                  boxShadow: activo === id ? `0 2px 8px ${VERDE}40` : "none",
-                }}
-              >
-                <Icone
-                  size={13}
-                  style={{ color: activo === id ? "white" : "#9ca3af" }}
-                />
-                {rotulo}
-              </button>
-            ))}
-          </div>
+        <div className="flex gap-6 items-start">
 
-          {/* SECÇÃO ACTIVA */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-            {SECCOES[activo]}
-          </div>
-        </main>
+          {/* ── SIDEBAR FIXA ── */}
+          <aside className="w-56 shrink-0 sticky top-6">
+            <div className="bg-white  border border-gray-100 shadow-sm overflow-hidden">
+              {/* Mini-perfil no topo da sidebar */}
+              <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                  style={{ background: VERDE }}
+                >
+                  AM
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">Ana Machava</p>
+                  <p className="text-xs text-gray-400">Desde Jan 2024</p>
+                </div>
+              </div>
+
+              {/* Navegação */}
+              <nav className="p-2">
+                {MENUS.map(({ id, Icone, rotulo }) => (
+                  <button
+                    key={id}
+                    onClick={() => setActivo(id)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-150 cursor-pointer mb-0.5"
+                    style={{
+                      background: activo === id ? "#f0fdf4" : "transparent",
+                      color: activo === id ? VERDE : "#6b7280",
+                    }}
+                  >
+                    <Icone
+                      size={15}
+                      style={{ color: activo === id ? VERDE : "#9ca3af", flexShrink: 0 }}
+                    />
+                    {rotulo}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
+
+          {/* ── CONTEÚDO ── */}
+          <main className="flex-1 min-w-0">
+            <div className="bg-white  border border-gray-100 p-6 shadow-sm">
+              {SECCOES[activo]}
+            </div>
+          </main>
+
+        </div>
       </div>
     </div>
   );

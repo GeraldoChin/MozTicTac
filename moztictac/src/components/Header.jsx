@@ -4,11 +4,12 @@ import {
   User, Heart, ShoppingCart, Bell, MessageCircle,
   Wallet, Search, Store, Share2, History, Lock,
   LogOut, ShoppingBag, ChevronRight, Star, TrendingUp,
+  Menu, X, ArrowLeft,
 } from "lucide-react";
 
-const VERDE       = "#00b96b";
+const VERDE        = "#00b96b";
 const VERDE_ESCURO = "#007a47";
-const VERDE_DIM   = "#f0fdf4";
+const VERDE_DIM    = "#f0fdf4";
 
 const CATEGORIAS = [
   { label: "Roupa" }, { label: "Celulares" }, { label: "Cabelos" },
@@ -22,13 +23,12 @@ const utilizadorMock = {
   saldo: "4 200 MZN", vendas: 312, avaliacao: 4.9,
 };
 
-// ─── id = chave do SECCOES em MinhaConta ─────────────────────────────────────
 const MENUS_DROPDOWN = [
   {
     grupo: "Conta",
     itens: [
-      { id: "perfil",   Icone: User,       rotulo: "Meu Perfil",      cor: "#3b82f6" },
-      { id: "carteira", Icone: Wallet,      rotulo: "Carteira Digital", cor: VERDE, badge: "4.2k MZN" },
+      { id: "perfil",   Icone: User,       rotulo: "Meu Perfil",       cor: "#3b82f6" },
+      { id: "carteira", Icone: Wallet,      rotulo: "Carteira Digital",  cor: VERDE, badge: "4.2k MZN" },
     ],
   },
   {
@@ -49,11 +49,10 @@ const MENUS_DROPDOWN = [
   },
 ];
 
-// ─── Dropdown ─────────────────────────────────────────────────────────────────
+/* ── Dropdown conta (desktop) ── */
 function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
   return (
     <>
-      {/* Triângulo */}
       <div style={{
         position: "absolute", top: "calc(100% + 4px)", left: "50%",
         transform: "translateX(-50%)", width: 0, height: 0,
@@ -64,7 +63,6 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
         pointerEvents: "none", zIndex: 1000,
       }} />
 
-      {/* Painel */}
       <div style={{
         position: "absolute", top: "calc(100% + 10px)", right: -8, width: 300,
         borderRadius: 18, background: "#fff",
@@ -76,8 +74,7 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
         transition: "opacity 0.22s cubic-bezier(.4,0,.2,1), transform 0.22s cubic-bezier(.4,0,.2,1)",
         overflow: "hidden",
       }}>
-
-        {/* Cabeçalho dark */}
+        {/* Header dark */}
         <div style={{
           background: "linear-gradient(140deg, #0d1f16 0%, #112b1e 60%, #0f2318 100%)",
           padding: "20px 18px 16px", position: "relative", overflow: "hidden",
@@ -94,7 +91,6 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
             pointerEvents: "none",
           }} />
 
-          {/* Avatar + info */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, position: "relative" }}>
             <div style={{ position: "relative", flexShrink: 0 }}>
               <div style={{
@@ -111,13 +107,10 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
                 position: "absolute", bottom: -1, right: -1,
                 width: 11, height: 11, borderRadius: "50%",
                 background: "#22c55e", border: "2.5px solid #0d1f16",
-                boxShadow: "0 0 6px #22c55e80",
               }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 800, letterSpacing: "-0.3px", marginBottom: 1 }}>
-                {utilizador.nome}
-              </p>
+              <p style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 800, letterSpacing: "-0.3px", marginBottom: 1 }}>{utilizador.nome}</p>
               <p style={{ color: "#64748b", fontSize: 11, marginBottom: 6 }}>{utilizador.email}</p>
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: 4,
@@ -130,7 +123,6 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
             </div>
           </div>
 
-          {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, position: "relative" }}>
             {[
               { label: "Saldo",     valor: utilizador.saldo,          Icone: Wallet,     cor: "#4ade80" },
@@ -151,7 +143,6 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
           </div>
         </div>
 
-        {/* Menus agrupados */}
         <div style={{ padding: "6px 0", maxHeight: 300, overflowY: "auto" }}>
           {MENUS_DROPDOWN.map((grupo, gi) => (
             <div key={grupo.grupo}>
@@ -160,18 +151,12 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
                 borderTop: gi > 0 ? "1px solid #f1f5f9" : "none",
                 marginTop: gi > 0 ? 3 : 0,
               }}>
-                <span style={{
-                  fontSize: 9, fontWeight: 800, color: "#cbd5e1",
-                  letterSpacing: "0.9px", textTransform: "uppercase",
-                }}>
+                <span style={{ fontSize: 9, fontWeight: 800, color: "#cbd5e1", letterSpacing: "0.9px", textTransform: "uppercase" }}>
                   {grupo.grupo}
                 </span>
               </div>
-
               {grupo.itens.map(({ id, Icone: Ic, rotulo, cor, badge }) => (
-                <button
-                  key={id}
-                  onClick={() => aoSelecionar(id)}  
+                <button key={id} onClick={() => aoSelecionar(id)}
                   style={{
                     width: "100%", display: "flex", alignItems: "center",
                     gap: 10, padding: "7px 16px",
@@ -200,14 +185,9 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
                   }}>
                     <Ic size={13} />
                   </div>
-
-                  <span className="item-lbl" style={{
-                    flex: 1, fontSize: 13, fontWeight: 600,
-                    color: "#475569", transition: "color 0.12s",
-                  }}>
+                  <span className="item-lbl" style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#475569", transition: "color 0.12s" }}>
                     {rotulo}
                   </span>
-
                   {badge && (
                     <span style={{
                       fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 99,
@@ -216,7 +196,6 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
                       {badge}
                     </span>
                   )}
-
                   <ChevronRight size={12} style={{ color: "#e2e8f0", flexShrink: 0 }} />
                 </button>
               ))}
@@ -224,16 +203,13 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
           ))}
         </div>
 
-        {/* Sair */}
         <div style={{ borderTop: "1px solid #fef2f2", padding: "6px 0 4px", background: "#fffbfb" }}>
-          <button
-            onClick={aoSair}
+          <button onClick={aoSair}
             style={{
               width: "100%", display: "flex", alignItems: "center",
               gap: 10, padding: "9px 16px",
-              background: "transparent", border: "none",
-              cursor: "pointer", textAlign: "left",
-              transition: "background 0.12s", color: "#ef4444",
+              background: "transparent", border: "none", cursor: "pointer",
+              textAlign: "left", transition: "background 0.12s", color: "#ef4444",
             }}
             onMouseEnter={e => e.currentTarget.style.background = "#fff1f1"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
@@ -253,15 +229,15 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
   );
 }
 
-// ─── BotaoAccao ───────────────────────────────────────────────────────────────
-function BotaoAccao({ icone, rotulo, aoClicar, contagem = 0, corBadge }) {
+/* ── BotaoAccao ── */
+function BotaoAccao({ icone, rotulo, aoClicar, contagem = 0, corBadge, className = "" }) {
   return (
     <button
       onClick={aoClicar}
-      className="relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 bg-transparent border-none cursor-pointer px-2 py-1 rounded"
+      className={`relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 bg-transparent border-none cursor-pointer px-1.5 sm:px-2 py-1 rounded ${className}`}
     >
       {icone}
-      <span className="hidden sm:inline">{rotulo}</span>
+      <span className="hidden lg:inline text-[10px]">{rotulo}</span>
       {contagem > 0 && (
         <span
           className="absolute -top-1 -right-1 min-w-[16px] h-4 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white px-0.5"
@@ -274,7 +250,145 @@ function BotaoAccao({ icone, rotulo, aoClicar, contagem = 0, corBadge }) {
   );
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
+/* ── Drawer mobile ── */
+function DrawerMobile({ open, onClose, utilizador, aoSelecionar, aoSair, aoClicarPesquisa, valorPesquisa, aoMudarPesquisa }) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 z-40 transition-all duration-300 md:hidden"
+        style={{
+          background: "rgba(0,0,0,0.45)",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          backdropFilter: open ? "blur(2px)" : "none",
+        }}
+      />
+
+      {/* Drawer */}
+      <div
+        className="fixed top-0 right-0 bottom-0 z-50 md:hidden flex flex-col"
+        style={{
+          width: "min(320px, 90vw)",
+          background: "#fff",
+          boxShadow: "-4px 0 32px rgba(0,0,0,0.15)",
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.28s cubic-bezier(.4,0,.2,1)",
+        }}
+      >
+        {/* Header drawer */}
+        <div
+          className="flex items-center justify-between px-4 py-4 shrink-0"
+          style={{ borderBottom: "1px solid #f1f5f9" }}
+        >
+          <div className="flex items-center gap-3">
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: `linear-gradient(135deg, ${VERDE}, ${VERDE_ESCURO})`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: 12, fontWeight: 900,
+            }}>
+              {utilizador.avatar}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900 leading-tight">{utilizador.nome}</p>
+              <p className="text-[10px] text-gray-400">{utilizador.nivel} {utilizador.nivelIcon}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition border-none bg-transparent cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Pesquisa mobile */}
+        <div className="px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #f1f5f9" }}>
+          <div className="flex border border-gray-200 rounded-xl overflow-hidden focus-within:border-green-400 transition-colors">
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              value={valorPesquisa}
+              onChange={(e) => aoMudarPesquisa?.(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { aoClicarPesquisa?.(); onClose(); } }}
+              className="flex-1 px-3 py-2.5 text-sm outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+            />
+            <button
+              onClick={() => { aoClicarPesquisa?.(); onClose(); }}
+              className="px-3 flex items-center justify-center text-white"
+              style={{ background: VERDE }}
+            >
+              <Search size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Stats rápidas */}
+        <div className="px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #f1f5f9" }}>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Saldo",     valor: "4.2k",           cor: VERDE },
+              { label: "Vendas",    valor: utilizador.vendas, cor: "#3b82f6" },
+              { label: "Avaliação", valor: `${utilizador.avaliacao}★`, cor: "#f59e0b" },
+            ].map(({ label, valor, cor }) => (
+              <div key={label} className="text-center py-2 rounded-xl" style={{ background: "#f8fafc" }}>
+                <p className="text-sm font-black" style={{ color: cor }}>{valor}</p>
+                <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Menus */}
+        <div className="flex-1 overflow-y-auto py-2">
+          {MENUS_DROPDOWN.map((grupo, gi) => (
+            <div key={grupo.grupo}>
+              <p className="px-4 pt-3 pb-1 text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                {grupo.grupo}
+              </p>
+              {grupo.itens.map(({ id, Icone: Ic, rotulo, cor, badge }) => (
+                <button
+                  key={id}
+                  onClick={() => { aoSelecionar(id); onClose(); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors border-none bg-transparent cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cor + "15" }}>
+                    <Ic size={14} style={{ color: cor }} />
+                  </div>
+                  <span className="flex-1 text-left">{rotulo}</span>
+                  {badge && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${VERDE}15`, color: VERDE }}>
+                      {badge}
+                    </span>
+                  )}
+                  <ChevronRight size={13} className="text-gray-300 flex-shrink-0" />
+                </button>
+              ))}
+              {gi < MENUS_DROPDOWN.length - 1 && <div className="mx-4 mt-2" style={{ height: "1px", background: "#f1f5f9" }} />}
+            </div>
+          ))}
+        </div>
+
+        {/* Sair */}
+        <div className="shrink-0 p-4" style={{ borderTop: "1px solid #fee2e2", background: "#fffbfb" }}>
+          <button
+            onClick={() => { aoSair(); onClose(); }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors border-none bg-transparent cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-100 flex-shrink-0">
+              <LogOut size={14} color="#ef4444" />
+            </div>
+            Sair da Conta
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ── Header ── */
 export function Header({
   contagemCarrinho = 0,
   contagemWishlist = 0,
@@ -291,150 +405,150 @@ export function Header({
   aoClicarCarteira,
   utilizadorAutenticado = false,
   utilizador = utilizadorMock,
-  // ↓ chamado com o id da secção ("perfil", "carteira", etc.)
-  // se não for passado, navega para /minha-conta
   aoNavegar,
 }) {
   const navigate = useNavigate();
-  const [contaAberta, setContaAberta] = useState(false);
+  const [contaAberta, setContaAberta]   = useState(false);
+  const [drawerAberto, setDrawerAberto] = useState(false);
+  const [pesquisaMobile, setPesquisaMobile] = useState(false);
   const timerRef = useRef(null);
 
   const abrirConta  = () => { clearTimeout(timerRef.current); setContaAberta(true); };
   const fecharConta = () => { timerRef.current = setTimeout(() => setContaAberta(false), 200); };
 
-  // Ao clicar num item do dropdown:
-  // — se estamos em /minha-conta, chama aoNavegar(id) sem mudar de rota
-  // — caso contrário vai para /minha-conta e passa o id via state
   const aoSelecionar = (id) => {
     setContaAberta(false);
-
-    if (aoNavegar) {
-      // Já estamos na página — apenas troca a secção
-      aoNavegar(id);
-    } else {
-      // Vai para a página e sinaliza qual secção abrir
-      navigate("/minha-conta", { state: { seccao: id } });
-    }
+    if (aoNavegar) { aoNavegar(id); }
+    else { navigate("/minha-conta", { state: { seccao: id } }); }
   };
 
   const aoSair = () => { setContaAberta(false); navigate("/"); };
 
   return (
-    <header className="bg-white border-b border-gray-200 py-3 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 flex items-center gap-4">
+    <>
+      <header className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-30">
+        <div className="max-w-[1450px] mx-auto px-3 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-4 h-14 sm:h-16">
 
-        {/* LOGO */}
-        <Link
-          to="/"
-          className="text-[22px] font-black text-gray-900 tracking-tight shrink-0 cursor-pointer select-none"
-        >
-          MozTicTac<span style={{ color: VERDE }}>.</span>
-        </Link>
+            {/* LOGO */}
+            <Link to="/" className="text-lg sm:text-[22px] font-black text-gray-900 tracking-tight shrink-0 select-none">
+              MozTicTac<span style={{ color: VERDE }}>.</span>
+            </Link>
 
-        {/* PESQUISA */}
-        <div className="flex flex-1 max-w-2xl border border-gray-300 rounded overflow-hidden focus-within:border-green-500 transition-colors">
-          <input
-            type="text"
-            placeholder="Pesquisar produtos..."
-            value={valorPesquisa}
-            onChange={(e) => aoMudarPesquisa?.(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && aoClicarPesquisa?.()}
-            className="flex-1 px-3 py-2 text-sm outline-none text-gray-700 placeholder-gray-400"
-          />
-          <select className="border-l border-gray-300 px-2 text-xs text-gray-600 bg-white outline-none cursor-pointer">
-            <option>Todas as Categorias</option>
-            {CATEGORIAS.map((c) => <option key={c.label}>{c.label}</option>)}
-          </select>
-          <button
-            onClick={aoClicarPesquisa}
-            className="px-4 text-white flex items-center justify-center"
-            style={{ background: VERDE }}
-          >
-            <Search size={16} strokeWidth={1.5} />
-          </button>
-        </div>
+            {/* PESQUISA — desktop */}
+            <div className="hidden md:flex flex-1 max-w-2xl border border-gray-200 rounded-xl overflow-hidden focus-within:border-green-400 focus-within:shadow-sm transition-all">
+              <input
+                type="text"
+                placeholder="Pesquisar produtos..."
+                value={valorPesquisa}
+                onChange={(e) => aoMudarPesquisa?.(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && aoClicarPesquisa?.()}
+                className="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 placeholder-gray-400"
+              />
+              <select className="border-l border-gray-200 px-2 text-xs text-gray-500 bg-gray-50 outline-none cursor-pointer hidden lg:block">
+                <option>Todas as Categorias</option>
+                {CATEGORIAS.map((c) => <option key={c.label}>{c.label}</option>)}
+              </select>
+              <button
+                onClick={aoClicarPesquisa}
+                className="px-4 text-white flex items-center justify-center transition-all"
+                style={{ background: VERDE }}
+                onMouseEnter={e => e.currentTarget.style.background = VERDE_ESCURO}
+                onMouseLeave={e => e.currentTarget.style.background = VERDE}
+              >
+                <Search size={16} strokeWidth={1.5} />
+              </button>
+            </div>
 
-        {/* AÇÕES */}
-        <div className="flex items-center gap-1 ml-auto">
-
-          {/* Conta + dropdown */}
-          <div
-            style={{ position: "relative" }}
-            onMouseEnter={abrirConta}
-            onMouseLeave={fecharConta}
-          >
+            {/* PESQUISA — ícone mobile */}
             <button
-              onClick={() => aoSelecionar("perfil")}
-              className="relative flex flex-col items-center text-xs gap-0.5 px-2 py-1 rounded cursor-pointer border-none transition-all duration-200"
-              style={{
-                color: contaAberta ? VERDE : "#4b5563",
-                background: contaAberta ? VERDE_DIM : "transparent",
-              }}
+              onClick={() => setPesquisaMobile(v => !v)}
+              className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl text-gray-500 hover:text-green-600 hover:bg-green-50 transition border-none bg-transparent cursor-pointer"
             >
-              <div style={{ position: "relative" }}>
-                <User size={20} strokeWidth={1.5}
-                  style={{ transition: "color 0.15s", color: contaAberta ? VERDE : "currentColor" }}
-                />
-                {contaAberta && (
-                  <span style={{
-                    position: "absolute", inset: -3, borderRadius: "50%",
-                    border: `1.5px solid ${VERDE}`,
-                    animation: "ping-once 0.3s ease forwards", opacity: 0,
-                  }} />
-                )}
-              </div>
-              <span className="hidden sm:inline font-semibold" style={{ fontSize: 11 }}>Conta</span>
+              <Search size={18} strokeWidth={1.5} />
             </button>
 
-            <DropdownConta
-              visivel={contaAberta}
-              utilizador={utilizador}
-              aoSelecionar={aoSelecionar}
-              aoSair={aoSair}
-            />
+            {/* AÇÕES — desktop */}
+            <div className="hidden md:flex items-center gap-0.5 ml-auto">
+              {/* Conta + dropdown */}
+              <div style={{ position: "relative" }} onMouseEnter={abrirConta} onMouseLeave={fecharConta}>
+                <button
+                  onClick={() => aoSelecionar("perfil")}
+                  className="relative flex flex-col items-center text-xs gap-0.5 px-2 py-1 rounded-lg cursor-pointer border-none transition-all duration-200"
+                  style={{ color: contaAberta ? VERDE : "#4b5563", background: contaAberta ? VERDE_DIM : "transparent" }}
+                >
+                  <User size={20} strokeWidth={1.5} style={{ color: contaAberta ? VERDE : "currentColor", transition: "color 0.15s" }} />
+                  <span className="hidden lg:inline font-semibold" style={{ fontSize: 10 }}>Conta</span>
+                </button>
+                <DropdownConta visivel={contaAberta} utilizador={utilizador} aoSelecionar={aoSelecionar} aoSair={aoSair} />
+              </div>
+
+              {utilizadorAutenticado && (
+                <BotaoAccao icone={<Wallet size={20} strokeWidth={1.5} />} rotulo="Carteira" aoClicar={() => aoSelecionar("carteira")} />
+              )}
+              <BotaoAccao icone={<Heart size={20} strokeWidth={1.5} />} rotulo="Desejos" aoClicar={() => navigate("/desejos")} contagem={contagemWishlist} corBadge={VERDE} />
+              <BotaoAccao icone={<MessageCircle size={20} strokeWidth={1.5} />} rotulo="Chat" aoClicar={() => navigate("/chat")} contagem={contagemMensagens} corBadge={VERDE} />
+              <BotaoAccao icone={<Bell size={20} strokeWidth={1.5} />} rotulo="Avisos" aoClicar={() => aoSelecionar("notificacoes")} contagem={contagemNotificacoes} corBadge="#e53e3e" />
+              <BotaoAccao icone={<ShoppingCart size={20} strokeWidth={1.5} />} rotulo="Carrinho" aoClicar={() => navigate("/carrinho")} contagem={contagemCarrinho} corBadge={VERDE} />
+            </div>
+
+            {/* AÇÕES — mobile (carrinho + menu) */}
+            <div className="md:hidden flex items-center gap-1 ml-auto">
+              <BotaoAccao icone={<ShoppingCart size={20} strokeWidth={1.5} />} rotulo="" aoClicar={() => navigate("/carrinho")} contagem={contagemCarrinho} corBadge={VERDE} />
+              <button
+                onClick={() => setDrawerAberto(true)}
+                className="flex items-center justify-center w-9 h-9 rounded-xl text-gray-600 hover:text-green-600 hover:bg-green-50 transition border-none bg-transparent cursor-pointer relative"
+              >
+                <Menu size={20} />
+                {(contagemNotificacoes + contagemMensagens) > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500 border border-white" />
+                )}
+              </button>
+            </div>
+
           </div>
 
-          {utilizadorAutenticado && (
-            <BotaoAccao
-              icone={<Wallet size={20} strokeWidth={1.5} />}
-              rotulo="Carteira"
-              aoClicar={() => aoSelecionar("carteira")}
-            />
-          )}
+          {/* PESQUISA expandida — mobile */}
+          <div
+            className="md:hidden overflow-hidden transition-all duration-300"
+            style={{ maxHeight: pesquisaMobile ? "60px" : "0px", opacity: pesquisaMobile ? 1 : 0 }}
+          >
+            <div className="pb-3">
+              <div className="flex border border-gray-200 rounded-xl overflow-hidden focus-within:border-green-400 transition-colors">
+                <input
+                  type="text"
+                  placeholder="Pesquisar produtos..."
+                  value={valorPesquisa}
+                  onChange={(e) => aoMudarPesquisa?.(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { aoClicarPesquisa?.(); setPesquisaMobile(false); } }}
+                  className="flex-1 px-3 py-2.5 text-sm outline-none text-gray-700 placeholder-gray-400"
+                  autoFocus={pesquisaMobile}
+                />
+                <button
+                  onClick={() => { aoClicarPesquisa?.(); setPesquisaMobile(false); }}
+                  className="px-3 flex items-center text-white"
+                  style={{ background: VERDE }}
+                >
+                  <Search size={15} />
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <BotaoAccao
-            icone={<Heart size={20} strokeWidth={1.5} />}
-            rotulo="Desejos"
-            aoClicar={() => navigate("/desejos")}
-            contagem={contagemWishlist}
-            corBadge={VERDE}
-          />
-
-          <BotaoAccao
-            icone={<MessageCircle size={20} strokeWidth={1.5} />}
-            rotulo="Chat"
-            aoClicar={() => navigate("/chat")}
-            contagem={contagemMensagens}
-            corBadge={VERDE}
-          />
-
-          <BotaoAccao
-            icone={<Bell size={20} strokeWidth={1.5} />}
-            rotulo="Avisos"
-            aoClicar={() => aoSelecionar("notificacoes")}
-            contagem={contagemNotificacoes}
-            corBadge="#e53e3e"
-          />
-
-          <BotaoAccao
-            icone={<ShoppingCart size={20} strokeWidth={1.5} />}
-            rotulo="Carrinho"
-            aoClicar={() => navigate("/carrinho")}
-            contagem={contagemCarrinho}
-            corBadge={VERDE}
-          />
         </div>
-      </div>
+      </header>
+
+      {/* Drawer mobile */}
+      <DrawerMobile
+        open={drawerAberto}
+        onClose={() => setDrawerAberto(false)}
+        utilizador={utilizador}
+        aoSelecionar={aoSelecionar}
+        aoSair={aoSair}
+        valorPesquisa={valorPesquisa}
+        aoMudarPesquisa={aoMudarPesquisa}
+        aoClicarPesquisa={aoClicarPesquisa}
+      />
 
       <style>{`
         @keyframes ping-once {
@@ -442,6 +556,6 @@ export function Header({
           100% { transform: scale(1.4); opacity: 0; }
         }
       `}</style>
-    </header>
+    </>
   );
 }

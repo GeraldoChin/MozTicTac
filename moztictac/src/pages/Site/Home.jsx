@@ -39,7 +39,7 @@ export default function Home() {
       <FashionProducts onAddToCart={addToCart} />
       <TrendingNow />
       <BlogSection />
-      <BrandsBar />
+      {/* <BrandsBar /> */}
       <Newsletter />
       <Rodape />
     </div>

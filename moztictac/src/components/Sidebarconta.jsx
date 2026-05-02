@@ -9,38 +9,30 @@ import {
   Lock,
   LogOut,
   ChevronRight,
+  MessageCircle,
 } from "lucide-react";
 import { utilizador, VERDE } from "./contaConstantes";
 
 const VERDE_ESCURO = "#009a5a";
 
 export const MENUS = [
-  { id: "perfil", Icone: User, rotulo: "Meu Perfil" },
-  { id: "carteira", Icone: Wallet, rotulo: "Carteira Digital" },
-  { id: "compras", Icone: ShoppingBag, rotulo: "Minhas Compras" },
-  { id: "vendas", Icone: Store, rotulo: "Minhas Vendas" },
-  { id: "afiliados", Icone: Share2, rotulo: "Afiliados" },
-  { id: "historico", Icone: History, rotulo: "Histórico" },
-  { id: "notificacoes", Icone: Bell, rotulo: "Notificações" },
-  { id: "seguranca", Icone: Lock, rotulo: "Segurança" },
+  { id: "perfil",       Icone: User,          rotulo: "Meu Perfil"       },
+  { id: "chat",         Icone: MessageCircle, rotulo: "Chat"             },
+  { id: "carteira",     Icone: Wallet,        rotulo: "Carteira Digital" },
+  { id: "compras",      Icone: ShoppingBag,   rotulo: "Minhas Compras"   },
+  { id: "vendas",       Icone: Store,         rotulo: "Minhas Vendas"    },
+  { id: "afiliados",    Icone: Share2,        rotulo: "Afiliados"        },
+  { id: "historico",    Icone: History,       rotulo: "Histórico"        },
+  { id: "notificacoes", Icone: Bell,          rotulo: "Notificações"     },
+  { id: "seguranca",    Icone: Lock,          rotulo: "Segurança"        },
 ];
 
 const GRUPOS = [
-  { titulo: "Conta", ids: ["perfil", "carteira"] },
-  {
-    titulo: "Actividade",
-    ids: ["compras", "vendas", "afiliados", "historico"],
-  },
-  { titulo: "Sistema", ids: ["notificacoes", "seguranca"] },
+  { titulo: "Conta",      ids: ["perfil", "carteira", "chat"] },
+  { titulo: "Actividade", ids: ["compras", "vendas", "afiliados", "historico"] },
+  { titulo: "Sistema",    ids: ["notificacoes", "seguranca"] },
 ];
 
-/**
- * SidebarConta — sidebar de navegação da área de conta.
- *
- * Props:
- *   activo    {string} — id da secção activa
- *   aoMudar   {fn}     — chamado com o id ao clicar num item
- */
 export function SidebarConta({ activo, aoMudar }) {
   const menuPorId = Object.fromEntries(MENUS.map((m) => [m.id, m]));
 
@@ -48,14 +40,13 @@ export function SidebarConta({ activo, aoMudar }) {
     <aside className="w-64 fixed left-0 top-20 h-[calc(100vh-4rem)] z-40 hidden md:flex flex-col gap-3">
       {/* Card utilizador */}
       <div
-        className="rounded-xl p-4 flex items-center gap-3 overflow-hidden relative"
+        className=" p-4 flex items-center gap-3 overflow-hidden relative"
         style={{
           background: "linear-gradient(135deg, #0f1923 0%, #162032 100%)",
           border: "1px solid rgba(0,185,107,0.15)",
           boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
         }}
       >
-        {/* Glow decorativo */}
         <div
           style={{
             position: "absolute",
@@ -69,16 +60,14 @@ export function SidebarConta({ activo, aoMudar }) {
           }}
         />
 
-        {/* Avatar */}
         <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-base font-black shrink-0 relative"
+          className="w-11 h-11  flex items-center justify-center text-white text-base font-black shrink-0 relative"
           style={{
             background: `linear-gradient(135deg, ${VERDE}, ${VERDE_ESCURO})`,
             boxShadow: `0 4px 12px ${VERDE}50`,
           }}
         >
           {utilizador.avatar}
-          {/* Status online */}
           <span
             style={{
               position: "absolute",
@@ -94,16 +83,10 @@ export function SidebarConta({ activo, aoMudar }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p
-            className="font-bold truncate"
-            style={{ color: "#f1f5f9", fontSize: 13, letterSpacing: "-0.2px" }}
-          >
+          <p className="font-bold truncate" style={{ color: "#f1f5f9", fontSize: 13, letterSpacing: "-0.2px" }}>
             {utilizador.nome}
           </p>
-          <p
-            className="truncate mt-0.5"
-            style={{ color: "#64748b", fontSize: 11 }}
-          >
+          <p className="truncate mt-0.5" style={{ color: "#64748b", fontSize: 11 }}>
             {utilizador.email}
           </p>
         </div>
@@ -111,7 +94,7 @@ export function SidebarConta({ activo, aoMudar }) {
 
       {/* Navegação agrupada */}
       <nav
-        className="rounded-xl overflow-hidden flex-1"
+        className=" overflow-hidden flex-1"
         style={{
           background: "#fff",
           border: "1px solid #e8f5ee",
@@ -120,12 +103,9 @@ export function SidebarConta({ activo, aoMudar }) {
       >
         {GRUPOS.map((grupo, gi) => (
           <div key={grupo.titulo}>
-            {/* Título do grupo */}
             <div
               className="px-4 pt-3 pb-1.5"
-              style={{
-                borderTop: gi > 0 ? "1px solid #f0fdf4" : "none",
-              }}
+              style={{ borderTop: gi > 0 ? "1px solid #f0fdf4" : "none" }}
             >
               <span
                 style={{
@@ -140,7 +120,6 @@ export function SidebarConta({ activo, aoMudar }) {
               </span>
             </div>
 
-            {/* Itens do grupo */}
             {grupo.ids.map((id) => {
               const { Icone, rotulo } = menuPorId[id];
               const eActivo = activo === id;
@@ -148,13 +127,10 @@ export function SidebarConta({ activo, aoMudar }) {
                 <button
                   key={id}
                   onClick={() => aoMudar(id)}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium cursor-pointer transition-all duration-150 text-left group"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium cursor-pointer transition-all duration-150 text-left"
                   style={{
                     background: eActivo ? "#f0fdf7" : "transparent",
                     color: eActivo ? VERDE : "#475569",
-                    borderLeft: eActivo
-                      ? `3px solid ${VERDE}`
-                      : "3px solid transparent",
                     border: "none",
                     borderLeftStyle: "solid",
                     borderLeftWidth: 3,
@@ -174,22 +150,14 @@ export function SidebarConta({ activo, aoMudar }) {
                   }}
                 >
                   <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
-                    style={{
-                      background: eActivo ? `${VERDE}18` : "#f1f5f9",
-                    }}
+                    className="w-7 h-7  flex items-center justify-center shrink-0 transition-all duration-150"
+                    style={{ background: eActivo ? `${VERDE}18` : "#f1f5f9" }}
                   >
-                    <Icone
-                      size={14}
-                      style={{ color: eActivo ? VERDE : "#94a3b8" }}
-                    />
+                    <Icone size={14} style={{ color: eActivo ? VERDE : "#94a3b8" }} />
                   </div>
                   <span style={{ flex: 1, fontSize: 13 }}>{rotulo}</span>
                   {eActivo && (
-                    <ChevronRight
-                      size={13}
-                      style={{ color: VERDE, opacity: 0.6, flexShrink: 0 }}
-                    />
+                    <ChevronRight size={13} style={{ color: VERDE, opacity: 0.6, flexShrink: 0 }} />
                   )}
                 </button>
               );
@@ -209,12 +177,10 @@ export function SidebarConta({ activo, aoMudar }) {
               textAlign: "left",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "#fff5f5")}
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "transparent")
-            }
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+              className="w-7 h-7  flex items-center justify-center shrink-0"
               style={{ background: "#fee2e2" }}
             >
               <LogOut size={14} color="#ef4444" />

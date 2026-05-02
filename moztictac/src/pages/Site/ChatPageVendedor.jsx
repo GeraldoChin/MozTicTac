@@ -289,7 +289,7 @@ export default function ChatVendedor() {
             ].map(x => (
               <button key={x.s}
                 onClick={() => setFilter(p => p === x.s ? "todos" : x.s)}
-                className="flex flex-col items-center py-2 rounded-xl border cursor-pointer transition-all"
+                className="flex flex-col items-center py-2 border cursor-pointer transition-all"
                 style={{
                   background:  filter === x.s ? x.color + "15" : "#f9fafb",
                   borderColor: filter === x.s ? x.color : "#f3f4f6",
@@ -306,7 +306,7 @@ export default function ChatVendedor() {
             <input
               value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Pesquisar clientes..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 outline-none focus:border-green-400 transition-colors"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 text-gray-700 placeholder-gray-400 outline-none focus:border-green-400 transition-colors"
             />
           </div>
 
@@ -407,14 +407,14 @@ export default function ChatVendedor() {
             <div onClick={() => navigate?.(`/produto/${active.product.id}`)}
               className="flex items-center gap-3 bg-white border-b border-gray-100 px-4 py-2.5 cursor-pointer flex-shrink-0 hover:bg-gray-50 transition-colors">
               <img src={active.product.img} alt={active.product.name}
-                className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                className="w-10 h-10 object-cover flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-gray-800 truncate">{active.product.name}</p>
                 <p className="text-xs font-black" style={{ color: G }}>
                   {active.product.price?.toLocaleString("pt-MZ")} MZN
                 </p>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg flex-shrink-0" style={{ background: GL, color: G }}>
+              <span className="text-[11px] font-bold px-2.5 py-1 flex-shrink-0" style={{ background: GL, color: G }}>
                 Ver →
               </span>
             </div>
@@ -506,7 +506,7 @@ export default function ChatVendedor() {
               <div onClick={() => navigate?.(`/produto/${active.product.id}`)}
                 className="flex gap-2.5 cursor-pointer group">
                 <img src={active.product.img} alt={active.product.name}
-                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 group-hover:opacity-80 transition-opacity" />
+                  className="w-12 h-12 object-cover flex-shrink-0 group-hover:opacity-80 transition-opacity" />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-green-600 transition-colors">
                     {active.product.name}
@@ -527,7 +527,7 @@ export default function ChatVendedor() {
               { label: "Reportar conversa",         e: "⚠️" },
             ].map(a => (
               <button key={a.label}
-                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 cursor-pointer border-none text-left transition-colors">
+                className="flex items-center gap-2 w-full px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 cursor-pointer border-none text-left transition-colors">
                 <span style={{ fontSize: 13 }}>{a.e}</span>{a.label}
               </button>
             ))}

@@ -54,16 +54,16 @@ const SLIDES = [
     body:       "Publica serviços profissionais — reparações, aulas, design, consultoria — e recebe pagamentos de forma organizada.",
     cta:        "Publicar Serviço",
     ctaSecond:  "Ver Serviços",
-    stat1: { val: "0%",    label: "Custo inicial" },
-    stat2: { val: "Escrow",label: "Pagamento garantido" },
-    stat3: { val: "Local", label: "Em todo Moçambique" },
+    stat1: { val: "0%",     label: "Custo inicial" },
+    stat2: { val: "Escrow", label: "Pagamento garantido" },
+    stat3: { val: "Local",  label: "Em todo Moçambique" },
     chip:  { icon: "star",  text: "Avaliações Verificadas", sub: "Sistema de reputação real" },
     image: "/img/img4.jpg",
     pos:   "center 20%",
   },
 ];
 
-const ACCENT = "#16a34a";
+const ACCENT   = "#16a34a";
 const DURATION = 6000;
 
 function ChipIcon({ type }) {
@@ -79,7 +79,8 @@ export function HeroBanner({ onShopNow }) {
   const [current, setCurrent] = useState(0);
   const [phase,   setPhase]   = useState("idle");
   const [mounted, setMounted] = useState(false);
-  const timerRef  = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const timerRef   = useRef(null);
   const currentRef = useRef(0);
   const phaseRef   = useRef("idle");
 
@@ -88,49 +89,60 @@ export function HeroBanner({ onShopNow }) {
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const goTo = useCallback((idx) => {
     if (phaseRef.current !== "idle") return;
     const next = (idx + SLIDES.length) % SLIDES.length;
     if (next === currentRef.current) return;
-
     phaseRef.current = "exit";
     setPhase("exit");
-
     setTimeout(() => {
       currentRef.current = next;
       setCurrent(next);
       phaseRef.current = "enter";
       setPhase("enter");
-
-      setTimeout(() => {
-        phaseRef.current = "idle";
-        setPhase("idle");
-      }, 700);
+      setTimeout(() => { phaseRef.current = "idle"; setPhase("idle"); }, 700);
     }, 420);
   }, []);
 
   const next = useCallback(() => goTo(currentRef.current + 1), [goTo]);
   const prev = useCallback(() => goTo(currentRef.current - 1), [goTo]);
 
-  // Auto-play sem parar no hover
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      goTo(currentRef.current + 1);
-    }, DURATION);
+    timerRef.current = setInterval(() => goTo(currentRef.current + 1), DURATION);
     return () => clearInterval(timerRef.current);
   }, [goTo]);
 
   const slide   = SLIDES[current];
   const visible = phase !== "exit" && mounted;
 
+  /* ── Swipe touch ── */
+  const touchStart = useRef(null);
+  const onTouchStart = (e) => { touchStart.current = e.touches[0].clientX; };
+  const onTouchEnd   = (e) => {
+    if (touchStart.current === null) return;
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+    touchStart.current = null;
+  };
+
+  const px = isMobile ? "20px" : "72px";
+
   return (
     <section
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       style={{
-        position: "relative",
-        width: "100%",
-        height: "88svh",
-        minHeight: 500,
-        maxHeight: 700,
+        position: "relative", width: "100%",
+        height: isMobile ? "100svh" : "88svh",
+        minHeight: isMobile ? 580 : 500,
+        maxHeight: isMobile ? 780 : 700,
         overflow: "hidden",
         fontFamily: "'Inter', system-ui, sans-serif",
         background: "#18181b",
@@ -138,51 +150,27 @@ export function HeroBanner({ onShopNow }) {
     >
       {/* ══ IMAGENS ══ */}
       {SLIDES.map((s, i) => (
-        <img
-          key={s.id}
-          src={s.image}
-          alt={s.tag}
-          style={{
-            position: "absolute", inset: 0,
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            objectPosition: s.pos,
-            filter: "brightness(0.70) saturate(0.72) contrast(1.04)",
-            opacity:   i === current ? 1 : 0,
-            transform: i === current
-              ? (phase === "exit" ? "scale(1.045)" : "scale(1.0)")
-              : "scale(1.045)",
-            transition: i === current
-              ? "opacity 0.65s ease, transform 7s ease"
-              : "opacity 0.5s ease",
-            zIndex: i === current ? 1 : 0,
-          }}
-        />
+        <img key={s.id} src={s.image} alt={s.tag} style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: s.pos,
+          filter: "brightness(0.65) saturate(0.72) contrast(1.04)",
+          opacity:   i === current ? 1 : 0,
+          transform: i === current ? (phase === "exit" ? "scale(1.045)" : "scale(1.0)") : "scale(1.045)",
+          transition: i === current ? "opacity 0.65s ease, transform 7s ease" : "opacity 0.5s ease",
+          zIndex: i === current ? 1 : 0,
+        }} />
       ))}
 
-      {/* Overlay grafite */}
+      {/* Overlay */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
-        background: `linear-gradient(105deg,
-          rgba(24,24,27,0.88) 0%,
-          rgba(24,24,27,0.72) 30%,
-          rgba(24,24,27,0.38) 58%,
-          rgba(24,24,27,0.10) 80%,
-          rgba(24,24,27,0.00) 100%)`,
+        background: isMobile
+          ? "linear-gradient(to bottom, rgba(24,24,27,0.75) 0%, rgba(24,24,27,0.60) 50%, rgba(24,24,27,0.80) 100%)"
+          : `linear-gradient(105deg, rgba(24,24,27,0.90) 0%, rgba(24,24,27,0.72) 30%, rgba(24,24,27,0.38) 58%, rgba(24,24,27,0.10) 80%, rgba(24,24,27,0.00) 100%)`,
       }} />
 
-      {/* Vinheta */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
-        boxShadow: "inset 0 0 120px rgba(24,24,27,0.45)",
-      }} />
-
-      {/* Gradiente inferior */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0,
-        height: 90, zIndex: 2, pointerEvents: "none",
-        background: "linear-gradient(to top, rgba(24,24,27,0.55) 0%, transparent 100%)",
-      }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none", boxShadow: "inset 0 0 120px rgba(24,24,27,0.45)" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 90, zIndex: 2, pointerEvents: "none", background: "linear-gradient(to top, rgba(24,24,27,0.55) 0%, transparent 100%)" }} />
 
       {/* ══ CONTEÚDO ══ */}
       <div style={{
@@ -190,62 +178,61 @@ export function HeroBanner({ onShopNow }) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        padding: "0 72px",
-        maxWidth: 620,
+        justifyContent: isMobile ? "flex-end" : "center",
+        padding: isMobile ? `0 ${px} 80px` : `0 ${px}`,
+        maxWidth: isMobile ? "100%" : 620,
       }}>
 
-        {/* Contador */}
-        <div style={{
-          position: "absolute", top: 28, left: 72,
-          fontSize: 11, fontWeight: 600, letterSpacing: "0.16em",
-          color: "rgba(255,255,255,0.28)",
-        }}>
-          {String(current + 1).padStart(2, "0")} / {String(SLIDES.length).padStart(2, "0")}
-        </div>
+        {/* Contador — só desktop */}
+        {!isMobile && (
+          <div style={{
+            position: "absolute", top: 28, left: px,
+            fontSize: 11, fontWeight: 600, letterSpacing: "0.16em",
+            color: "rgba(255,255,255,0.28)",
+          }}>
+            {String(current + 1).padStart(2, "0")} / {String(SLIDES.length).padStart(2, "0")}
+          </div>
+        )}
 
-        {/* Dots nav vertical (esquerda) */}
-        <div style={{
-          position: "absolute", left: 32, top: "50%",
-          transform: "translateY(-50%)",
-          display: "flex", flexDirection: "column", gap: 10,
-        }}>
-          {SLIDES.map((_, i) => (
-            <button key={i} onClick={() => goTo(i)} style={{
-              width: 3, height: i === current ? 38 : 14,
-              borderRadius: 99, border: "none", cursor: "pointer", padding: 0,
-              background: i === current ? ACCENT : "rgba(255,255,255,0.22)",
-              transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
-            }} />
-          ))}
-        </div>
+        {/* Dots nav vertical — só desktop */}
+        {!isMobile && (
+          <div style={{
+            position: "absolute", left: 32, top: "50%", transform: "translateY(-50%)",
+            display: "flex", flexDirection: "column", gap: 10,
+          }}>
+            {SLIDES.map((_, i) => (
+              <button key={i} onClick={() => goTo(i)} style={{
+                width: 3, height: i === current ? 38 : 14,
+                borderRadius: 99, border: "none", cursor: "pointer", padding: 0,
+                background: i === current ? ACCENT : "rgba(255,255,255,0.22)",
+                transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
+              }} />
+            ))}
+          </div>
+        )}
 
         {/* Tag */}
         <div style={{
-          display: "flex", alignItems: "center", gap: 8, marginBottom: 20,
-          opacity:    visible ? 1 : 0,
-          transform:  visible ? "translateY(0)" : "translateY(18px)",
-          transition: visible
-            ? "opacity 0.55s ease 0.06s, transform 0.55s ease 0.06s"
-            : "opacity 0.28s ease, transform 0.28s ease",
+          display: "flex", alignItems: "center", gap: 8,
+          marginBottom: isMobile ? 12 : 20,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(18px)",
+          transition: visible ? "opacity 0.55s ease 0.06s, transform 0.55s ease 0.06s" : "opacity 0.28s ease, transform 0.28s ease",
         }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             padding: "4px 12px 4px 8px",
             background: "rgba(255,255,255,0.08)",
             border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 99,
-            backdropFilter: "blur(8px)",
+            borderRadius: 99, backdropFilter: "blur(8px)",
           }}>
             <span style={{
-              width: 6, height: 6, borderRadius: "50%",
-              background: ACCENT,
+              width: 6, height: 6, borderRadius: "50%", background: ACCENT,
               boxShadow: `0 0 0 3px rgba(22,163,74,0.25)`,
-              animation: "pls 2s ease-in-out infinite",
-              flexShrink: 0,
+              animation: "pls 2s ease-in-out infinite", flexShrink: 0,
             }} />
             <span style={{
-              fontSize: 10.5, fontWeight: 700, letterSpacing: "0.08em",
+              fontSize: isMobile ? 9.5 : 10.5, fontWeight: 700, letterSpacing: "0.08em",
               textTransform: "uppercase", color: "rgba(255,255,255,0.80)",
             }}>
               {slide.tag}
@@ -255,20 +242,15 @@ export function HeroBanner({ onShopNow }) {
 
         {/* Headline */}
         <h1 style={{
-          fontSize: "clamp(38px, 5vw, 66px)",
+          fontSize: isMobile ? "clamp(32px, 9vw, 46px)" : "clamp(38px, 5vw, 66px)",
           fontWeight: 900, lineHeight: 1.0, letterSpacing: "-0.03em",
-          color: "#ffffff", marginBottom: 18,
-          opacity:    visible ? 1 : 0,
-          transform:  visible ? "translateY(0)" : "translateY(26px)",
-          transition: visible
-            ? "opacity 0.6s ease 0.14s, transform 0.6s ease 0.14s"
-            : "opacity 0.28s ease, transform 0.28s ease",
+          color: "#ffffff", marginBottom: isMobile ? 12 : 18,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(26px)",
+          transition: visible ? "opacity 0.6s ease 0.14s, transform 0.6s ease 0.14s" : "opacity 0.28s ease, transform 0.28s ease",
         }}>
           {slide.headline.map((line, i) => (
-            <span key={i} style={{
-              display: "block",
-              color: i === slide.accentLine ? ACCENT : "#ffffff",
-            }}>
+            <span key={i} style={{ display: "block", color: i === slide.accentLine ? ACCENT : "#ffffff" }}>
               {line}
             </span>
           ))}
@@ -276,27 +258,25 @@ export function HeroBanner({ onShopNow }) {
 
         {/* Body */}
         <p style={{
-          fontSize: "clamp(13px, 1.05vw, 15px)", lineHeight: 1.8,
+          fontSize: isMobile ? 13 : "clamp(13px, 1.05vw, 15px)",
+          lineHeight: 1.75,
           color: "rgba(228,228,231,0.70)",
-          maxWidth: 380, marginBottom: 30,
-          opacity:    visible ? 1 : 0,
-          transform:  visible ? "translateY(0)" : "translateY(18px)",
-          transition: visible
-            ? "opacity 0.6s ease 0.22s, transform 0.6s ease 0.22s"
-            : "opacity 0.28s ease, transform 0.28s ease",
+          maxWidth: isMobile ? "100%" : 380,
+          marginBottom: isMobile ? 20 : 30,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(18px)",
+          transition: visible ? "opacity 0.6s ease 0.22s, transform 0.6s ease 0.22s" : "opacity 0.28s ease, transform 0.28s ease",
         }}>
           {slide.body}
         </p>
 
         {/* CTAs */}
         <div style={{
-          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-          marginBottom: 38,
-          opacity:    visible ? 1 : 0,
-          transform:  visible ? "translateY(0)" : "translateY(14px)",
-          transition: visible
-            ? "opacity 0.6s ease 0.30s, transform 0.6s ease 0.30s"
-            : "opacity 0.28s ease, transform 0.28s ease",
+          display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+          marginBottom: isMobile ? 24 : 38,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(14px)",
+          transition: visible ? "opacity 0.6s ease 0.30s, transform 0.6s ease 0.30s" : "opacity 0.28s ease, transform 0.28s ease",
         }}>
           <button
             onClick={onShopNow}
@@ -304,12 +284,14 @@ export function HeroBanner({ onShopNow }) {
             onMouseLeave={e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "13px 28px",
+              padding: isMobile ? "12px 22px" : "13px 28px",
               background: ACCENT, color: "#fff",
-              fontSize: 14, fontWeight: 700,
+              fontSize: isMobile ? 13 : 14, fontWeight: 700,
               borderRadius: 10, border: "none", cursor: "pointer",
               boxShadow: "0 4px 22px rgba(22,163,74,0.38)",
               transition: "all 0.2s",
+              flex: isMobile ? 1 : "none",
+              justifyContent: "center",
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -320,22 +302,22 @@ export function HeroBanner({ onShopNow }) {
           </button>
 
           <button
-            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.28)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.16)"; }}
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "12px 22px",
+              padding: isMobile ? "11px 18px" : "12px 22px",
               background: "rgba(255,255,255,0.07)",
               backdropFilter: "blur(8px)",
               color: "rgba(255,255,255,0.85)",
-              fontSize: 14, fontWeight: 600,
+              fontSize: isMobile ? 13 : 14, fontWeight: 600,
               borderRadius: 10,
               border: "1.5px solid rgba(255,255,255,0.16)",
               cursor: "pointer", transition: "all 0.2s",
             }}
           >
             {slide.ctaSecond}
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
@@ -345,21 +327,30 @@ export function HeroBanner({ onShopNow }) {
         <div style={{
           display: "flex",
           borderTop: "1px solid rgba(255,255,255,0.10)",
-          paddingTop: 22,
-          opacity:    visible ? 1 : 0,
+          paddingTop: isMobile ? 16 : 22,
+          opacity: visible ? 1 : 0,
           transition: visible ? "opacity 0.6s ease 0.40s" : "opacity 0.25s ease",
         }}>
           {[slide.stat1, slide.stat2, slide.stat3].map((s, i) => (
             <div key={i} style={{
               flex: 1,
-              paddingLeft:  i > 0 ? 22 : 0,
-              paddingRight: i < 2 ? 22 : 0,
+              paddingLeft:  i > 0 ? (isMobile ? 14 : 22) : 0,
+              paddingRight: i < 2 ? (isMobile ? 14 : 22) : 0,
               borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.10)" : "none",
             }}>
-              <p style={{ fontSize: "clamp(15px,1.8vw,21px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#ffffff", lineHeight: 1, marginBottom: 5 }}>
+              <p style={{
+                fontSize: isMobile ? "clamp(13px,4vw,17px)" : "clamp(15px,1.8vw,21px)",
+                fontWeight: 800, letterSpacing: "-0.02em",
+                color: "#ffffff", lineHeight: 1, marginBottom: 4,
+              }}>
                 {s.val}
               </p>
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(161,161,170,0.65)" }}>
+              <p style={{
+                fontSize: isMobile ? 9 : 10, fontWeight: 600,
+                letterSpacing: "0.07em", textTransform: "uppercase",
+                color: "rgba(161,161,170,0.65)",
+                lineHeight: 1.3,
+              }}>
                 {s.label}
               </p>
             </div>
@@ -367,101 +358,86 @@ export function HeroBanner({ onShopNow }) {
         </div>
       </div>
 
-      {/* ══ CHIP ══ */}
-      <div style={{
-        position: "absolute", bottom: 28, right: 32, zIndex: 10,
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "10px 16px",
-        background: "rgba(24,24,27,0.72)",
-        border: "1px solid rgba(255,255,255,0.10)",
-        borderRadius: 14,
-        backdropFilter: "blur(18px)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.30)",
-        opacity:    visible ? 1 : 0,
-        transform:  visible ? "translateY(0)" : "translateY(10px)",
-        transition: visible
-          ? "opacity 0.6s ease 0.50s, transform 0.6s ease 0.50s"
-          : "opacity 0.25s ease, transform 0.25s ease",
-      }}>
+      {/* ══ CHIP — só desktop ══ */}
+      {!isMobile && (
         <div style={{
-          width: 32, height: 32, borderRadius: 9,
-          background: ACCENT,
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          boxShadow: "0 2px 12px rgba(22,163,74,0.35)",
+          position: "absolute", bottom: 28, right: 32, zIndex: 10,
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "10px 16px",
+          background: "rgba(24,24,27,0.72)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          borderRadius: 14, backdropFilter: "blur(18px)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.30)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(10px)",
+          transition: visible ? "opacity 0.6s ease 0.50s, transform 0.6s ease 0.50s" : "opacity 0.25s ease, transform 0.25s ease",
         }}>
-          <ChipIcon type={slide.chip.icon} />
+          <div style={{
+            width: 32, height: 32, borderRadius: 9, background: ACCENT,
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            boxShadow: "0 2px 12px rgba(22,163,74,0.35)",
+          }}>
+            <ChipIcon type={slide.chip.icon} />
+          </div>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "#f4f4f5", lineHeight: 1.2 }}>{slide.chip.text}</p>
+            <p style={{ fontSize: 10, color: "rgba(161,161,170,0.75)", marginTop: 2 }}>{slide.chip.sub}</p>
+          </div>
         </div>
-        <div>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#f4f4f5", lineHeight: 1.2 }}>{slide.chip.text}</p>
-          <p style={{ fontSize: 10, color: "rgba(161,161,170,0.75)", marginTop: 2 }}>{slide.chip.sub}</p>
+      )}
+
+      {/* ══ SETAS — só desktop ══ */}
+      {!isMobile && (
+        <div style={{
+          position: "absolute", right: 20, top: "50%",
+          transform: "translateY(-50%)",
+          display: "flex", flexDirection: "column", gap: 8, zIndex: 10,
+        }}>
+          {[
+            { fn: prev, pts: "18 15 12 9 6 15" },
+            { fn: next, pts: "6 9 12 15 18 9"  },
+          ].map(({ fn, pts }, i) => (
+            <button key={i} onClick={fn}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(22,163,74,0.85)"; e.currentTarget.style.transform = "scale(1.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "scale(1)"; }}
+              style={{
+                width: 36, height: 36, borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.14)",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.2s",
+              }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.80)" strokeWidth="2.2" strokeLinecap="round">
+                <polyline points={pts}/>
+              </svg>
+            </button>
+          ))}
         </div>
-      </div>
+      )}
 
-      {/* ══ SETAS LATERAIS (direita) ══ */}
-      <div style={{
-        position: "absolute", right: 20, top: "50%",
-        transform: "translateY(-50%)",
-        display: "flex", flexDirection: "column", gap: 8, zIndex: 10,
-      }}>
-        {[
-          { fn: prev, pts: "18 15 12 9 6 15" },
-          { fn: next, pts: "6 9 12 15 18 9"  },
-        ].map(({ fn, pts }, i) => (
-          <button
-            key={i}
-            onClick={fn}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "rgba(22,163,74,0.85)";
-              e.currentTarget.style.borderColor = "rgba(22,163,74,0.6)";
-              e.currentTarget.style.transform = "scale(1.08)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
-              e.currentTarget.style.transform = "scale(1)";
-            }}
-            style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: "rgba(255,255,255,0.08)",
-              backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255,255,255,0.14)",
-              cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all 0.2s",
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.80)" strokeWidth="2.2" strokeLinecap="round">
-              <polyline points={pts}/>
-            </svg>
-          </button>
-        ))}
-      </div>
+      {/* ══ Dots mobile ══ */}
+      {isMobile && (
+        <div style={{
+          position: "absolute", bottom: 24, left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex", gap: 6, zIndex: 20,
+        }}>
+          {SLIDES.map((_, i) => (
+            <button key={i} onClick={() => goTo(i)} style={{
+              width: i === current ? 20 : 6, height: 6,
+              borderRadius: 99, border: "none", cursor: "pointer", padding: 0,
+              background: i === current ? ACCENT : "rgba(255,255,255,0.35)",
+              transition: "all 0.3s ease",
+            }} />
+          ))}
+        </div>
+      )}
 
-      {/* ══ Barra progresso ══ */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0,
-        height: 3, background: "rgba(255,255,255,0.08)", zIndex: 20,
-      }}>
-        <div key={`${current}-bar`} style={{
-          height: "100%", background: ACCENT,
-          animation: `progress-bar ${DURATION}ms linear forwards`,
-        }} />
-      </div>
-
-      {/* Dots mobile */}
-      <div className="hero-m-dots" style={{
-        position: "absolute", bottom: 18, left: "50%",
-        transform: "translateX(-50%)",
-        display: "none", gap: 6, zIndex: 20,
-      }}>
-        {SLIDES.map((_, i) => (
-          <button key={i} onClick={() => goTo(i)} style={{
-            width: i === current ? 20 : 6, height: 6,
-            borderRadius: 99, border: "none", cursor: "pointer", padding: 0,
-            background: i === current ? ACCENT : "rgba(255,255,255,0.28)",
-            transition: "all 0.3s ease",
-          }} />
-        ))}
+      {/* Barra progresso */}
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.08)", zIndex: 20 }}>
+        <div key={`${current}-bar`} style={{ height: "100%", background: ACCENT, animation: `progress-bar ${DURATION}ms linear forwards` }} />
       </div>
 
       <style>{`
@@ -470,9 +446,6 @@ export function HeroBanner({ onShopNow }) {
           50%      { box-shadow: 0 0 0 7px rgba(22,163,74,0.06); }
         }
         @keyframes progress-bar { from { width: 0% } to { width: 100% } }
-        @media (max-width: 768px) {
-          .hero-m-dots { display: flex !important; }
-        }
       `}</style>
     </section>
   );

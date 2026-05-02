@@ -8,7 +8,7 @@ import { SectionHeader } from "./SectionHeader";
 export function TrendingNow() {
   return (
     <section className="py-10 bg-gray-50 border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1450px] mx-auto px-4">
         <SectionHeader title="Em Alta Agora">
           <a
             href="/trending"

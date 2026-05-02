@@ -9,6 +9,7 @@ import {
 import { Cabecalho } from "../../components/Cabecalho";
 import { ALL_PRODUCTS } from "../../components/FashionProducts";
 
+
 const VERDE        = "#00b96b";
 const VERDE_ESCURO = "#009a5a";
 const VERDE_LIGHT  = "#e6f9f0";
