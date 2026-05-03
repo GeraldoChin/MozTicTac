@@ -1,173 +1,157 @@
-import { useState, useEffect, useRef } from "react";
+/**
+ * PromoBannersSlider
+ *
+ * Props:
+ *  - onFilterChange(cat)  — quando usado DENTRO da PromoBannersPage, recebe a função de filtro
+ *  - navigateTo(path)     — quando usado FORA da PromoBannersPage, recebe a função de navegação
+ *                           (ex: React Router → useNavigate, ou Next.js → useRouter().push)
+ *                           Se não for passado mas onFilterChange também não for, usa window.location
+ *
+ * Uso dentro da PromoBannersPage:
+ *   <PromoBannersSlider onFilterChange={handleFilterChange} />
+ *
+ * Uso noutra página (React Router):
+ *   import { useNavigate } from "react-router-dom";
+ *   const navigate = useNavigate();
+ *   <PromoBannersSlider navigateTo={(path) => navigate(path)} />
+ *
+ * Uso noutra página (Next.js):
+ *   import { useRouter } from "next/navigation";
+ *   const router = useRouter();
+ *   <PromoBannersSlider navigateTo={(path) => router.push(path)} />
+ */
 
-const GREEN = "#22c55e";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+/* ─── Rota da PromoBannersPage — ajusta conforme o teu router ─── */
+const PROMO_PAGE_PATH = "/promocoes"; // ex: "/deals", "/home", etc.
+
 const VISIBLE = 3;
-const AUTO_INTERVAL = 3500;
+const AUTO_INTERVAL = 4000;
+const TRANSITION_MS = 600;
 
-const PROMO_BANNERS = [
+/* ─── Dados sincronizados com PromoBannersPage ──────────────────── */
+export const PROMO_BANNERS = [
   {
-    cat: "Electrónica",
-    emoji: "💻",
-    title: "Tech & Gadgets",
-    sub: "Os melhores preços em tech",
-    color: "#3b82f6",
-    img: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&q=80",
+    cat: "Calçados",
+    emoji: "👟",
+    title: "Calçados",
+    sub: "Até 75% desconto",
+    color: "#b91c1c",
+    img: "img/img.jpg",
   },
   {
-    cat: "Moda",
+    cat: "Acessórios",
+    emoji: "⌚",
+    title: "Relógios",
+    sub: "Mín. 45% desconto",
+    color: "#1d4ed8",
+    img: "img/img1.jpg",
+  },
+  {
+    cat: "Roupa",
     emoji: "👗",
-    title: "Estilo & Moda",
-    sub: "Tendências da temporada",
-    color: "#ec4899",
-    img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80",
+    title: "Moda",
+    sub: "Colecção exclusiva",
+    color: "#7c3aed",
+    img: "img/img2.jpg",
   },
   {
-    cat: "Casa",
-    emoji: "🏠",
-    title: "Casa & Jardim",
-    sub: "Decora o teu espaço",
-    color: "#f59e0b",
-    img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
+    cat: "Tech",
+    emoji: "🎧",
+    title: "Tech",
+    sub: "Marcas internacionais",
+    color: "#0369a1",
+    img: "img/img3.jpg",
   },
   {
-    cat: "Desporto",
-    emoji: "⚽",
-    title: "Sport & Fitness",
-    sub: "Equipamento profissional",
-    color: "#22c55e",
-    img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
-  },
-  {
-    cat: "Alimentação",
+    cat: "Alimentos",
     emoji: "🥗",
-    title: "Food & Gourmet",
-    sub: "Sabores únicos perto de ti",
-    color: "#ef4444",
-    img: "https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&q=80",
+    title: "Alimentos",
+    sub: "Produtos frescos",
+    color: "#15803d",
+    img: "img/img4.jpg",
   },
   {
     cat: "Beleza",
     emoji: "💄",
-    title: "Beauty & Care",
-    sub: "Cuida de ti todos os dias",
-    color: "#a855f7",
-    img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&q=80",
+    title: "Beleza",
+    sub: "Importados a preço bom",
+    color: "#be185d",
+    img: "img/img5.jpg",
   },
 ];
 
-// CSS keyframes injected once
+/* ─── Keyframes (injectados uma vez) ───────────────────────────── */
 const STYLES = `
-@keyframes bannerFadeIn {
-  from { opacity: 0; transform: scale(1.04); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes bannerContentIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.banner-entering img {
-  animation: bannerFadeIn 0.5s ease forwards;
-}
-.banner-entering .banner-content {
-  animation: bannerContentIn 0.4s ease 0.1s both;
-}
+  .pbs-img-wrap { position:absolute; inset:0; width:100%; height:100%; }
+  .pbs-img-wrap img {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; filter:brightness(0.58);
+  }
+  .pbs-card:hover .pbs-img-static { transform:scale(1.05); transition:transform 0.5s ease; }
+
+  .img-exit-fwd  { animation: imgExitFwd  var(--dur) ease forwards; }
+  .img-exit-back { animation: imgExitBack var(--dur) ease forwards; }
+  .img-enter-fwd { animation: imgEnterFwd var(--dur) ease forwards; }
+  .img-enter-back{ animation: imgEnterBack var(--dur) ease forwards; }
+
+  @keyframes imgExitFwd   { from{opacity:1;transform:scale(1) translateX(0)}    to{opacity:0;transform:scale(.94) translateX(-8%)} }
+  @keyframes imgExitBack  { from{opacity:1;transform:scale(1) translateX(0)}    to{opacity:0;transform:scale(.94) translateX(8%)}  }
+  @keyframes imgEnterFwd  { from{opacity:0;transform:scale(1.06) translateX(8%)} to{opacity:1;transform:scale(1) translateX(0)}    }
+  @keyframes imgEnterBack { from{opacity:0;transform:scale(1.06) translateX(-8%)} to{opacity:1;transform:scale(1) translateX(0)}   }
+
+  .pbs-content { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:0 20px; z-index:4; }
+  .pbs-content.pbs-content-in { animation: pbsContentIn 0.4s ease 0.08s both; }
+  @keyframes pbsContentIn { from{opacity:0;transform:translateY(9px)} to{opacity:1;transform:translateY(0)} }
+
+  .pbs-ring { position:absolute; inset:0; border-radius:12px; pointer-events:none; opacity:0; transition:opacity .2s; z-index:5; }
+  .pbs-card:hover .pbs-ring { opacity:1; }
+  .pbs-cta  { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:rgba(255,255,255,.8); transition:color .2s; }
+  .pbs-card:hover .pbs-cta { color:#fff; }
 `;
 
-function BannerCard({ banner, entering, onFilterChange }) {
+/* ─── BannerCard ─────────────────────────────────────────────────── */
+function BannerCard({ banner, prevImg, isChanging, direction, onClick }) {
+  const exitCls  = direction >= 0 ? "img-exit-fwd"   : "img-exit-back";
+  const enterCls = direction >= 0 ? "img-enter-fwd"  : "img-enter-back";
+  const crossfade = isChanging && prevImg && prevImg !== banner.img;
+
   return (
     <div
-      className={`banner-card${entering ? " banner-entering" : ""}`}
-      onClick={() => onFilterChange(banner.cat)}
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        height: 190,
-        borderRadius: 12,
-        cursor: "pointer",
-        transition: "transform 0.3s ease",
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-6px)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+      className="pbs-card relative overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl group"
+      style={{ height: 190, "--dur": `${TRANSITION_MS}ms` }}
+      onClick={onClick}
     >
-      {/* Image */}
-      <img
-        src={banner.img}
-        alt={banner.title}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          filter: "brightness(0.58)",
-          display: "block",
-          transition: "transform 0.5s ease",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-      />
+      {/* Image crossfade */}
+      <div className="pbs-img-wrap">
+        {crossfade && (
+          <img key={`prev-${prevImg}`} src={prevImg} alt="" className={exitCls} style={{ zIndex: 1 }} />
+        )}
+        <img
+          key={`curr-${banner.img}`}
+          src={banner.img}
+          alt={banner.title}
+          className={crossfade ? enterCls : "pbs-img-static"}
+          style={{ zIndex: 2 }}
+        />
+      </div>
 
-      {/* Gradient overlay */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(to right, rgba(0,0,0,0.72) 0%, transparent 100%)",
-        }}
-      />
+      {/* Gradient */}
+      <div className="absolute inset-0" style={{ background: "linear-gradient(to right,rgba(0,0,0,0.72) 0%,transparent 100%)", zIndex: 3 }} />
 
-      {/* Accent bottom bar */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          background: banner.color,
-        }}
-      />
+      {/* Colour bar */}
+      <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: banner.color, zIndex: 4, transition: "background .4s" }} />
 
-      {/* Content */}
-      <div
-        className="banner-content"
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "0 20px",
-        }}
-      >
-        <span style={{ fontSize: 22, marginBottom: 4 }}>{banner.emoji}</span>
-        <p
-          style={{
-            fontSize: 10,
-            fontWeight: 800,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-            color: "rgba(255,255,255,0.55)",
-            margin: "0 0 2px",
-          }}
-        >
+      {/* Text */}
+      <div className={`pbs-content${isChanging ? " pbs-content-in" : ""}`}>
+        <span className="text-2xl mb-1">{banner.emoji}</span>
+        <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
           {banner.cat}
         </p>
-        <h3 style={{ fontSize: 17, fontWeight: 800, color: "#fff", margin: 0 }}>
-          {banner.title}
-        </h3>
-        <p style={{ fontSize: 12, margin: "4px 0 12px", color: "rgba(255,255,255,0.78)" }}>
-          {banner.sub}
-        </p>
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            fontSize: 12,
-            fontWeight: 700,
-            color: "rgba(255,255,255,0.8)",
-          }}
-        >
+        <h3 className="text-lg font-black text-white m-0">{banner.title}</h3>
+        <p className="text-xs mt-0.5 mb-3" style={{ color: "rgba(255,255,255,0.78)" }}>{banner.sub}</p>
+        <span className="pbs-cta">
           Filtrar produtos
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14M12 5l7 7-7 7" />
@@ -176,123 +160,139 @@ function BannerCard({ banner, entering, onFilterChange }) {
       </div>
 
       {/* Hover ring */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          border: `2px solid ${banner.color}`,
-          borderRadius: 12,
-          opacity: 0,
-          pointerEvents: "none",
-          transition: "opacity 0.2s",
-        }}
-        className="banner-ring"
-      />
+      <div className="pbs-ring" style={{ border: `2px solid ${banner.color}` }} />
     </div>
   );
 }
 
-export default function PromoBannersSlider({ onFilterChange = (cat) => console.log("Filter:", cat) }) {
-  const [startIdx, setStartIdx] = useState(0);
-  const [entering, setEntering] = useState(false);
-  const timerRef = useRef(null);
+/* ─── PromoBannersSlider ─────────────────────────────────────────── */
+export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
+  const [startIdx, setStartIdx]     = useState(0);
+  const [prevSlice, setPrevSlice]   = useState(null);
+  const [direction, setDirection]   = useState(1);
+  const [isChanging, setIsChanging] = useState(false);
+
+  const timerRef    = useRef(null);
+  const busyRef     = useRef(false);
+  const idxRef      = useRef(0);
+
   const maxIdx = PROMO_BANNERS.length - VISIBLE;
 
-  const canPrev = startIdx > 0;
-  const canNext = startIdx < maxIdx;
+  /* Clique num card: filtra se estiver na mesma página, navega se não */
+  const handleCardClick = useCallback((cat) => {
+    if (onFilterChange) {
+      // Dentro da PromoBannersPage — aplica filtro e faz scroll
+      onFilterChange(cat);
+      setTimeout(() => {
+        document.getElementById("deals-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    } else {
+      // Noutra página — navega para a PromoBannersPage com o filtro como query param
+      const target = `${PROMO_PAGE_PATH}?cat=${encodeURIComponent(cat)}`;
+      if (navigateTo) {
+        navigateTo(target);
+      } else {
+        window.location.href = target;
+      }
+    }
+  }, [onFilterChange, navigateTo]);
 
-  // Animate cards into view
-  const goTo = (idx) => {
-    setStartIdx(idx);
-    setEntering(true);
-    setTimeout(() => setEntering(false), 600);
-  };
+  /* Transição */
+  const goTo = useCallback((nextIdx, dir) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+
+    const currentImgs = PROMO_BANNERS.slice(idxRef.current, idxRef.current + VISIBLE).map((b) => b.img);
+    setPrevSlice(currentImgs);
+    setDirection(dir);
+    setStartIdx(nextIdx);
+    idxRef.current = nextIdx;
+    setIsChanging(true);
+
+    setTimeout(() => {
+      setIsChanging(false);
+      setPrevSlice(null);
+      busyRef.current = false;
+    }, TRANSITION_MS + 50);
+  }, []);
 
   const navigate = (dir) => {
-    const next = startIdx + dir;
+    const next = idxRef.current + dir;
     if (next < 0 || next > maxIdx) return;
-    goTo(next);
-    resetAuto();
+    goTo(next, dir);
+    scheduleAuto();
   };
 
-  // Auto-advance
-  const resetAuto = () => {
+  const handleDot = (i) => {
+    goTo(i, i > idxRef.current ? 1 : -1);
+    scheduleAuto();
+  };
+
+  /* Auto-advance */
+  const scheduleAuto = useCallback(() => {
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setStartIdx((prev) => {
-        const next = prev < maxIdx ? prev + 1 : 0;
-        setEntering(true);
-        setTimeout(() => setEntering(false), 600);
-        return next;
-      });
+      const cur  = idxRef.current;
+      const next = cur < maxIdx ? cur + 1 : 0;
+      goTo(next, next > cur ? 1 : -1);
     }, AUTO_INTERVAL);
-  };
+  }, [goTo, maxIdx]);
 
   useEffect(() => {
-    resetAuto();
+    scheduleAuto();
     return () => clearInterval(timerRef.current);
+  }, [scheduleAuto]);
+
+  /* Ler ?cat= da URL ao montar (útil quando navegado de outra página) */
+  useEffect(() => {
+    if (!onFilterChange) return; // só na PromoBannersPage
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("cat");
+    if (cat) onFilterChange(decodeURIComponent(cat));
   }, []);
 
   const visibleBanners = PROMO_BANNERS.slice(startIdx, startIdx + VISIBLE);
+  const canPrev = startIdx > 0;
+  const canNext = startIdx < maxIdx;
 
   return (
     <>
-      {/* Inject keyframe styles once */}
       <style>{STYLES}</style>
 
-      <div style={{ fontFamily: "sans-serif" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+      <div>
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#111827" }}>
-              Categorias em Destaque
-            </h2>
-            <p style={{ fontSize: 12, color: "#9ca3af", margin: "4px 0 0" }}>
-              Clica numa categoria para filtrar os produtos abaixo
+            <h2 className="text-xl font-black text-gray-900">Categorias em Destaque</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {onFilterChange
+                ? "Clica numa categoria para filtrar os produtos abaixo"
+                : "Clica numa categoria para ver as ofertas"}
             </p>
           </div>
 
-          {/* Nav buttons */}
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex items-center gap-2">
+            {/* Prev */}
             <button
               onClick={() => navigate(-1)}
               disabled={!canPrev}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                border: "1px solid #e5e7eb",
-                background: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: canPrev ? "pointer" : "default",
-                opacity: canPrev ? 1 : 0.3,
-                padding: 0,
-                transition: "all 0.2s",
-              }}
+              className="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all"
+              style={{ background: "#fff", borderColor: "#e5e7eb", opacity: canPrev ? 1 : 0.35 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
 
+            {/* Next */}
             <button
               onClick={() => navigate(1)}
               disabled={!canNext}
+              className="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all"
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                border: `1px solid ${canNext ? GREEN : "#e5e7eb"}`,
-                background: canNext ? GREEN : "#f9fafb",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: canNext ? "pointer" : "default",
-                opacity: canNext ? 1 : 0.3,
-                padding: 0,
-                transition: "all 0.2s",
+                background: canNext ? "#22c55e" : "#f9fafb",
+                borderColor: canNext ? "#22c55e" : "#e5e7eb",
+                opacity: canNext ? 1 : 0.35,
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={canNext ? "#fff" : "#9ca3af"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -302,33 +302,32 @@ export default function PromoBannersSlider({ onFilterChange = (cat) => console.l
           </div>
         </div>
 
-        {/* Cards grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {visibleBanners.map((banner) => (
+        {/* ── Cards ── */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+          {visibleBanners.map((banner, i) => (
             <BannerCard
               key={banner.cat}
               banner={banner}
-              entering={entering}
-              onFilterChange={onFilterChange}
+              prevImg={prevSlice ? prevSlice[i] : null}
+              isChanging={isChanging}
+              direction={direction}
+              onClick={() => handleCardClick(banner.cat)}
             />
           ))}
         </div>
 
-        {/* Dots */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 16 }}>
+        {/* ── Dots ── */}
+        <div className="flex justify-center gap-1.5 mt-4">
           {Array.from({ length: maxIdx + 1 }).map((_, i) => (
             <button
               key={i}
-              onClick={() => { goTo(i); resetAuto(); }}
+              onClick={() => handleDot(i)}
+              className="border-none cursor-pointer rounded-full transition-all duration-300"
               style={{
                 width: i === startIdx ? 22 : 6,
                 height: 6,
-                borderRadius: 3,
-                border: "none",
-                background: i === startIdx ? GREEN : "#d1d5db",
+                background: i === startIdx ? "#22c55e" : "#d1d5db",
                 padding: 0,
-                cursor: "pointer",
-                transition: "all 0.3s",
               }}
             />
           ))}

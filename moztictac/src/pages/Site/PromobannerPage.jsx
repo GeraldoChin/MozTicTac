@@ -42,7 +42,7 @@ const HERO_SLIDES = [
 ];
 
 const PROMO_BANNERS = [
-  { img: "img/img",  title: "Calçados",   sub: "Até 75% desconto",       cat: "Calçados",   color: "#b91c1c", emoji: "👟" },
+  { img: "",  title: "Calçados",   sub: "Até 75% desconto",       cat: "Calçados",   color: "#b91c1c", emoji: "👟" },
   { img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80", title: "Relógios",  sub: "Mín. 45% desconto",      cat: "Acessórios", color: "#1d4ed8", emoji: "⌚" },
   { img: "https://images.unsplash.com/photo-1594938298603-c8148c4b4832?w=600&q=80", title: "Moda",      sub: "Colecção exclusiva",     cat: "Roupa",      color: "#7c3aed", emoji: "👗" },
   { img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80", title: "Tech",      sub: "Marcas internacionais",  cat: "Tech",       color: "#0369a1", emoji: "🎧" },

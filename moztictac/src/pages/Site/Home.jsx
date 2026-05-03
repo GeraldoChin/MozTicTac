@@ -14,6 +14,7 @@ import { BrandsBar } from "../../components/Marcas";
 import { Newsletter } from "../../components/Newsletter";
 import { Rodape } from "../../components/Rodape";
 import TopTendencias from "../../components/Trendinghero";
+import PromoBannersSlider from "../../components/PromoBannerSlider";
 
 export default function Home() {
   const { cartCount, wishCount, addToCart, addToWish } = useCart();
@@ -35,7 +36,7 @@ export default function Home() {
       <CategoryBar />
       {/* <DealsSection onAddToCart={addToCart} /> */}
       <TopTendencias/>
-      <PromoBanners />
+      <PromoBannersSlider />
       <FashionProducts onAddToCart={addToCart} />
       <TrendingNow />
       <BlogSection />

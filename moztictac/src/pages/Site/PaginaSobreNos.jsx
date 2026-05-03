@@ -18,7 +18,8 @@ import {
   MessageCircle,
   Star,
 } from "lucide-react";
-
+import { Header } from "../../components/Header";
+import { Navbar } from "../../components/Navbar";
 // ─── import real do teu Cabecalho ─────────────────────────────────────────────
 // import { Cabecalho } from "../components/Cabecalho";
 function Cabecalho({ valorPesquisa, aoMudarPesquisa }) {
@@ -451,7 +452,7 @@ export default function PaginaSobreNos() {
   const [pesquisa, setPesquisa] = useState("");
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-      <Cabecalho
+      {/* <Cabecalho
         utilizadorAutenticado
         valorPesquisa={pesquisa}
         aoMudarPesquisa={setPesquisa}
@@ -462,7 +463,9 @@ export default function PaginaSobreNos() {
         aoClicarWishlist={() => {}}
         aoClicarNotificacoes={() => {}}
         aoClicarChat={() => {}}
-      />
+      /> */}
+      <Header />
+      <Navbar />
       <Hero />
       <Sobre />
       <Stats />

@@ -57,7 +57,7 @@ export default function MinhaConta() {
       </div>
 
       {/* LAYOUT PRINCIPAL */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-[90%] mx-auto px-4 py-6">
         <div className="flex gap-6 items-start">
 
           {/* ── SIDEBAR FIXA ── */}

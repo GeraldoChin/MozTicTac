@@ -11,7 +11,7 @@ const VERDE_ESCURO = "#009a5a";
 const LINKS_NAV = [
   { rotulo: "Home",     Icone: Home,        para: "/" },
   { rotulo: "Shop",     Icone: ShoppingBag, para: "/produtos", temSeta: true },
-  { rotulo: "Ajuda",    Icone: HelpCircle,  para: "/ajuda" },
+  { rotulo: "Ajuda",    Icone: HelpCircle,  para: "/faq" },
   { rotulo: "Sobre Nós",Icone: Info,        para: "/sobre-nos" },
 ];
 

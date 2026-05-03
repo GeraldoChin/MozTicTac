@@ -6,7 +6,8 @@ import {
   BadgeCheck, Tag, TrendingUp, Flame, Sparkles,
   Eye, Share2, MessageCircle, Store,
 } from "lucide-react";
-
+import { Header } from "../../components/Header";
+import { Navbar } from "../../components/Navbar";
 /* ─── TOKENS ───────────────────────────────────────────────────── */
 const G  = "#00b96b";
 const GD = "#009a5a";
@@ -697,62 +698,12 @@ export default function ShopPage() {
         html { scrollbar-width: none; }
       `}</style>
 
-      {/* ── HEADER ── */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-5">
-          <div className="text-xl font-black tracking-tight shrink-0" style={{ fontFamily: "'Syne',sans-serif", color: G }}>
-            Moz<span className="text-gray-900">TicTac</span>
-          </div>
+  
 
-          {/* search */}
-          <div className="relative flex-1 max-w-xl">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input placeholder="Pesquisar produtos, serviços, vendedores…"
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-[13px] text-gray-800 outline-none transition-all focus:border-green-400 focus:bg-white focus:shadow-sm" />
-          </div>
-
-          {/* nav */}
-          <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-gray-600">
-            {["Loja","Categorias","Vendedores","Afiliados"].map(n => (
-              <a key={n} href="#" className="hover:text-gray-900 transition-colors">{n}</a>
-            ))}
-          </nav>
-
-          {/* icons */}
-          <div className="flex items-center gap-2 ml-auto">
-            {[Bell, ShoppingCart, Heart].map((Icon, i) => (
-              <button key={i} className="relative w-9 h-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:border-green-400 hover:text-green-600 transition-all cursor-pointer">
-                <Icon size={17} />
-                {i < 2 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center" style={{ background: G }}>
-                    {i === 0 ? 3 : 2}
-                  </span>
-                )}
-              </button>
-            ))}
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black ml-1 cursor-pointer" style={{ background: G, fontFamily: "'Syne',sans-serif" }}>
-              JM
-            </div>
-          </div>
-        </div>
-
-        {/* category pills */}
-        <div className="border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-6 py-2 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {["Todos", ...CATEGORIES.map(c => c.name)].map(cat => (
-              <button key={cat} onClick={() => setActiveCat(cat)}
-                className="flex-shrink-0 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer whitespace-nowrap"
-                style={activeCat === cat
-                  ? { background: GL, borderColor: G, color: G }
-                  : { background: "#fff", borderColor: "#e5e7eb", color: "#6b7280" }}>
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
 
       {/* ── SECTIONS ── */}
+      <Header />
+      <Navbar/>
       <Hero />
       <TrustBar />
       <CategoryGrid onSelectCat={setActiveCat} />

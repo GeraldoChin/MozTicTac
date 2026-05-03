@@ -11,6 +11,7 @@ import ChatPage from "./pages/Site/ChatPage";
 import TrendingPage from "./pages/Site/TrendingPage";
 import BlogPage from "./pages/Site/Blogpage";
 import PromoBannersPage from "./pages/Site/PromobannerPage";
+import PaginaFAQ from "./pages/Site/PaginaFacs";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
       <Route path="/trending" element={<TrendingPage />} />
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/promos" element={<PromoBannersPage />} />
+      <Route path="/faq" element={<PaginaFAQ />} />
       {/* Resto das rotas... */}
     </Routes>
   );

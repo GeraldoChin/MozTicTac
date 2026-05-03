@@ -1,167 +1,131 @@
 import { useState, useRef, useEffect } from "react";
 
 const TRENDS = [
-  {
-    id: 1,
-    tag: "Em Alta",
-    hashtag: "#Abiti da crociera",
-    badge: "Aumento 45%",
-    img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
-  },
-  {
-    id: 2,
-    tag: "Pico",
-    hashtag: "#stileibiza",
-    badge: "Aumento 122%",
-    img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&q=80",
-  },
-  {
-    id: 3,
-    tag: "Pico",
-    hashtag: "#Vibrações de Verão",
-    badge: "Aumento 7%",
-    img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=80",
-  },
-  {
-    id: 4,
-    tag: "Pico",
-    hashtag: "#Onda de Calor Vermelha",
-    badge: "Aumento 63%",
-    img: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=500&q=80",
-  },
-  {
-    id: 5,
-    tag: "Popular",
-    hashtag: "#lookdefestival",
-    badge: "Aumento 7%",
-    img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&q=80",
-    hot: true,
-  },
-  {
-    id: 6,
-    tag: "Pico",
-    hashtag: "#Elegante Azul Navy",
-    badge: "Aumento 63%",
-    img: "https://images.unsplash.com/photo-1570976447640-ac859083963f?w=500&q=80",
-  },
-  {
-    id: 7,
-    tag: "Em Alta",
-    hashtag: "#Roupa Capulana",
-    badge: "Aumento 38%",
-    img: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=80",
-  },
-  {
-    id: 8,
-    tag: "Pico",
-    hashtag: "#Casaco Pelinho",
-    badge: "Aumento 55%",
-    img: "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=500&q=80",
-  },
-  {
-    id: 9,
-    tag: "Pico",
-    hashtag: "#Dopamina Arco-Íris",
-    badge: "Aumento 29%",
-    img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&q=80",
-  },
+  { id: 1, tag: "Em Alta",  hashtag: "#Abiti da crociera",   badge: "Aumento 45%",  img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80" },
+  { id: 2, tag: "Pico",     hashtag: "#stileibiza",           badge: "Aumento 122%", img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&q=80" },
+  { id: 3, tag: "Pico",     hashtag: "#Vibrações de Verão",   badge: "Aumento 7%",   img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=80" },
+  { id: 4, tag: "Pico",     hashtag: "#Onda de Calor Vermelha", badge: "Aumento 63%", img: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=500&q=80" },
+  { id: 5, tag: "Popular",  hashtag: "#lookdefestival",        badge: "Aumento 7%",   img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&q=80", hot: true },
+  { id: 6, tag: "Pico",     hashtag: "#Elegante Azul Navy",    badge: "Aumento 63%",  img: "https://images.unsplash.com/photo-1570976447640-ac859083963f?w=500&q=80" },
+  { id: 7, tag: "Em Alta",  hashtag: "#Roupa Capulana",        badge: "Aumento 38%",  img: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=80" },
+  { id: 8, tag: "Pico",     hashtag: "#Casaco Pelinho",        badge: "Aumento 55%",  img: "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=500&q=80" },
+  { id: 9, tag: "Pico",     hashtag: "#Dopamina Arco-Íris",    badge: "Aumento 29%",  img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&q=80" },
 ];
 
-const CARD_W = 200;
-const CARD_W_HOVER = 232;
-const CARD_H = 320;
-const GAP = 3;
+/* Dimensões responsivas — calculadas em runtime */
+const getCardDims = () => {
+  if (typeof window === "undefined") return { w: 180, wh: 210, h: 300 };
+  if (window.innerWidth < 640)  return { w: 140, wh: 160, h: 240 }; // mobile
+  if (window.innerWidth < 1024) return { w: 170, wh: 200, h: 280 }; // tablet
+  return { w: 200, wh: 232, h: 320 };                                // desktop
+};
+
+const GAP   = 3;
 const SPEED = 0.55;
 
 export default function TopTendencias() {
   const [hoveredId, setHoveredId] = useState(null);
-  const trackRef = useRef(null);
-  const pausedRef = useRef(false);
-  const rafRef = useRef(null);
+  const [dims, setDims]           = useState(getCardDims);
 
-  // Duplicate for seamless infinite scroll
+  const trackRef  = useRef(null);
+  const pausedRef = useRef(false);
+  const rafRef    = useRef(null);
+
+  /* Actualiza dimensões ao redimensionar */
+  useEffect(() => {
+    const onResize = () => setDims(getCardDims());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  /* Infinite scroll automático */
   const items = [...TRENDS, ...TRENDS, ...TRENDS];
 
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-
-    const loopWidth = TRENDS.length * (CARD_W + GAP);
-
-    // Start mid-way so we can scroll both directions
+    const loopWidth = TRENDS.length * (dims.w + GAP);
     track.scrollLeft = loopWidth;
 
     const tick = () => {
       if (!pausedRef.current) {
         track.scrollLeft += SPEED;
         if (track.scrollLeft >= loopWidth * 2) track.scrollLeft -= loopWidth;
-        if (track.scrollLeft <= 0) track.scrollLeft += loopWidth;
+        if (track.scrollLeft <= 0)             track.scrollLeft += loopWidth;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, []);
+  }, [dims]);
 
   const manualScroll = (dir) => {
-    trackRef.current?.scrollBy({ left: dir * (CARD_W + GAP) * 3, behavior: "smooth" });
+    trackRef.current?.scrollBy({ left: dir * (dims.w + GAP) * 3, behavior: "smooth" });
   };
+
+  /* Ícones SVG limpos para os botões */
+  const ChevronLeft = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  );
+  const ChevronRight = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  );
 
   return (
     <div className="bg-white select-none border-b border-gray-100 max-w-[1450px] mx-auto">
       <style>{`
         .tt-track::-webkit-scrollbar { display: none; }
-        @keyframes pulse-hot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes pulse-hot { 0%,100%{opacity:1} 50%{opacity:.4} }
         .pulse-hot { animation: pulse-hot 1.8s ease-in-out infinite; }
       `}</style>
 
-      {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-gray-100">
+      {/* ── Cabeçalho ── */}
+      <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-gray-100">
         <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-        <span className="text-[15px] font-black text-gray-900 tracking-tight">
+        <span className="text-sm sm:text-[15px] font-black text-gray-900 tracking-tight">
           Top Tendências
         </span>
-        <span className="text-sm text-gray-400 italic hidden sm:block">
+        <span className="text-xs sm:text-sm text-gray-400 italic hidden sm:block">
           Moda acessível a todos
         </span>
-        <a
-          href="/produtos"
-          className="ml-auto text-sm font-semibold text-green-600 hover:text-green-700 transition-colors whitespace-nowrap"
-        >
-          Ver todos os →
-        </a>
+
+        {/* Botões nav — no header, alinhados à direita */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => manualScroll(-1)}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all duration-150"
+            aria-label="Anterior"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            onClick={() => manualScroll(1)}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all duration-150"
+            aria-label="Próximo"
+          >
+            <ChevronRight />
+          </button>
+          <a
+            href="/produtos"
+            className="hidden sm:inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-green-600 hover:text-green-700 transition-colors whitespace-nowrap ml-1"
+          >
+            Ver todos →
+          </a>
+        </div>
       </div>
 
-      {/* Slider */}
+      {/* ── Slider ── */}
       <div
         className="relative"
         onMouseEnter={() => (pausedRef.current = true)}
         onMouseLeave={() => (pausedRef.current = false)}
       >
-        {/* Left fade */}
-        <div className="absolute left-0 top-0 bottom-0 w-10 z-10 pointer-events-none"
-        />
-        {/* Right fade */}
-        <div className="absolute right-0 top-0 bottom-0 w-10 z-10 pointer-events-none"
-         /> 
-
-        {/* Prev */}
-        <button
-          onClick={() => manualScroll(-1)}
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white border border-gray-200 hover:border-green-500 hover:text-green-600 hover:scale-110 transition-all duration-150 flex items-center justify-center text-lg font-bold text-gray-600 shadow-sm"
-        >
-          ‹
-        </button>
-
-        {/* Next */}
-        <button
-          onClick={() => manualScroll(1)}
-          className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white border border-gray-200 hover:border-green-500 hover:text-green-600 hover:scale-110 transition-all duration-150 flex items-center justify-center text-lg font-bold text-gray-600 shadow-sm"
-        >
-          ›
-        </button>
-
         {/* Track */}
         <div
           ref={trackRef}
@@ -169,17 +133,18 @@ export default function TopTendencias() {
           style={{ scrollbarWidth: "none", gap: GAP }}
         >
           {items.map((item, idx) => {
-            const isHovered = hoveredId === `${item.id}-${idx}`;
+            const key       = `${item.id}-${idx}`;
+            const isHovered = hoveredId === key;
 
             return (
               <div
-                key={`${item.id}-${idx}`}
-                onMouseEnter={() => setHoveredId(`${item.id}-${idx}`)}
+                key={key}
+                onMouseEnter={() => setHoveredId(key)}
                 onMouseLeave={() => setHoveredId(null)}
-                className="relative flex-shrink-0 overflow-hidden cursor-pointer  transition-all duration-300 ease-in-out"
-                style={{ width: isHovered ? CARD_W_HOVER : CARD_W, height: CARD_H }}
+                className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-300 ease-in-out"
+                style={{ width: isHovered ? dims.wh : dims.w, height: dims.h }}
               >
-                {/* Image */}
+                {/* Imagem */}
                 <img
                   src={item.img}
                   alt={item.hashtag}
@@ -188,24 +153,21 @@ export default function TopTendencias() {
                   draggable={false}
                 />
 
-                {/* Gradient overlay */}
+                {/* Gradiente */}
                 <div
-                  className="absolute inset-0  transition-opacity duration-300"
+                  className="absolute inset-0 transition-opacity duration-300"
                   style={{
-                    background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 20%, rgba(0,0,0,0.75) 100%)",
+                    background: "linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.75) 100%)",
                     opacity: isHovered ? 1 : 0.82,
                   }}
                 />
 
-                {/* Green tint on hover */}
+                {/* Verde sutil no hover */}
                 {isHovered && (
-                  <div
-                    className="absolute inset-0  pointer-events-none"
-                    style={{ background: "rgba(0,160,70,0.08)" }}
-                  />
+                  <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(0,160,70,0.08)" }} />
                 )}
 
-                {/* POPULAR badge */}
+                {/* Badge POPULAR */}
                 {item.hot && (
                   <div className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase pulse-hot">
                     POPULAR
@@ -214,26 +176,20 @@ export default function TopTendencias() {
 
                 {/* Tag top-left */}
                 {!item.hot && (
-                  <div
-                    className={`absolute top-2 left-2 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide uppercase ${
-                      item.tag === "Em Alta" ? "bg-green-500" : "bg-green-700"
-                    }`}
-                  >
+                  <div className={`absolute top-2 left-2 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide uppercase ${item.tag === "Em Alta" ? "bg-green-500" : "bg-green-700"}`}>
                     {item.tag}
                   </div>
                 )}
 
-                {/* Bottom content */}
+                {/* Conteúdo inferior */}
                 <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-2">
                   <div className="inline-flex items-center gap-1 bg-green-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 backdrop-blur-sm">
                     <span>↑</span>
                     {item.badge}
                   </div>
-
-                  <p className="text-white font-extrabold text-[13px] leading-snug m-0 drop-shadow">
+                  <p className="text-white font-extrabold text-[12px] sm:text-[13px] leading-snug m-0 drop-shadow">
                     {item.hashtag}
                   </p>
-
                   {isHovered && (
                     <div className="mt-2">
                       <span className="inline-block bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -246,6 +202,13 @@ export default function TopTendencias() {
             );
           })}
         </div>
+      </div>
+
+      {/* Ver todos — mobile only, abaixo do slider */}
+      <div className="sm:hidden flex justify-center pb-3">
+        <a href="/produtos" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
+          Ver todos →
+        </a>
       </div>
     </div>
   );
