@@ -33,7 +33,7 @@ function Cabecalho({ valorPesquisa, aoMudarPesquisa }) {
       <span style={{ fontWeight: 900, fontSize: 22, color: "#00b96b", letterSpacing: -1 }}>MozTicTac</span>
       <input type="text" placeholder="Pesquisar produtos..."
         value={valorPesquisa} onChange={(e) => aoMudarPesquisa(e.target.value)}
-        style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "7px 16px", fontSize: 13, outline: "none", width: 240 }} />
+        style={{ border: "1px solid #e5e7eb", padding: "7px 16px", fontSize: 13, outline: "none", width: 240 }} />
     </header>
   );
 }
@@ -61,7 +61,7 @@ function IcTwitter({ size = 16 }) {
 function Btn({ children, onClick, outline = false, light = false }) {
   const base = {
     display: "inline-flex", alignItems: "center", gap: 8,
-    padding: "13px 28px", borderRadius: 6, fontWeight: 700,
+    padding: "13px 28px", fontWeight: 700,
     fontSize: 13, cursor: "pointer", transition: "all .2s",
     letterSpacing: 0.5, textTransform: "uppercase",
   };
@@ -113,12 +113,12 @@ function Sobre() {
       <div style={{ maxWidth: 1080, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 64, alignItems: "center" }}>
         <div style={{ flex: "1 1 380px", position: "relative", minHeight: 380 }}>
           <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80" alt="Equipa"
-            style={{ width: "75%", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,.12)", display: "block" }} />
+            style={{ width: "75%", boxShadow: "0 12px 40px rgba(0,0,0,.12)", display: "block" }} />
           <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80" alt="Pessoa"
-            style={{ width: "50%", borderRadius: 12, position: "absolute", bottom: 0, right: 0,
+            style={{ width: "50%", position: "absolute", bottom: 0, right: 0,
               boxShadow: "0 12px 40px rgba(0,0,0,.15)", border: "4px solid #fff" }} />
           <div style={{ position: "absolute", top: 24, right: "26%", background: V2, color: "#fff",
-            borderRadius: 10, padding: "18px 22px", textAlign: "center", boxShadow: "0 8px 24px rgba(0,77,46,.35)" }}>
+            padding: "18px 22px", textAlign: "center", boxShadow: "0 8px 24px rgba(0,77,46,.35)" }}>
             <p style={{ fontSize: 32, fontWeight: 900, margin: 0, lineHeight: 1 }}>5+</p>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 4, opacity: .85 }}>Anos de<br/>Experiência</p>
           </div>
@@ -161,7 +161,7 @@ function Stats() {
       <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 32, textAlign: "center" }}>
         {items.map(({ Ic, val, label }) => (
           <div key={label} style={{ color: "#fff" }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid rgba(255,255,255,.3)",
+            <div style={{ width: 52, height: 52,  border: "2px solid rgba(255,255,255,.3)",
               display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
               <Ic size={22} />
             </div>
@@ -196,7 +196,7 @@ function Missao() {
           <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
             {tabs.map((tb, i) => (
               <button key={i} onClick={() => setTab(i)} style={{
-                padding: "9px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer",
                 border: "none", transition: "all .2s",
                 background: tab === i ? V : "#fff", color: tab === i ? "#fff" : "#64748b",
                 boxShadow: tab === i ? "0 4px 14px rgba(0,185,107,.3)" : "0 1px 4px rgba(0,0,0,.08)",
@@ -208,7 +208,7 @@ function Missao() {
         </div>
         <div style={{ flex: "1 1 380px" }}>
           <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=700&q=80" alt="Missão"
-            style={{ width: "100%", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.12)", display: "block" }} />
+            style={{ width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,.12)", display: "block" }} />
         </div>
       </div>
     </section>
@@ -233,11 +233,11 @@ function ComoFunciona() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 24 }}>
           {passos.map(({ num, Ic, titulo, desc }) => (
-            <div key={num} style={{ padding: 28, border: "1px solid #e9f5f0", borderRadius: 14, background: "#f9fffe", transition: "box-shadow .2s", cursor: "default" }}
+            <div key={num} style={{ padding: 28, border: "1px solid #e9f5f0",  background: "#f9fffe", transition: "box-shadow .2s", cursor: "default" }}
               onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,185,107,.15)"}
               onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
               <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: V, textTransform: "uppercase", marginBottom: 16 }}>Passo {num}</p>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
                 <Ic size={22} style={{ color: V }} />
               </div>
               <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 15, marginBottom: 10 }}>{titulo}</p>
@@ -268,10 +268,10 @@ function Valores() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 20 }}>
           {vals.map(({ Ic, t, d }) => (
-            <div key={t} style={{ background: "#fff", borderRadius: 14, padding: 24, border: "1px solid #e9f5f0", transition: "box-shadow .2s", cursor: "default" }}
+            <div key={t} style={{ background: "#fff",  padding: 24, border: "1px solid #e9f5f0", transition: "box-shadow .2s", cursor: "default" }}
               onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,185,107,.12)"}
               onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 44, height: 44, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
                 <Ic size={20} style={{ color: V }} />
               </div>
               <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 15, marginBottom: 8 }}>{t}</p>
@@ -299,12 +299,12 @@ function Equipa() {
           <h2 style={{ fontSize: "clamp(1.7rem,3vw,2.2rem)", fontWeight: 900, color: "#0f1a12", margin: "0 0 8px" }}>
             Servimos com paixão porque<br/><em style={{ fontStyle: "italic", color: V }}>Moçambique é a nossa missão</em>
           </h2>
-          <div style={{ width: 48, height: 3, background: V, margin: "16px auto 0", borderRadius: 4 }} />
+          <div style={{ width: 48, height: 3, background: V, margin: "16px auto 0" }} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 28, marginTop: 48 }}>
           {membros.map(m => (
             <div key={m.nome} style={{ textAlign: "center" }}>
-              <div style={{ position: "relative", paddingBottom: "110%", borderRadius: 14, overflow: "hidden", marginBottom: 16, boxShadow: "0 8px 24px rgba(0,0,0,.1)" }}
+              <div style={{ position: "relative", paddingBottom: "110%",  overflow: "hidden", marginBottom: 16, boxShadow: "0 8px 24px rgba(0,0,0,.1)" }}
                 onMouseEnter={e => { const ov = e.currentTarget.querySelector(".ov"); if (ov) ov.style.opacity = "1"; }}
                 onMouseLeave={e => { const ov = e.currentTarget.querySelector(".ov"); if (ov) ov.style.opacity = "0"; }}>
                 <img src={m.img} alt={m.nome}
@@ -313,7 +313,7 @@ function Equipa() {
                   display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16, opacity: 0, transition: "opacity .3s" }}>
                   <div style={{ display: "flex", gap: 8 }}>
                     {[IcFacebook, IcTwitter, IcInstagram].map((Ic, i) => (
-                      <div key={i} style={{ width: 32, height: 32, borderRadius: 6, background: "#fff",
+                      <div key={i} style={{ width: 32, height: 32, background: "#fff",
                         display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                         <Ic size={14} style={{ color: V2 }} />
                       </div>
@@ -350,11 +350,11 @@ function Depoimentos() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 24 }}>
           {deps.map((d, i) => (
-            <div key={i} style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,.06)", border: "1px solid #e9f5f0" }}>
+            <div key={i} style={{ background: "#fff", padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,.06)", border: "1px solid #e9f5f0" }}>
               <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.8, marginBottom: 24, fontStyle: "italic" }}>"{d.texto}"</p>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <img src={d.img} alt={d.nome} style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover" }} />
+                  <img src={d.img} alt={d.nome} style={{ width: 46, height: 46,  objectFit: "cover" }} />
                   <div>
                     <p style={{ fontWeight: 800, color: "#0f1a12", fontSize: 14, marginBottom: 2 }}>{d.nome}</p>
                     <p style={{ fontSize: 12, color: "#64748b" }}>{d.cargo}</p>
@@ -385,7 +385,7 @@ function Contacto() {
           </p>
           {[{ Ic: Mail, t: "support@moztictac.com" }, { Ic: Phone, t: "+258 844 565 456" }, { Ic: MapPin, t: "Maputo, Moçambique" }].map(({ Ic, t }) => (
             <div key={t} style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: 42, height: 42, background: "#e6f9f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Ic size={17} style={{ color: V }} />
               </div>
               <p style={{ fontSize: 14, color: "#374151" }}>{t}</p>

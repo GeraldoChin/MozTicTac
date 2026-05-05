@@ -109,6 +109,33 @@ const STYLES = `
   .pbs-card:hover .pbs-ring { opacity:1; }
   .pbs-cta  { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:rgba(255,255,255,.8); transition:color .2s; }
   .pbs-card:hover .pbs-cta { color:#fff; }
+
+  /* ── FIX: wrapper que garante largura máxima e padding lateral ── */
+  .pbs-outer {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+  }
+
+  /* ── FIX: grid com colunas fluídas, sem mínimo fixo ── */
+  .pbs-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 900px) {
+    .pbs-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 580px) {
+    .pbs-grid { grid-template-columns: 1fr; }
+  }
 `;
 
 /* ─── BannerCard ─────────────────────────────────────────────────── */
@@ -181,13 +208,11 @@ export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
   /* Clique num card: filtra se estiver na mesma página, navega se não */
   const handleCardClick = useCallback((cat) => {
     if (onFilterChange) {
-      // Dentro da PromoBannersPage — aplica filtro e faz scroll
       onFilterChange(cat);
       setTimeout(() => {
         document.getElementById("deals-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 80);
     } else {
-      // Noutra página — navega para a PromoBannersPage com o filtro como query param
       const target = `${PROMO_PAGE_PATH}?cat=${encodeURIComponent(cat)}`;
       if (navigateTo) {
         navigateTo(target);
@@ -243,9 +268,9 @@ export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
     return () => clearInterval(timerRef.current);
   }, [scheduleAuto]);
 
-  /* Ler ?cat= da URL ao montar (útil quando navegado de outra página) */
+  /* Ler ?cat= da URL ao montar */
   useEffect(() => {
-    if (!onFilterChange) return; // só na PromoBannersPage
+    if (!onFilterChange) return;
     const params = new URLSearchParams(window.location.search);
     const cat = params.get("cat");
     if (cat) onFilterChange(decodeURIComponent(cat));
@@ -259,7 +284,9 @@ export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
     <>
       <style>{STYLES}</style>
 
-      <div>
+      {/* ── pbs-outer: limita largura e centra, igual ao max-w-7xl da PromoBannersPage ── */}
+      <div className="pbs-outer">
+
         {/* ── Header ── */}
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -302,8 +329,8 @@ export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
           </div>
         </div>
 
-        {/* ── Cards ── */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        {/* ── Cards — grid fluído sem mínimo fixo ── */}
+        <div className="pbs-grid">
           {visibleBanners.map((banner, i) => (
             <BannerCard
               key={banner.cat}
@@ -332,6 +359,7 @@ export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
             />
           ))}
         </div>
+
       </div>
     </>
   );
