@@ -1,28 +1,5 @@
-/**
- * PromoBannersSlider
- *
- * Props:
- *  - onFilterChange(cat)  — quando usado DENTRO da PromoBannersPage, recebe a função de filtro
- *  - navigateTo(path)     — quando usado FORA da PromoBannersPage, recebe a função de navegação
- *                           (ex: React Router → useNavigate, ou Next.js → useRouter().push)
- *                           Se não for passado mas onFilterChange também não for, usa window.location
- *
- * Uso dentro da PromoBannersPage:
- *   <PromoBannersSlider onFilterChange={handleFilterChange} />
- *
- * Uso noutra página (React Router):
- *   import { useNavigate } from "react-router-dom";
- *   const navigate = useNavigate();
- *   <PromoBannersSlider navigateTo={(path) => navigate(path)} />
- *
- * Uso noutra página (Next.js):
- *   import { useRouter } from "next/navigation";
- *   const router = useRouter();
- *   <PromoBannersSlider navigateTo={(path) => router.push(path)} />
- */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-
 /* ─── Rota da PromoBannersPage — ajusta conforme o teu router ─── */
 const PROMO_PAGE_PATH = "/promocoes"; // ex: "/deals", "/home", etc.
 
@@ -363,4 +340,4 @@ export default function PromoBannersSlider({ onFilterChange, navigateTo }) {
       </div>
     </>
   );
-}
+} 

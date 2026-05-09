@@ -8,6 +8,11 @@ import {
 } from "lucide-react";
 import { Header } from "../../components/Header";
 import { Navbar } from "../../components/Navbar";
+import { CategoryBar } from "../../components/CategoryBar";
+import PromoBannersSlider from "../../components/PromoBannerSlider";
+import Rodape from "../../components/Rodape";
+import { FashionProducts } from "../../components/FashionProducts";
+import Relampago from "../../components/Relampago";
 /* ─── TOKENS ───────────────────────────────────────────────────── */
 const G  = "#00b96b";
 const GD = "#009a5a";
@@ -369,40 +374,6 @@ function SectionHead({ icon: Icon, title, sub, cta }) {
   );
 }
 
-/* ─── FEATURED ROW (horizontal scroll) ────────────────────────── */
-function FeaturedRow() {
-  const featured = ALL_PRODUCTS.filter(p => p.featured);
-  const ref = useRef(null);
-
-  const scroll = dir => {
-    if (ref.current) ref.current.scrollLeft += dir * 260;
-  };
-
-  return (
-    <section className="py-8 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between mb-5">
-          <SectionHead icon={Sparkles} title="Em Destaque" sub="Seleccionados para si" />
-          <div className="flex gap-2">
-            <button onClick={() => scroll(-1)} className="w-8 h-8 rounded-xl border border-gray-200 flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors bg-white">
-              <ChevronLeft size={15} className="text-gray-500" />
-            </button>
-            <button onClick={() => scroll(1)} className="w-8 h-8 rounded-xl border border-gray-200 flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors bg-white">
-              <ChevronRight size={15} className="text-gray-500" />
-            </button>
-          </div>
-        </div>
-        <div ref={ref} className="flex gap-4 overflow-x-auto pb-2" style={{ scrollBehavior: "smooth", scrollbarWidth: "none" }}>
-          {featured.map(p => (
-            <div key={p.id} className="flex-shrink-0 w-52">
-              <ProductCard p={p} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ─── DEALS / HOT ──────────────────────────────────────────────── */
 function HotDeals() {
@@ -647,47 +618,10 @@ function ProductGrid() {
   );
 }
 
-/* ─── FOOTER ───────────────────────────────────────────────────── */
-function Footer() {
-  return (
-    <footer className="bg-gray-900 text-gray-400 py-12 mt-4">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-          <div>
-            <div className="text-xl font-black mb-3" style={{ fontFamily: "'Syne',sans-serif", color: G }}>
-              Moz<span className="text-white">TicTac</span>
-            </div>
-            <p className="text-xs leading-relaxed">O marketplace de confiança de Moçambique. Compra, vende e conecta.</p>
-          </div>
-          {[
-            { title:"Comprar",   links:["Todos os Produtos","Promoções","Novidades","Mais Vendidos"] },
-            { title:"Vender",    links:["Criar Loja","Afiliados","Publicar Anúncio","Painel Vendedor"] },
-            { title:"Suporte",   links:["Central de Ajuda","Política de Devoluções","Contacto","Segurança"] },
-          ].map(col => (
-            <div key={col.title}>
-              <p className="text-xs font-black uppercase tracking-wider text-white mb-3" style={{ fontFamily: "'Syne',sans-serif" }}>{col.title}</p>
-              <ul className="space-y-2">
-                {col.links.map(l => <li key={l}><a href="#" className="text-xs hover:text-white transition-colors">{l}</a></li>)}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className="border-t border-gray-800 pt-6 flex flex-wrap items-center justify-between gap-4">
-          <p className="text-xs">© 2026 MozTicTac. Todos os direitos reservados.</p>
-          <div className="flex items-center gap-2 flex-wrap">
-            {["M-Pesa","E-Mola","mKesh","Visa","Mastercard"].map(p => (
-              <span key={p} className="text-[10px] font-bold px-2.5 py-1 rounded-lg border border-gray-700 text-gray-400">{p}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 /* ─── APP ──────────────────────────────────────────────────────── */
 export default function ShopPage() {
   const [activeCat, setActiveCat] = useState("Todos");
+  const [activeFilter, setActiveFilter] = useState("Todos"); // ← adiciona esta linha
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'DM Sans',sans-serif" }}>
@@ -706,12 +640,12 @@ export default function ShopPage() {
       <Navbar/>
       <Hero />
       <TrustBar />
-      <CategoryGrid onSelectCat={setActiveCat} />
-      <BannerStrip />
-      <FeaturedRow />
-      <HotDeals />
-      <ProductGrid />
-      <Footer />
+      <CategoryBar/>
+      <PromoBannersSlider />
+      {/* <FeaturedRow /> */}
+      <Relampago activeFilter={activeFilter} onFilterChange={setActiveFilter} />  {/* ← props */}
+      <FashionProducts />
+      <Rodape />
     </div>
   );
 }

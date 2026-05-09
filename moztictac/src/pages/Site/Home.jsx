@@ -12,7 +12,7 @@ import { TrendingNow } from "../../components/TrendingNow";
 import { BlogSection } from "../../components/BlogSection";
 import { BrandsBar } from "../../components/Marcas";
 import { Newsletter } from "../../components/Newsletter";
-import { Rodape } from "../../components/Rodape";
+import Rodape from "../../components/Rodape";
 import TopTendencias from "../../components/Trendinghero";
 import PromoBannersSlider from "../../components/PromoBannerSlider";
 
