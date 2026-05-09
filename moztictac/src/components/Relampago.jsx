@@ -156,100 +156,112 @@ export default function Relampago({ activeFilter, onFilterChange }) {
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
-    <div id="deals-section">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-5">
-          <div>
-            <h2 className="text-xl font-black text-gray-900">⚡ Flash Deals</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{filtered.length} oferta{filtered.length !== 1 ? "s" : ""} disponíveis</p>
+    <section className="py-8 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div id="deals-section">
+
+          {/* ── Header ── */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div className="flex items-center gap-5">
+              <div>
+                <h2 className="text-xl font-black text-gray-900">⚡ Flash Deals</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{filtered.length} oferta{filtered.length !== 1 ? "s" : ""} disponíveis</p>
+              </div>
+              <Countdown />
+            </div>
+            <select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }}
+              className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200 rounded-xl px-3 py-2 cursor-pointer outline-none"
+              style={{ fontFamily: "Manrope, sans-serif" }}>
+              <option value="">Ordenar por</option>
+              <option value="price-asc">Preço ↑</option>
+              <option value="price-desc">Preço ↓</option>
+              <option value="discount">Maior desconto</option>
+            </select>
           </div>
-          <Countdown />
-        </div>
-        <select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }}
-          className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200 rounded-xl px-3 py-2 cursor-pointer outline-none"
-          style={{ fontFamily: "Manrope, sans-serif" }}>
-          <option value="">Ordenar por</option>
-          <option value="price-asc">Preço ↑</option>
-          <option value="price-desc">Preço ↓</option>
-          <option value="discount">Maior desconto</option>
-        </select>
-      </div>
 
-      <div className="flex gap-2 flex-wrap mb-4">
-        {CATS.map(cat => (
-          <button key={cat} onClick={() => { onFilterChange(cat); setPage(1); }}
-            className="px-3.5 py-1.5 rounded-full text-[11px] font-bold border-none cursor-pointer transition-all duration-150"
-            style={activeFilter === cat
-              ? { background: GREEN, color: "#fff" }
-              : { background: "#f3f4f6", color: "#4b5563" }}>
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-1 mb-5 w-fit">
-        {["Todos","Novos","Mais Vendidos","Melhor Avaliados"].map(t => (
-          <button key={t} onClick={() => { setTab(t); setPage(1); }}
-            className="px-3.5 py-1.5 text-[11px] font-bold border-none cursor-pointer transition-all duration-150"
-            style={tab === t ? { background: GREEN, color: "#fff" } : { background: "transparent", color: "#6b7280" }}>
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {activeFilter !== "Todos" && (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs text-gray-500">Filtrado por:</span>
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-            style={{ background: GREEN_LIGHT, color: GREEN }}>
-            {activeFilter}
-            <button onClick={() => { onFilterChange("Todos"); setPage(1); }}
-              className="border-none bg-transparent cursor-pointer font-black text-base leading-none"
-              style={{ color: GREEN }}>×</button>
-          </span>
-        </div>
-      )}
-
-      {paginated.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
+          {/* ── Categorias ── */}
+          <div className="flex gap-2 flex-wrap mb-4">
+            {CATS.map(cat => (
+              <button key={cat} onClick={() => { onFilterChange(cat); setPage(1); }}
+                className="px-3.5 py-1.5 rounded-full text-[11px] font-bold border-none cursor-pointer transition-all duration-150"
+                style={activeFilter === cat
+                  ? { background: GREEN, color: "#fff" }
+                  : { background: "#f3f4f6", color: "#4b5563" }}>
+                {cat}
+              </button>
+            ))}
           </div>
-          <p className="text-sm font-bold text-gray-600">Nenhuma oferta encontrada</p>
-          <p className="text-xs text-gray-400 mt-1">Tenta outra categoria ou remove os filtros</p>
-          <button onClick={() => { onFilterChange("Todos"); setTab("Todos"); setPage(1); }}
-            className="mt-4 px-5 py-2 rounded-full text-xs font-black text-white border-none cursor-pointer"
-            style={{ background: GREEN }}>
-            Ver todas as ofertas
-          </button>
-        </div>
-      ) : (
-        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
-          {paginated.map(d => (
-            <DealCard key={d.id} d={d} wished={wishlist.has(d.id)} onWish={toggleWish} />
-          ))}
-        </div>
-      )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-8">
-          <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1}
-            className="w-8 h-8 border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
-            style={{ background:"#fff", color:"#4b5563", borderColor:"#e5e7eb", opacity: page===1 ? 0.4 : 1 }}>‹</button>
-          {Array.from({ length: totalPages }).map((_,i) => (
-            <button key={i} onClick={() => setPage(i+1)}
-              className="w-8 h-8 border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
-              style={page===i+1 ? { background:GREEN, color:"#fff", borderColor:GREEN } : { background:"#fff", color:"#4b5563", borderColor:"#e5e7eb" }}>
-              {i+1}
-            </button>
-          ))}
-          <button onClick={() => setPage(p => Math.min(totalPages,p+1))} disabled={page===totalPages}
-            className="w-8 h-8 border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
-            style={{ background:"#fff", color:"#4b5563", borderColor:"#e5e7eb", opacity: page===totalPages ? 0.4 : 1 }}>›</button>
+          {/* ── Tabs ── */}
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-1 mb-5 w-fit">
+            {["Todos","Novos","Mais Vendidos","Melhor Avaliados"].map(t => (
+              <button key={t} onClick={() => { setTab(t); setPage(1); }}
+                className="px-3.5 py-1.5 text-[11px] font-bold border-none cursor-pointer transition-all duration-150"
+                style={tab === t ? { background: GREEN, color: "#fff" } : { background: "transparent", color: "#6b7280" }}>
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Filtro activo ── */}
+          {activeFilter !== "Todos" && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs text-gray-500">Filtrado por:</span>
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                style={{ background: GREEN_LIGHT, color: GREEN }}>
+                {activeFilter}
+                <button onClick={() => { onFilterChange("Todos"); setPage(1); }}
+                  className="border-none bg-transparent cursor-pointer font-black text-base leading-none"
+                  style={{ color: GREEN }}>×</button>
+              </span>
+            </div>
+          )}
+
+          {/* ── Grid / Empty ── */}
+          {paginated.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+              </div>
+              <p className="text-sm font-bold text-gray-600">Nenhuma oferta encontrada</p>
+              <p className="text-xs text-gray-400 mt-1">Tenta outra categoria ou remove os filtros</p>
+              <button onClick={() => { onFilterChange("Todos"); setTab("Todos"); setPage(1); }}
+                className="mt-4 px-5 py-2 rounded-full text-xs font-black text-white border-none cursor-pointer"
+                style={{ background: GREEN }}>
+                Ver todas as ofertas
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {paginated.map(d => (
+                <DealCard key={d.id} d={d} wished={wishlist.has(d.id)} onWish={toggleWish} />
+              ))}
+            </div>
+          )}
+
+          {/* ── Paginação ── */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1}
+                className="w-8 h-8 border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
+                style={{ background:"#fff", color:"#4b5563", borderColor:"#e5e7eb", opacity: page===1 ? 0.4 : 1 }}>‹</button>
+              {Array.from({ length: totalPages }).map((_,i) => (
+                <button key={i} onClick={() => setPage(i+1)}
+                  className="w-8 h-8 border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
+                  style={page===i+1 ? { background:GREEN, color:"#fff", borderColor:GREEN } : { background:"#fff", color:"#4b5563", borderColor:"#e5e7eb" }}>
+                  {i+1}
+                </button>
+              ))}
+              <button onClick={() => setPage(p => Math.min(totalPages,p+1))} disabled={page===totalPages}
+                className="w-8 h-8 border text-xs font-bold cursor-pointer flex items-center justify-center transition-all"
+                style={{ background:"#fff", color:"#4b5563", borderColor:"#e5e7eb", opacity: page===totalPages ? 0.4 : 1 }}>›</button>
+            </div>
+          )}
+
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
 }

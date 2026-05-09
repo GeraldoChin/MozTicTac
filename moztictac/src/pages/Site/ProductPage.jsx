@@ -13,6 +13,7 @@ import PromoBannersSlider from "../../components/PromoBannerSlider";
 import Rodape from "../../components/Rodape";
 import { FashionProducts } from "../../components/FashionProducts";
 import Relampago from "../../components/Relampago";
+import  { Heroproduct } from "../../components/Heroproduct";
 /* ─── TOKENS ───────────────────────────────────────────────────── */
 const G  = "#00b96b";
 const GD = "#009a5a";
@@ -185,87 +186,87 @@ function ProductCard({ p, size = "normal" }) {
   );
 }
 
-/* ─── HERO CAROUSEL ────────────────────────────────────────────── */
-function Hero() {
-  const [idx, setIdx] = useState(0);
-  const s = HERO_SLIDES[idx];
+// /* ─── HERO CAROUSEL ────────────────────────────────────────────── */
+// function Hero() {
+//   const [idx, setIdx] = useState(0);
+//   const s = HERO_SLIDES[idx];
 
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % HERO_SLIDES.length), 5000);
-    return () => clearInterval(t);
-  }, []);
+//   useEffect(() => {
+//     const t = setInterval(() => setIdx(i => (i + 1) % HERO_SLIDES.length), 5000);
+//     return () => clearInterval(t);
+//   }, []);
 
-  return (
-    <div className={`relative overflow-hidden bg-gradient-to-r ${s.bg} transition-all duration-700`} style={{ minHeight: 400 }}>
-      {/* bg image */}
-      <div className="absolute inset-0">
-        <img src={s.img} alt="" className="w-full h-full object-cover opacity-20 transition-all duration-700" />
-        <div className={`absolute inset-0 bg-gradient-to-r ${s.bg} opacity-80`} />
-      </div>
+//   return (
+//     <div className={`relative overflow-hidden bg-gradient-to-r ${s.bg} transition-all duration-700`} style={{ minHeight: 400 }}>
+//       {/* bg image */}
+//       <div className="absolute inset-0">
+//         <img src={s.img} alt="" className="w-full h-full object-cover opacity-20 transition-all duration-700" />
+//         <div className={`absolute inset-0 bg-gradient-to-r ${s.bg} opacity-80`} />
+//       </div>
 
-      {/* content */}
-      <div className="relative max-w-7xl mx-auto px-6 py-16 flex items-center justify-between gap-8">
-        <div className="max-w-xl">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full mb-4"
-            style={{ background: "rgba(255,255,255,.15)", color: "#fff", backdropFilter: "blur(8px)" }}>
-            <Sparkles size={11} /> {s.tag}
-          </span>
-          <h1 className="text-4xl lg:text-5xl font-black text-white leading-tight mb-2"
-            style={{ fontFamily: "'Syne',sans-serif" }}>
-            {s.title}
-          </h1>
-          <p className="text-lg font-medium mb-2" style={{ color: s.accent }}>{s.subtitle}</p>
-          <p className="text-sm text-white/70 mb-8 leading-relaxed max-w-md">{s.desc}</p>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 border-none cursor-pointer"
-              style={{ background: s.accent }}>
-              {s.cta} <ArrowRight size={15} />
-            </button>
-            <button className="px-6 py-3 rounded-2xl text-sm font-bold border-2 border-white/30 text-white cursor-pointer transition-all hover:bg-white/10 bg-transparent">
-              Ver tudo
-            </button>
-          </div>
-        </div>
+//       {/* content */}
+//       <div className="relative max-w-7xl mx-auto px-6 py-16 flex items-center justify-between gap-8">
+//         <div className="max-w-xl">
+//           <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full mb-4"
+//             style={{ background: "rgba(255,255,255,.15)", color: "#fff", backdropFilter: "blur(8px)" }}>
+//             <Sparkles size={11} /> {s.tag}
+//           </span>
+//           <h1 className="text-4xl lg:text-5xl font-black text-white leading-tight mb-2"
+//             style={{ fontFamily: "'Syne',sans-serif" }}>
+//             {s.title}
+//           </h1>
+//           <p className="text-lg font-medium mb-2" style={{ color: s.accent }}>{s.subtitle}</p>
+//           <p className="text-sm text-white/70 mb-8 leading-relaxed max-w-md">{s.desc}</p>
+//           <div className="flex items-center gap-3">
+//             <button className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 border-none cursor-pointer"
+//               style={{ background: s.accent }}>
+//               {s.cta} <ArrowRight size={15} />
+//             </button>
+//             <button className="px-6 py-3 rounded-2xl text-sm font-bold border-2 border-white/30 text-white cursor-pointer transition-all hover:bg-white/10 bg-transparent">
+//               Ver tudo
+//             </button>
+//           </div>
+//         </div>
 
-        {/* hero image card */}
-        <div className="hidden lg:block relative">
-          <div className="w-72 h-72 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-white/20">
-            <img src={s.img} alt="" className="w-full h-full object-cover" />
-          </div>
-          {/* floating badge */}
-          <div className="absolute -bottom-4 -left-6 bg-white rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: GL }}>
-              <TrendingUp size={16} style={{ color: G }} />
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">Vendas hoje</p>
-              <p className="text-sm font-black text-gray-900">+1.240</p>
-            </div>
-          </div>
-        </div>
-      </div>
+//         {/* hero image card */}
+//         <div className="hidden lg:block relative">
+//           <div className="w-72 h-72 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-white/20">
+//             <img src={s.img} alt="" className="w-full h-full object-cover" />
+//           </div>
+//           {/* floating badge */}
+//           <div className="absolute -bottom-4 -left-6 bg-white rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3">
+//             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: GL }}>
+//               <TrendingUp size={16} style={{ color: G }} />
+//             </div>
+//             <div>
+//               <p className="text-xs text-gray-400">Vendas hoje</p>
+//               <p className="text-sm font-black text-gray-900">+1.240</p>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
 
-      {/* dots */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
-        {HERO_SLIDES.map((_, i) => (
-          <button key={i} onClick={() => setIdx(i)}
-            className="rounded-full transition-all border-none cursor-pointer"
-            style={{ width: i === idx ? 24 : 8, height: 8, background: i === idx ? "#fff" : "rgba(255,255,255,.4)" }} />
-        ))}
-      </div>
+//       {/* dots */}
+//       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+//         {HERO_SLIDES.map((_, i) => (
+//           <button key={i} onClick={() => setIdx(i)}
+//             className="rounded-full transition-all border-none cursor-pointer"
+//             style={{ width: i === idx ? 24 : 8, height: 8, background: i === idx ? "#fff" : "rgba(255,255,255,.4)" }} />
+//         ))}
+//       </div>
 
-      {/* arrows */}
-      <button onClick={() => setIdx(i => (i - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white border-none cursor-pointer hover:bg-white/30 transition-all backdrop-blur-sm">
-        <ChevronLeft size={18} />
-      </button>
-      <button onClick={() => setIdx(i => (i + 1) % HERO_SLIDES.length)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white border-none cursor-pointer hover:bg-white/30 transition-all backdrop-blur-sm">
-        <ChevronRight size={18} />
-      </button>
-    </div>
-  );
-}
+//       {/* arrows */}
+//       <button onClick={() => setIdx(i => (i - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
+//         className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white border-none cursor-pointer hover:bg-white/30 transition-all backdrop-blur-sm">
+//         <ChevronLeft size={18} />
+//       </button>
+//       <button onClick={() => setIdx(i => (i + 1) % HERO_SLIDES.length)}
+//         className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white border-none cursor-pointer hover:bg-white/30 transition-all backdrop-blur-sm">
+//         <ChevronRight size={18} />
+//       </button>
+//     </div>
+//   );
+// }
 
 /* ─── TRUST BAR ────────────────────────────────────────────────── */
 function TrustBar() {
@@ -294,329 +295,6 @@ function TrustBar() {
   );
 }
 
-/* ─── CATEGORIES ───────────────────────────────────────────────── */
-function CategoryGrid({ onSelectCat }) {
-  return (
-    <section className="py-10 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-gray-900" style={{ fontFamily: "'Syne',sans-serif" }}>
-            Categorias
-          </h2>
-          <button className="text-sm font-semibold flex items-center gap-1 border-none bg-transparent cursor-pointer hover:underline" style={{ color: G }}>
-            Ver todas <ArrowRight size={14} />
-          </button>
-        </div>
-        <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
-          {CATEGORIES.map(c => (
-            <button key={c.name} onClick={() => onSelectCat(c.name)}
-              className="flex flex-col items-center gap-2 group cursor-pointer bg-transparent border-none">
-              <div className="w-full aspect-square rounded-2xl overflow-hidden relative shadow-sm group-hover:-translate-y-1 transition-transform duration-200">
-                <img src={c.img} alt={c.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-bold text-gray-800" style={{ fontFamily: "'Syne',sans-serif" }}>{c.name}</p>
-                <p className="text-[10px] text-gray-400">{c.count} items</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── BANNER STRIP ─────────────────────────────────────────────── */
-function BannerStrip() {
-  const banners = [
-    { title:"Óculos & Acessórios", sub:"Mínimo 45% desconto", cta:"Compre agora", bg:"from-slate-800 to-slate-700", img:"https://images.unsplash.com/photo-1588516903720-8ceb67f9ef84?w=400&q=80" },
-    { title:"Calçados & Sapatos",  sub:"Até 75% de desconto",  cta:"Compre agora", bg:"from-red-900 to-red-700",    img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" },
-    { title:"Acessórios Premium",  sub:"Mínimo 45% desconto",  cta:"Compre agora", bg:"from-gray-800 to-gray-600",  img:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80" },
-  ];
-  return (
-    <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-3 gap-4">
-      {banners.map(b => (
-        <div key={b.title} className={`relative rounded-2xl overflow-hidden bg-gradient-to-br ${b.bg} cursor-pointer group`} style={{ minHeight: 140 }}>
-          <img src={b.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity" />
-          <div className="relative p-5">
-            <p className="text-[11px] font-semibold text-white/60 mb-1">{b.sub}</p>
-            <h3 className="text-base font-black text-white mb-3" style={{ fontFamily: "'Syne',sans-serif" }}>{b.title}</h3>
-            <span className="text-xs font-bold text-white flex items-center gap-1 hover:gap-2 transition-all">
-              {b.cta} <ChevronRight size={13} />
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─── SECTION HEADER ───────────────────────────────────────────── */
-function SectionHead({ icon: Icon, title, sub, cta }) {
-  return (
-    <div className="flex items-center justify-between mb-5">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: GL }}>
-          <Icon size={16} style={{ color: G }} />
-        </div>
-        <div>
-          <h2 className="text-lg font-black text-gray-900" style={{ fontFamily: "'Syne',sans-serif" }}>{title}</h2>
-          {sub && <p className="text-xs text-gray-400">{sub}</p>}
-        </div>
-      </div>
-      {cta && (
-        <button className="text-sm font-semibold flex items-center gap-1 border-none bg-transparent cursor-pointer" style={{ color: G }}>
-          {cta} <ArrowRight size={14} />
-        </button>
-      )}
-    </div>
-  );
-}
-
-
-/* ─── DEALS / HOT ──────────────────────────────────────────────── */
-function HotDeals() {
-  const deals = ALL_PRODUCTS.filter(p => p.originalPrice).slice(0, 4);
-  const [time, setTime] = useState({ h: 5, m: 47, s: 23 });
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setTime(prev => {
-        let { h, m, s } = prev;
-        s--; if (s < 0) { s = 59; m--; } if (m < 0) { m = 59; h--; } if (h < 0) h = 0;
-        return { h, m, s };
-      });
-    }, 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const pad = n => String(n).padStart(2, "0");
-
-  return (
-    <section className="py-8 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "#fef2f2" }}>
-              <Flame size={16} className="text-red-500" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-gray-900" style={{ fontFamily: "'Syne',sans-serif" }}>Ofertas Relâmpago</h2>
-              <p className="text-xs text-gray-400">Termina em</p>
-            </div>
-            {/* countdown */}
-            <div className="flex items-center gap-1 ml-2">
-              {[pad(time.h), pad(time.m), pad(time.s)].map((v, i) => (
-                <span key={i} className="flex items-center gap-1">
-                  <span className="bg-gray-900 text-white text-xs font-black px-2 py-1 rounded-lg tabular-nums">{v}</span>
-                  {i < 2 && <span className="text-gray-500 font-bold text-xs">:</span>}
-                </span>
-              ))}
-            </div>
-          </div>
-          <button className="text-sm font-semibold flex items-center gap-1 border-none bg-transparent cursor-pointer" style={{ color: G }}>
-            Ver todas <ArrowRight size={14} />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {deals.map(p => <ProductCard key={p.id} p={p} />)}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── SIDEBAR ──────────────────────────────────────────────────── */
-function Sidebar({ filters, setFilters, onClear }) {
-  return (
-    <aside className="w-52 flex-shrink-0 bg-white border border-gray-200 rounded-2xl p-5 sticky top-20 self-start shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-black text-gray-900" style={{ fontFamily: "'Syne',sans-serif" }}>Filtros</span>
-        <button onClick={onClear} className="text-[11px] font-semibold border-none bg-transparent cursor-pointer hover:underline" style={{ color: G }}>
-          Limpar
-        </button>
-      </div>
-      <hr className="border-gray-100 mb-4" />
-
-      {/* Província */}
-      <div className="mb-5">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Província</label>
-        <div className="relative">
-          <select value={filters.province} onChange={e => setFilters(f => ({ ...f, province: e.target.value }))}
-            className="w-full text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 appearance-none outline-none cursor-pointer focus:border-green-400">
-            {PROVINCES.map(p => <option key={p}>{p}</option>)}
-          </select>
-          <ChevronDown size={11} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-        </div>
-      </div>
-
-      {/* Preço */}
-      <div className="mb-5">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Preço (MZN)</label>
-        <div className="flex gap-1.5">
-          {[["priceMin","Mín"],["priceMax","Máx"]].map(([k, ph]) => (
-            <input key={k} type="number" placeholder={ph} value={filters[k]}
-              onChange={e => setFilters(f => ({ ...f, [k]: e.target.value }))}
-              className="w-full text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 outline-none focus:border-green-400" />
-          ))}
-        </div>
-      </div>
-
-      {/* Estado */}
-      <div className="mb-5">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Estado</label>
-        {[["todos","Todos"],["novo","Novo"],["usado","Usado"]].map(([v, l]) => (
-          <div key={v} className="flex items-center gap-2 cursor-pointer mb-2" onClick={() => setFilters(f => ({ ...f, estado: v }))}>
-            <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ borderColor: filters.estado === v ? G : "#d1d5db" }}>
-              {filters.estado === v && <div className="w-2 h-2 rounded-full" style={{ background: G }} />}
-            </div>
-            <span className={`text-sm ${filters.estado === v ? "text-gray-800 font-medium" : "text-gray-500"}`}>{l}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Tipo */}
-      <div className="mb-5">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Tipo</label>
-        {[["todos","Todos"],["produto","Produto físico"],["servico","Serviço"]].map(([v, l]) => (
-          <div key={v} className="flex items-center gap-2 cursor-pointer mb-2" onClick={() => setFilters(f => ({ ...f, tipo: v }))}>
-            <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ borderColor: filters.tipo === v ? G : "#d1d5db" }}>
-              {filters.tipo === v && <div className="w-2 h-2 rounded-full" style={{ background: G }} />}
-            </div>
-            <span className={`text-sm ${filters.tipo === v ? "text-gray-800 font-medium" : "text-gray-500"}`}>{l}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Toggles */}
-      {[["delivery","Com entrega"],["affiliate","Aceita afiliados"]].map(([k, label]) => (
-        <div key={k} className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setFilters(f => ({ ...f, [k]: !f[k] }))}>
-          <span className="text-sm text-gray-600">{label}</span>
-          <div className="w-9 h-5 rounded-full relative flex-shrink-0 transition-colors" style={{ background: filters[k] ? G : "#e5e7eb" }}>
-            <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
-              style={{ transform: filters[k] ? "translateX(18px)" : "translateX(2px)" }} />
-          </div>
-        </div>
-      ))}
-    </aside>
-  );
-}
-
-/* ─── MAIN PRODUCT GRID ────────────────────────────────────────── */
-function ProductGrid() {
-  const [tab, setTab]           = useState("Todos");
-  const [search, setSearch]     = useState("");
-  const [showSidebar, setShow]  = useState(true);
-  const [filters, setFilters]   = useState({
-    province:"Todas", priceMin:"", priceMax:"", estado:"todos", tipo:"todos", delivery:false, affiliate:false,
-  });
-
-  function clearFilters() {
-    setFilters({ province:"Todas", priceMin:"", priceMax:"", estado:"todos", tipo:"todos", delivery:false, affiliate:false });
-  }
-
-  const hasFilters = filters.province !== "Todas" || filters.priceMin || filters.priceMax ||
-    filters.estado !== "todos" || filters.tipo !== "todos" || filters.delivery || filters.affiliate;
-
-  const products = useMemo(() => {
-    let list = [...ALL_PRODUCTS];
-    if (tab === "Novos")            list = list.filter(p => p.isNew);
-    if (tab === "Mais Vendidos")    list = [...list].sort((a,b) => b.reviews - a.reviews);
-    if (tab === "Melhor Avaliados") list = [...list].sort((a,b) => b.rating  - a.rating);
-
-    const q = search.toLowerCase().trim();
-    if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
-    if (filters.province !== "Todas") list = list.filter(p => p.province === filters.province);
-    if (filters.priceMin) list = list.filter(p => p.price >= +filters.priceMin);
-    if (filters.priceMax) list = list.filter(p => p.price <= +filters.priceMax);
-    if (filters.estado === "novo")  list = list.filter(p => p.isNew);
-    if (filters.estado === "usado") list = list.filter(p => !p.isNew);
-    if (filters.tipo === "produto") list = list.filter(p => p.type === "produto");
-    if (filters.tipo === "servico") list = list.filter(p => p.type === "servico");
-    if (filters.delivery)  list = list.filter(p => p.hasDelivery);
-    if (filters.affiliate) list = list.filter(p => p.hasAffiliate);
-    return list;
-  }, [tab, search, filters]);
-
-  return (
-    <section className="py-8 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* toolbar */}
-        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: GL }}>
-              <Store size={16} style={{ color: G }} />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-gray-900" style={{ fontFamily: "'Syne',sans-serif" }}>Todos os Produtos</h2>
-              <p className="text-xs text-gray-400">{products.length} resultado{products.length !== 1 ? "s" : ""}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* search mini */}
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Pesquisar…"
-                className="pl-8 pr-3 py-2 text-xs bg-white border border-gray-200 rounded-xl outline-none w-40 focus:border-green-400 transition-colors" />
-              {search && <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 border-none bg-transparent cursor-pointer"><X size={11} /></button>}
-            </div>
-
-            {/* tabs */}
-            <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5">
-              {TABS.map(t => (
-                <button key={t} onClick={() => setTab(t)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg cursor-pointer border-none transition-all"
-                  style={tab === t ? { background: G, color: "#fff" } : { background: "transparent", color: "#6b7280" }}>
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            {/* filter toggle */}
-            <button onClick={() => setShow(v => !v)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer"
-              style={showSidebar ? { borderColor: G, color: G, background: GL } : { borderColor: "#e5e7eb", color: "#6b7280", background: "#fff" }}>
-              <SlidersHorizontal size={13} />
-              Filtros
-              {hasFilters && <span className="w-1.5 h-1.5 rounded-full" style={{ background: G }} />}
-            </button>
-          </div>
-        </div>
-
-        <div className="flex gap-5 items-start">
-          {showSidebar && <Sidebar filters={filters} setFilters={setFilters} onClear={clearFilters} />}
-
-          <div className="flex-1 min-w-0">
-            {products.length === 0 ? (
-              <div className="flex flex-col items-center py-20 text-center">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                  <Search size={24} className="text-gray-300" />
-                </div>
-                <p className="text-sm font-semibold text-gray-500">Nenhum produto encontrado</p>
-                <p className="text-xs text-gray-400 mt-1">Ajuste os filtros ou pesquise outra coisa</p>
-                <button onClick={clearFilters}
-                  className="mt-4 text-sm font-bold px-5 py-2.5 rounded-xl text-white border-none cursor-pointer hover:opacity-90"
-                  style={{ background: G }}>
-                  Limpar filtros
-                </button>
-              </div>
-            ) : (
-              <div className={`grid gap-4 ${showSidebar ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-4" : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5"}`}>
-                {products.map(p => <ProductCard key={p.id} p={p} />)}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ─── APP ──────────────────────────────────────────────────────── */
 export default function ShopPage() {
@@ -638,7 +316,7 @@ export default function ShopPage() {
       {/* ── SECTIONS ── */}
       <Header />
       <Navbar/>
-      <Hero />
+      <Heroproduct />
       <TrustBar />
       <CategoryBar/>
       <PromoBannersSlider />
