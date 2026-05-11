@@ -462,9 +462,9 @@ export default function PromoBannersPage() {
         {/* Deals */}
 <Relampago activeFilter={activeFilter} onFilterChange={handleFilterChange} />
         {/* Newsletter */}
-        <Newsletter2 />
    
       </div>
+       <Newsletter2 />
            <Rodape />
     </div>
   );

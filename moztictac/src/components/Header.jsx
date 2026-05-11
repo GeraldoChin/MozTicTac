@@ -52,183 +52,76 @@ const MENUS_DROPDOWN = [
 /* ── Dropdown conta (desktop) ── */
 function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
   return (
-    <>
-      <div style={{
-        position: "absolute", top: "calc(100% + 4px)", left: "50%",
-        transform: "translateX(-50%)", width: 0, height: 0,
-        borderLeft: "7px solid transparent", borderRight: "7px solid transparent",
-        borderBottom: "7px solid #fff",
-        filter: "drop-shadow(0 -1px 1px rgba(0,0,0,0.06))",
-        opacity: visivel ? 1 : 0, transition: "opacity 0.18s ease",
-        pointerEvents: "none", zIndex: 1000,
-      }} />
+    <div style={{
+      position: "absolute", top: "calc(100% + 8px)", right: -8,
+      width: 200, borderRadius: 12, background: "#fff",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)",
+      zIndex: 999,
+      opacity: visivel ? 1 : 0,
+      transform: visivel ? "translateY(0)" : "translateY(-6px)",
+      pointerEvents: visivel ? "all" : "none",
+      transition: "opacity 0.15s ease, transform 0.15s ease",
+      overflow: "hidden",
+      fontFamily: "Manrope, sans-serif",
+    }}>
 
-      <div style={{
-        position: "absolute", top: "calc(100% + 10px)", right: -8, width: 300,
-        borderRadius: 18, background: "#fff",
-        boxShadow: "0 24px 64px rgba(0,0,0,0.13), 0 4px 16px rgba(0,185,107,0.07), 0 0 0 1px rgba(0,0,0,0.05)",
-        zIndex: 999,
-        opacity: visivel ? 1 : 0,
-        transform: visivel ? "translateY(0) scale(1)" : "translateY(-10px) scale(0.96)",
-        pointerEvents: visivel ? "all" : "none",
-        transition: "opacity 0.22s cubic-bezier(.4,0,.2,1), transform 0.22s cubic-bezier(.4,0,.2,1)",
-        overflow: "hidden",
-      }}>
-        {/* Header dark */}
-        <div style={{
-          background: "linear-gradient(140deg, #0d1f16 0%, #112b1e 60%, #0f2318 100%)",
-          padding: "20px 18px 16px", position: "relative", overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0, opacity: 0.07,
-            backgroundImage: "radial-gradient(circle, #00b96b 1px, transparent 1px)",
-            backgroundSize: "18px 18px", pointerEvents: "none",
-          }} />
-          <div style={{
-            position: "absolute", top: -30, right: -20, width: 120, height: 120,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${VERDE}40 0%, transparent 70%)`,
-            pointerEvents: "none",
-          }} />
-
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, position: "relative" }}>
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <div style={{
-                width: 46, height: 46, borderRadius: 14,
-                background: `linear-gradient(135deg, ${VERDE} 0%, ${VERDE_ESCURO} 100%)`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 15, fontWeight: 900, color: "#fff",
-                boxShadow: `0 4px 16px ${VERDE}60`,
-                border: "2px solid rgba(255,255,255,0.15)",
-              }}>
-                {utilizador.avatar}
-              </div>
-              <span style={{
-                position: "absolute", bottom: -1, right: -1,
-                width: 11, height: 11, borderRadius: "50%",
-                background: "#22c55e", border: "2.5px solid #0d1f16",
-              }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 800, letterSpacing: "-0.3px", marginBottom: 1 }}>{utilizador.nome}</p>
-              <p style={{ color: "#64748b", fontSize: 11, marginBottom: 6 }}>{utilizador.email}</p>
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 99,
-                background: "rgba(0,185,107,0.18)", color: "#4ade80",
-                border: "1px solid rgba(0,185,107,0.3)", letterSpacing: "0.04em",
-              }}>
-                {utilizador.nivelIcon} {utilizador.nivel}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, position: "relative" }}>
-            {[
-              { label: "Saldo",     valor: utilizador.saldo,          Icone: Wallet,     cor: "#4ade80" },
-              { label: "Vendas",    valor: utilizador.vendas,          Icone: TrendingUp, cor: "#60a5fa" },
-              { label: "Avaliação", valor: `${utilizador.avaliacao}★`, Icone: Star,       cor: "#fbbf24" },
-            ].map(({ label, valor, Icone: Ic, cor }) => (
-              <div key={label} style={{
-                background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "8px 10px",
-                border: "1px solid rgba(255,255,255,0.08)", textAlign: "center",
-              }}>
-                <Ic size={11} color={cor} style={{ marginBottom: 3 }} />
-                <p style={{ fontSize: 12, fontWeight: 800, color: "#f1f5f9", lineHeight: 1 }}>{valor}</p>
-                <p style={{ fontSize: 9, color: "#475569", marginTop: 2, fontWeight: 600, letterSpacing: "0.04em" }}>
-                  {label.toUpperCase()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ padding: "6px 0", maxHeight: 300, overflowY: "auto" }}>
-          {MENUS_DROPDOWN.map((grupo, gi) => (
-            <div key={grupo.grupo}>
-              <div style={{
-                padding: "9px 16px 3px",
-                borderTop: gi > 0 ? "1px solid #f1f5f9" : "none",
-                marginTop: gi > 0 ? 3 : 0,
-              }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#cbd5e1", letterSpacing: "0.9px", textTransform: "uppercase" }}>
-                  {grupo.grupo}
-                </span>
-              </div>
-              {grupo.itens.map(({ id, Icone: Ic, rotulo, cor, badge }) => (
-                <button key={id} onClick={() => aoSelecionar(id)}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center",
-                    gap: 10, padding: "7px 16px",
-                    background: "transparent", border: "none",
-                    cursor: "pointer", textAlign: "left", transition: "background 0.12s",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = VERDE_DIM;
-                    const ico = e.currentTarget.querySelector(".ico-bg");
-                    if (ico) { ico.style.background = cor + "22"; ico.style.color = cor; }
-                    const lbl = e.currentTarget.querySelector(".item-lbl");
-                    if (lbl) lbl.style.color = "#111827";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = "transparent";
-                    const ico = e.currentTarget.querySelector(".ico-bg");
-                    if (ico) { ico.style.background = "#f8fafc"; ico.style.color = "#94a3b8"; }
-                    const lbl = e.currentTarget.querySelector(".item-lbl");
-                    if (lbl) lbl.style.color = "#475569";
-                  }}
-                >
-                  <div className="ico-bg" style={{
-                    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "#f8fafc", color: "#94a3b8", transition: "all 0.12s",
-                  }}>
-                    <Ic size={13} />
-                  </div>
-                  <span className="item-lbl" style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#475569", transition: "color 0.12s" }}>
-                    {rotulo}
-                  </span>
-                  {badge && (
-                    <span style={{
-                      fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 99,
-                      background: `${VERDE}15`, color: VERDE, border: `1px solid ${VERDE}25`,
-                    }}>
-                      {badge}
-                    </span>
-                  )}
-                  <ChevronRight size={12} style={{ color: "#e2e8f0", flexShrink: 0 }} />
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ borderTop: "1px solid #fef2f2", padding: "6px 0 4px", background: "#fffbfb" }}>
-          <button onClick={aoSair}
-            style={{
-              width: "100%", display: "flex", alignItems: "center",
-              gap: 10, padding: "9px 16px",
-              background: "transparent", border: "none", cursor: "pointer",
-              textAlign: "left", transition: "background 0.12s", color: "#ef4444",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "#fff1f1"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-          >
-            <div style={{
-              width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: "#fee2e2",
-            }}>
-              <LogOut size={13} color="#ef4444" />
-            </div>
-            <span style={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Sair da Conta</span>
-          </button>
-        </div>
+      {/* Nome */}
+      <div style={{ padding: "12px 16px 10px", borderBottom: "1px solid #f3f4f6" }}>
+        <p style={{ fontSize: 13, fontWeight: 800, color: "#111827", margin: 0 }}>
+          {utilizador.nome}
+        </p>
+        <p style={{ fontSize: 11, color: "#9ca3af", margin: "2px 0 0" }}>
+          {utilizador.email}
+        </p>
       </div>
-    </>
+
+      {/* Items */}
+      <div style={{ padding: "4px 0" }}>
+        {MENUS_DROPDOWN.flatMap(g => g.itens).map(({ id, Icone: Ic, rotulo, cor, badge }) => (
+          <button key={id} onClick={() => aoSelecionar(id)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 10,
+              padding: "8px 16px", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left", transition: "background .1s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "#f9fafb"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+            <Ic size={14} color="#6b7280" style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 13, color: "#374151", fontWeight: 500 }}>
+              {rotulo}
+            </span>
+            {badge && (
+              <span style={{
+                fontSize: 10, fontWeight: 800, padding: "1px 7px", borderRadius: 99,
+                background: `${VERDE}15`, color: VERDE,
+              }}>
+                {badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Logout */}
+      <div style={{ borderTop: "1px solid #f3f4f6", padding: "4px 0 4px" }}>
+        <button onClick={aoSair}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", gap: 10,
+            padding: "8px 16px", background: "transparent", border: "none",
+            cursor: "pointer", textAlign: "left", transition: "background .1s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "#fff1f1"}
+          onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+          <LogOut size={14} color="#ef4444" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#ef4444" }}>
+            Sair da Conta
+          </span>
+        </button>
+      </div>
+
+    </div>
   );
 }
-
 /* ── BotaoAccao ── */
 function BotaoAccao({ icone, rotulo, aoClicar, contagem = 0, corBadge, className = "" }) {
   return (

@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { useCart } from "../../hooks/useCart"; // ou o caminho correto
-
+import { useCart } from "../../hooks/useCart";
 
 import { VERDE } from "../../components/contaConstantes";
-import { MENUS } from "../../components/SidebarConta"; // só os dados, sem renderizar o sidebar
+import { MENUS } from "../../components/SidebarConta";
 import { Header } from "../../components/Header";
 import { SecaoPerfil } from "../../components/SecaoPerfil";
 import { SecaoCarteira } from "../../components/SecaoCarteira";
@@ -17,36 +16,38 @@ import { SecaoSeguranca } from "../../components/SecaoSeguranca";
 import ChatVendedorPage from "./ChatPageVendedor";
 
 const SECCOES = {
-  perfil: <SecaoPerfil />,
-  carteira: <SecaoCarteira />,
-  compras: <SecaoCompras />,
-  vendas: <SecaoVendas />,
-  afiliados: <SecaoAfiliados />,
-  historico: <SecaoHistorico />,
-  notificacoes: <SecaoNotificacoes />,
-  seguranca: <SecaoSeguranca />,
-  chat: <ChatVendedorPage />,
+  perfil:        <SecaoPerfil />,
+  carteira:      <SecaoCarteira />,
+  compras:       <SecaoCompras />,
+  vendas:        <SecaoVendas />,
+  afiliados:     <SecaoAfiliados />,
+  historico:     <SecaoHistorico />,
+  notificacoes:  <SecaoNotificacoes />,
+  seguranca:     <SecaoSeguranca />,
+  chat:          <ChatVendedorPage />,
 };
+
 export default function MinhaConta() {
   const [activo, setActivo] = useState("perfil");
-  const { cartCount, wishCount, addToCart, addToWish } = useCart();
+  const { cartCount, wishCount } = useCart();
   const [searchVal, setSearchVal] = useState("");
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
-        cartCount={cartCount}
-        wishCount={wishCount}
-        searchVal={searchVal}
-        onSearchChange={setSearchVal}
-        onAddToCart={addToCart}
-        onAddToWish={addToWish}
+        contagemCarrinho={cartCount}
+        contagemWishlist={wishCount}
+        valorPesquisa={searchVal}
+        aoMudarPesquisa={setSearchVal}
+        aoNavegar={(id) => setActivo(id)}
       />
 
       {/* BREADCRUMB */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">
-          <button className="hover:text-green-600 cursor-pointer transition-colors">Início</button>
+          <button className="hover:text-green-600 cursor-pointer transition-colors bg-transparent border-none">
+            Início
+          </button>
           <ChevronRight size={14} className="text-gray-400" />
           <span className="font-semibold text-gray-900">Minha Conta</span>
           <ChevronRight size={14} className="text-gray-400" />
@@ -60,15 +61,14 @@ export default function MinhaConta() {
       <div className="max-w-[90%] mx-auto px-4 py-6">
         <div className="flex gap-6 items-start">
 
-          {/* ── SIDEBAR FIXA ── */}
+          {/* ── SIDEBAR ── */}
           <aside className="w-56 shrink-0 sticky top-6">
-            <div className="bg-white  border border-gray-100 shadow-sm overflow-hidden">
-              {/* Mini-perfil no topo da sidebar */}
+            <div className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+
+              {/* Mini-perfil */}
               <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                  style={{ background: VERDE }}
-                >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                  style={{ background: VERDE }}>
                   AM
                 </div>
                 <div className="min-w-0">
@@ -83,16 +83,12 @@ export default function MinhaConta() {
                   <button
                     key={id}
                     onClick={() => setActivo(id)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-150 cursor-pointer mb-0.5"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-150 cursor-pointer mb-0.5 border-none rounded-lg"
                     style={{
                       background: activo === id ? "#f0fdf4" : "transparent",
-                      color: activo === id ? VERDE : "#6b7280",
-                    }}
-                  >
-                    <Icone
-                      size={15}
-                      style={{ color: activo === id ? VERDE : "#9ca3af", flexShrink: 0 }}
-                    />
+                      color:      activo === id ? VERDE    : "#6b7280",
+                    }}>
+                    <Icone size={15} style={{ color: activo === id ? VERDE : "#9ca3af", flexShrink: 0 }} />
                     {rotulo}
                   </button>
                 ))}
@@ -102,7 +98,7 @@ export default function MinhaConta() {
 
           {/* ── CONTEÚDO ── */}
           <main className="flex-1 min-w-0">
-            <div className="bg-white  border border-gray-100 p-6 shadow-sm">
+            <div className="bg-white border border-gray-100 p-6 shadow-sm">
               {SECCOES[activo]}
             </div>
           </main>
@@ -111,4 +107,4 @@ export default function MinhaConta() {
       </div>
     </div>
   );
-}
+} 
