@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useUtilizador } from "../hooks/useUtilizador"; // ← hook de dados reais
 
 // ─── Ícones SVG inline ────────────────────────────────────────────────────────
 const IcoUser    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
@@ -16,25 +17,11 @@ const IcoSpin    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="n
 const IcoFile    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
 const IcoText    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>;
 
-// ─── Dados iniciais ───────────────────────────────────────────────────────────
-const UTILIZADOR_INICIAL = {
-  nome:      "Ana Machava",
-  email:     "ana.machava@gmail.com",
-  telefone:  "84 321 4567",
-  provincia: "Sofala",
-  cidade:    "Beira",
-  bairro:    "Chaimite",
-  bio:       "Vendedora de electrónica e acessórios. Sempre com os melhores preços da Beira!",
-  membro:    "Janeiro 2024",
-  avatar:    null,
-  iniciais:  "AM",
-};
-
 const PROVINCIAS = ["Cabo Delgado","Gaza","Inhambane","Manica","Maputo","Nampula","Niassa","Sofala","Tete","Zambézia","Maputo Cidade"];
 
 // ─── Calcular completude do perfil ───────────────────────────────────────────
 function calcularCompletude(dados) {
-  const campos = ["nome","email","telefone","provincia","cidade","bairro","bio","avatar"];
+  const campos = ["nomeCompleto","email","telefone","provincia","cidade","bairro","bio","avatar"];
   const preenchidos = campos.filter(c => dados[c] && String(dados[c]).trim() !== "").length;
   const pct = Math.round((preenchidos / campos.length) * 100);
   if (pct < 40)  return { pct, estado: "Incompleto", cor: "#EF4444", bg: "bg-red-50",    border: "border-red-100",    text: "text-red-700"    };
@@ -43,18 +30,18 @@ function calcularCompletude(dados) {
 }
 
 // ─── Validações ───────────────────────────────────────────────────────────────
-const EMAILS_EXISTENTES  = ["outro@email.com", "admin@moztictac.mz"];
+const EMAILS_EXISTENTES    = ["outro@email.com", "admin@moztictac.mz"];
 const TELEFONES_EXISTENTES = ["84 000 0000", "85 111 1111"];
 
-function validar(form, fotoPreview) {
+function validar(form) {
   const erros = {};
-  if (!form.nome.trim() || form.nome.trim().length < 3)
-    erros.nome = "Nome deve ter pelo menos 3 caracteres.";
-  if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+  if (!form.nomeCompleto?.trim() || form.nomeCompleto.trim().length < 3)
+    erros.nomeCompleto = "Nome deve ter pelo menos 3 caracteres.";
+  if (!form.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
     erros.email = "Email inválido.";
   else if (EMAILS_EXISTENTES.includes(form.email.toLowerCase()))
     erros.email = "Este email já está em uso.";
-  if (!form.telefone.trim() || !/^[0-9\s\+\-]{8,15}$/.test(form.telefone))
+  if (!form.telefone?.trim() || !/^[0-9\s\+\-]{8,15}$/.test(form.telefone))
     erros.telefone = "Telefone inválido. Ex: 84 321 4567";
   else if (TELEFONES_EXISTENTES.includes(form.telefone.trim()))
     erros.telefone = "Este número já está em uso.";
@@ -117,14 +104,47 @@ function ModalConfirmacao({ campos, onConfirmar, onCancelar, salvando }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export function SecaoPerfil() {
-  const [dados, setDados]           = useState({ ...UTILIZADOR_INICIAL });
-  const [form, setForm]             = useState({ ...UTILIZADOR_INICIAL });
-  const [fotoPreview, setFotoPreview] = useState(null);
-  const [editando, setEditando]     = useState(false);
-  const [erros, setErros]           = useState({});
+  // ── Dados reais do utilizador autenticado ──
+  const { utilizador, atualizarUtilizador } = useUtilizador();
+
+  // Enquanto os dados do localStorage ainda não carregaram
+  if (!utilizador) {
+    return (
+      <div className="flex items-center justify-center py-16 text-gray-400 text-sm gap-2">
+        <IcoSpin /> A carregar perfil...
+      </div>
+    );
+  }
+
+  // Estado local derivado dos dados reais
+  return <FormularioPerfil utilizador={utilizador} atualizarUtilizador={atualizarUtilizador} />;
+}
+
+// Separado para garantir que o estado inicial só é criado depois de ter os dados
+function FormularioPerfil({ utilizador, atualizarUtilizador }) {
+  // Mapeia campos do backend → campos do formulário
+  const dadosIniciais = {
+    nomeCompleto: utilizador.nomeCompleto || utilizador.nome || "",
+    email:        utilizador.email        || "",
+    telefone:     utilizador.telefone     || "",
+    provincia:    utilizador.provincia    || "",
+    cidade:       utilizador.cidade       || "",
+    bairro:       utilizador.bairro       || "",
+    bio:          utilizador.bio          || "",
+    avatar:       utilizador.avatar       || null,
+    membro:       utilizador.membro       || utilizador.criadoEm
+                    ? new Date(utilizador.criadoEm).toLocaleDateString("pt-MZ", { month: "long", year: "numeric" })
+                    : "—",
+  };
+
+  const [dados, setDados]               = useState({ ...dadosIniciais });
+  const [form, setForm]                 = useState({ ...dadosIniciais });
+  const [fotoPreview, setFotoPreview]   = useState(null);
+  const [editando, setEditando]         = useState(false);
+  const [erros, setErros]               = useState({});
   const [modalSensivel, setModalSensivel] = useState(false);
-  const [salvando, setSalvando]     = useState(false);
-  const [sucesso, setSucesso]       = useState(false);
+  const [salvando, setSalvando]         = useState(false);
+  const [sucesso, setSucesso]           = useState(false);
   const fileRef = useRef(null);
 
   const completude = calcularCompletude({ ...dados, avatar: fotoPreview || dados.avatar });
@@ -152,13 +172,13 @@ export function SecaoPerfil() {
   };
 
   const handleGuardar = () => {
-    const novosErros = validar(form, fotoPreview);
+    const novosErros = validar(form);
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0) return;
 
     if (ehAlteracaoSensivel(dados, form)) {
       const camposAlterados = [];
-      if (dados.email !== form.email)     camposAlterados.push("Email");
+      if (dados.email    !== form.email)    camposAlterados.push("Email");
       if (dados.telefone !== form.telefone) camposAlterados.push("Telefone");
       setModalSensivel(camposAlterados);
       return;
@@ -169,8 +189,20 @@ export function SecaoPerfil() {
   const confirmarGuardar = () => {
     setSalvando(true);
     setTimeout(() => {
-      setDados({ ...form });
-      if (fotoPreview) setFotoPreview(fotoPreview);
+      const novosDados = { ...form, avatar: fotoPreview || dados.avatar };
+      setDados(novosDados);
+      // ← Persiste as alterações no localStorage para que a sidebar e outros
+      //   componentes que usem useUtilizador() também reflitam as mudanças
+      atualizarUtilizador({
+        nomeCompleto: novosDados.nomeCompleto,
+        email:        novosDados.email,
+        telefone:     novosDados.telefone,
+        provincia:    novosDados.provincia,
+        cidade:       novosDados.cidade,
+        bairro:       novosDados.bairro,
+        bio:          novosDados.bio,
+        avatar:       novosDados.avatar,
+      });
       setSalvando(false);
       setModalSensivel(false);
       setEditando(false);
@@ -181,9 +213,9 @@ export function SecaoPerfil() {
 
   const f = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
-  const iniciais = form.nome
-    ? form.nome.trim().split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()
-    : "AM";
+  const iniciais = form.nomeCompleto
+    ? form.nomeCompleto.trim().split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()
+    : "?";
 
   return (
     <div className="space-y-4">
@@ -237,7 +269,6 @@ export function SecaoPerfil() {
 
       {/* Avatar + info principal */}
       <div className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl">
-        {/* Avatar com upload */}
         <div className="relative flex-shrink-0">
           <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-green-600 text-white text-xl font-bold">
             {fotoPreview ? (
@@ -263,7 +294,7 @@ export function SecaoPerfil() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold text-gray-900 truncate">{form.nome || "—"}</p>
+          <p className="text-base font-semibold text-gray-900 truncate">{form.nomeCompleto || "—"}</p>
           <p className="text-xs text-gray-400 mt-0.5 truncate">{form.email || "—"}</p>
           <p className="text-xs text-gray-400 mt-0.5">{[form.cidade, form.provincia].filter(Boolean).join(", ") || "—"}</p>
           {editando && (
@@ -281,12 +312,12 @@ export function SecaoPerfil() {
         </div>
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            { label: "Nome completo",  key: "nome",      type: "text",  Ico: IcoUser,   placeholder: "Ex: Ana Machava" },
-            { label: "Telefone",       key: "telefone",  type: "tel",   Ico: IcoPhone,  placeholder: "Ex: 84 321 4567" },
-            { label: "Email",          key: "email",     type: "email", Ico: IcoMail,   placeholder: "Ex: ana@email.com", sensivel: true },
-            { label: "Província",      key: "provincia", type: "select",Ico: IcoMapPin, placeholder: "" },
-            { label: "Cidade",         key: "cidade",    type: "text",  Ico: IcoHome,   placeholder: "Ex: Beira" },
-            { label: "Bairro",         key: "bairro",    type: "text",  Ico: IcoMapPin, placeholder: "Ex: Chaimite" },
+            { label: "Nome completo",  key: "nomeCompleto", type: "text",   Ico: IcoUser,   placeholder: "Ex: Ana Machava" },
+            { label: "Telefone",       key: "telefone",     type: "tel",    Ico: IcoPhone,  placeholder: "Ex: 84 321 4567" },
+            { label: "Email",          key: "email",        type: "email",  Ico: IcoMail,   placeholder: "Ex: ana@email.com", sensivel: true },
+            { label: "Província",      key: "provincia",    type: "select", Ico: IcoMapPin, placeholder: "" },
+            { label: "Cidade",         key: "cidade",       type: "text",   Ico: IcoHome,   placeholder: "Ex: Beira" },
+            { label: "Bairro",         key: "bairro",       type: "text",   Ico: IcoMapPin, placeholder: "Ex: Chaimite" },
           ].map(({ label, key, type, Ico, placeholder, sensivel }) => (
             <div key={key}>
               <label className="text-xs font-medium text-gray-500 block mb-1 flex items-center gap-1">
@@ -379,7 +410,7 @@ export function SecaoPerfil() {
           <div>
             <p className="text-xs font-semibold text-blue-800">Completa o teu perfil</p>
             <p className="text-xs text-blue-700 mt-0.5">
-              Perfis completos têm {" "}
+              Perfis completos têm{" "}
               <strong>3× mais visibilidade</strong> na plataforma e transmitem mais confiança aos compradores.
             </p>
             <button onClick={handleEditar} className="mt-2 text-xs text-blue-700 font-semibold underline underline-offset-2 border-0 bg-transparent cursor-pointer p-0 hover:text-blue-900">

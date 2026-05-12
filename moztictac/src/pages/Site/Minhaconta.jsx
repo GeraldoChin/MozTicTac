@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useCart } from "../../hooks/useCart";
+import { useUtilizador } from "../../hooks/useUtilizador"; // ← dados reais
 
 import { VERDE } from "../../components/contaConstantes";
 import { MENUS } from "../../components/SidebarConta";
@@ -28,9 +29,27 @@ const SECCOES = {
 };
 
 export default function MinhaConta() {
-  const [activo, setActivo] = useState("perfil");
+  const [activo, setActivo]     = useState("perfil");
   const { cartCount, wishCount } = useCart();
   const [searchVal, setSearchVal] = useState("");
+
+  // ── Dados reais do utilizador autenticado ──
+  const { utilizador } = useUtilizador();
+
+  // Calcula as iniciais a partir do nome real
+  const nomeCompleto = utilizador?.nomeCompleto || utilizador?.nome || "";
+  const iniciais = nomeCompleto
+    .trim()
+    .split(" ")
+    .map(p => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "?";
+
+  // Data de membro formatada
+  const membroDesde = utilizador?.criadoEm
+    ? new Date(utilizador.criadoEm).toLocaleDateString("pt-MZ", { month: "short", year: "numeric" })
+    : utilizador?.membro || "—";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,15 +84,27 @@ export default function MinhaConta() {
           <aside className="w-56 shrink-0 sticky top-6">
             <div className="bg-white border border-gray-100 shadow-sm overflow-hidden">
 
-              {/* Mini-perfil */}
+              {/* Mini-perfil com dados reais */}
               <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                  style={{ background: VERDE }}>
-                  AM
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold overflow-hidden flex-shrink-0"
+                  style={{ background: VERDE }}
+                >
+                  {utilizador?.avatar ? (
+                    <img
+                      src={utilizador.avatar}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    iniciais
+                  )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">Ana Machava</p>
-                  <p className="text-xs text-gray-400">Desde Jan 2024</p>
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {nomeCompleto || "Utilizador"}
+                  </p>
+                  <p className="text-xs text-gray-400">Desde {membroDesde}</p>
                 </div>
               </div>
 
@@ -107,4 +138,4 @@ export default function MinhaConta() {
       </div>
     </div>
   );
-} 
+}

@@ -1,133 +1,111 @@
-// ─────────────────────────────────────────────
-// MOZTICTAC — SECÇÃO DE VENDAS (conectado ao backend)
-// ─────────────────────────────────────────────
+// src/components/SecaoVendas.jsx
+// API embutida — não depende de nenhum ficheiro externo
+
 import { useState, useEffect } from "react";
-import { api, mapearProduto } from "./api";
 
-// ─── Ícones SVG inline ────────────────────────────────────────────────────────
-const IcoHome = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-  </svg>
-);
-const IcoBag = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-    <line x1="3" y1="6" x2="21" y2="6"/>
-    <path d="M16 10a4 4 0 01-8 0"/>
-  </svg>
-);
-const IcoUsers = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-    <circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-    <path d="M16 3.13a4 4 0 010 7.75"/>
-  </svg>
-);
-const IcoStar = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-);
-const IcoBar = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="18" y1="20" x2="18" y2="10"/>
-    <line x1="12" y1="20" x2="12" y2="4"/>
-    <line x1="6" y1="20" x2="6" y2="14"/>
-  </svg>
-);
-const IcoEdit = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-  </svg>
-);
-const IcoPause = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="6" y="4" width="4" height="16"/>
-    <rect x="14" y="4" width="4" height="16"/>
-  </svg>
-);
-const IcoPlay = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polygon points="5 3 19 12 5 21 5 3"/>
-  </svg>
-);
-const IcoTrash = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-    <path d="M10 11v6M14 11v6"/>
-    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-  </svg>
-);
-const IcoPlus = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-    <line x1="12" y1="5" x2="12" y2="19"/>
-    <line x1="5" y1="12" x2="19" y2="12"/>
-  </svg>
-);
-const IcoLock = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="11" width="18" height="11" rx="2"/>
-    <path d="M7 11V7a5 5 0 0110 0v4"/>
-  </svg>
-);
-const IcoInfo = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="10"/>
-    <line x1="12" y1="8" x2="12" y2="12"/>
-    <line x1="12" y1="16" x2="12.01" y2="16"/>
-  </svg>
-);
-const IcoTrend = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-    <polyline points="17 6 23 6 23 12"/>
-  </svg>
-);
-const IcoProduto = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-  </svg>
-);
-const IcoServico = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
-  </svg>
-);
+// ── API ───────────────────────────────────────────────────────────
+const BASE_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+  "http://localhost:3000/api/v1";
 
-// ─── Dados estáticos (pedidos — virão do backend futuramente) ─────────────────
+async function requisitar(caminho, opcoes = {}) {
+  const token = localStorage.getItem("token");
+  const cabecalhos = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(opcoes.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+  };
+  const resposta = await fetch(`${BASE_URL}${caminho}`, {
+    ...opcoes,
+    headers: { ...cabecalhos, ...opcoes.headers },
+  });
+  const dados = await resposta.json();
+  if (!resposta.ok) {
+    throw new Error(dados.mensagem || dados.message || `Erro ${resposta.status}`);
+  }
+  return dados;
+}
+
+const api = {
+  meusProdutos: (pagina = 1, estado) =>
+    requisitar(`/produtos/meus?pagina=${pagina}${estado ? `&estado=${estado}` : ""}`),
+  criarProduto: (form) =>
+    requisitar("/produtos", { method: "POST", body: form }),
+  atualizarProduto: (id, dados) =>
+    requisitar(`/produtos/${id}`, { method: "PUT", body: JSON.stringify(dados) }),
+  pausarProduto: (id) =>
+    requisitar(`/produtos/${id}/pausar`, { method: "PATCH" }),
+  reativarProduto: (id) =>
+    requisitar(`/produtos/${id}/reativar`, { method: "PATCH" }),
+  eliminarProduto: (id) =>
+    requisitar(`/produtos/${id}`, { method: "DELETE" }),
+};
+
+function mapearProduto(p) {
+  return {
+    id:        p.id,
+    nome:      p.nome,
+    preco:     Number(p.preco),
+    stock:     p.stock ?? 0,
+    estado:    (p.estado ?? "").toLowerCase().replace("_", " "),
+    tipo:      p.tipo ?? "produto",
+    vendas:    p.totalVendas ?? 0,
+    afiliados: p.aceitaAfiliados ?? false,
+    comissao:  p.comissaoAfiliado ?? 5,
+    entrega:   p.temEntrega ?? false,
+    atacado:   p.atacado ?? false,
+    descricao: p.descricao ?? "",
+    imagens:   p.imagens ?? [],
+    cat:       p.categoria ?? "",
+  };
+}
+
+// ── Ícones SVG inline ─────────────────────────────────────────────
+const IcoHome    = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>);
+const IcoBag     = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>);
+const IcoUsers   = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>);
+const IcoStar    = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>);
+const IcoBar     = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>);
+const IcoEdit    = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>);
+const IcoPause   = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>);
+const IcoPlay    = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>);
+const IcoTrash   = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>);
+const IcoPlus    = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>);
+const IcoLock    = () => (<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>);
+const IcoInfo    = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>);
+const IcoTrend   = () => (<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>);
+const IcoProduto = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>);
+const IcoServico = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>);
+
+// ── Dados estáticos (pedidos) ─────────────────────────────────────
 const PEDIDOS = [
-  { id: "#4821", produto: "Smartphone Samsung A54", cliente: "João Cossa", valor: 18500, estado: "pago", pct: 40, data: "16 Abr" },
-  { id: "#4807", produto: "Capas de telemóvel (atacado)", cliente: "Fátima Bila", valor: 7000, estado: "enviado", pct: 70, data: "15 Abr" },
-  { id: "#4790", produto: "Colchão King Size", cliente: "Maria Sitoe", valor: 32000, estado: "entregue", pct: 100, data: "13 Abr" },
-  { id: "#4780", produto: "Reparação de electrodomésticos", cliente: "Pedro Nhane", valor: 2500, estado: "pendente", pct: 10, data: "12 Abr" },
-  { id: "#4761", produto: "Capas de telemóvel (atacado)", cliente: "Carla Mussa", valor: 3500, estado: "concluído", pct: 100, data: "10 Abr" },
-  { id: "#4744", produto: "Smartphone Samsung A54", cliente: "Hélio Filipe", valor: 18500, estado: "em disputa", pct: 60, data: "8 Abr" },
+  { id: "#4821", produto: "Smartphone Samsung A54",        cliente: "João Cossa",   valor: 18500, estado: "pago",       pct: 40,  data: "16 Abr" },
+  { id: "#4807", produto: "Capas de telemóvel (atacado)",  cliente: "Fátima Bila",  valor: 7000,  estado: "enviado",    pct: 70,  data: "15 Abr" },
+  { id: "#4790", produto: "Colchão King Size",             cliente: "Maria Sitoe",  valor: 32000, estado: "entregue",   pct: 100, data: "13 Abr" },
+  { id: "#4780", produto: "Reparação de electrodomésticos",cliente: "Pedro Nhane",  valor: 2500,  estado: "pendente",   pct: 10,  data: "12 Abr" },
+  { id: "#4761", produto: "Capas de telemóvel (atacado)",  cliente: "Carla Mussa",  valor: 3500,  estado: "concluído",  pct: 100, data: "10 Abr" },
+  { id: "#4744", produto: "Smartphone Samsung A54",        cliente: "Hélio Filipe", valor: 18500, estado: "em disputa", pct: 60,  data: "8 Abr"  },
 ];
 
 const PROMO_PLANS = [
-  { nome: "Básico", duracao: "3 dias", preco: 250, desc: "Destaque no feed geral" },
-  { nome: "Standard", duracao: "7 dias", preco: 500, desc: "Destaque + notificações", popular: true },
-  { nome: "Premium", duracao: "30 dias", preco: 1500, desc: "Topo do feed + banner" },
+  { nome: "Básico",    duracao: "3 dias",  preco: 250,  desc: "Destaque no feed geral" },
+  { nome: "Standard", duracao: "7 dias",  preco: 500,  desc: "Destaque + notificações", popular: true },
+  { nome: "Premium",  duracao: "30 dias", preco: 1500, desc: "Topo do feed + banner" },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n: number) => Number(n).toLocaleString("pt-MZ") + " MZN";
-const STATUS_CLS: Record<string, string> = {
-  pendente: "bg-amber-100 text-amber-800",
-  pago: "bg-blue-100 text-blue-800",
-  enviado: "bg-amber-100 text-amber-800",
-  entregue: "bg-green-100 text-green-800",
-  "concluído": "bg-green-100 text-green-800",
+// ── Helpers ───────────────────────────────────────────────────────
+const fmt = (n) => Number(n).toLocaleString("pt-MZ") + " MZN";
+
+const STATUS_CLS = {
+  pendente:     "bg-amber-100 text-amber-800",
+  pago:         "bg-blue-100 text-blue-800",
+  enviado:      "bg-amber-100 text-amber-800",
+  entregue:     "bg-green-100 text-green-800",
+  "concluído":  "bg-green-100 text-green-800",
   "em disputa": "bg-red-100 text-red-800",
 };
 
-// ─── Toggle ───────────────────────────────────────────────────────────────────
-function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+// ── Componentes auxiliares ────────────────────────────────────────
+function Toggle({ value, onChange }) {
   return (
     <button
       onClick={() => onChange(!value)}
@@ -138,22 +116,21 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   );
 }
 
-// ─── IconBtn ──────────────────────────────────────────────────────────────────
-function IconBtn({ onClick, danger, title, children }: any) {
+function IconBtn({ onClick, danger, title, children }) {
   return (
     <button
-      onClick={onClick}
-      title={title}
+      onClick={onClick} title={title}
       className={`w-8 h-8 flex items-center justify-center border rounded-lg transition-colors cursor-pointer bg-transparent
-        ${danger ? "border-gray-200 text-gray-400 hover:border-red-400 hover:text-red-500" : "border-gray-200 text-gray-400 hover:border-green-500 hover:text-green-600"}`}
+        ${danger
+          ? "border-gray-200 text-gray-400 hover:border-red-400 hover:text-red-500"
+          : "border-gray-200 text-gray-400 hover:border-green-500 hover:text-green-600"}`}
     >
       {children}
     </button>
   );
 }
 
-// ─── StatCard ─────────────────────────────────────────────────────────────────
-function StatCard({ label, valor, sub, delta }: any) {
+function StatCard({ label, valor, sub, delta }) {
   return (
     <div className="bg-gray-50 rounded-xl p-3 relative overflow-hidden">
       <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{label}</div>
@@ -165,46 +142,38 @@ function StatCard({ label, valor, sub, delta }: any) {
   );
 }
 
-// ─── Tab: Produtos ────────────────────────────────────────────────────────────
-function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
+// ── Tab: Produtos ─────────────────────────────────────────────────
+function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }) {
   const [filtro, setFiltro] = useState("todos");
   const [carregando, setCarregando] = useState(false);
 
   const FILTROS = ["todos", "activo", "pausado", "produto", "servico"];
-
   const lista = filtro === "todos"
     ? produtos
-    : produtos.filter((p: any) => p.estado === filtro || p.tipo === filtro);
+    : produtos.filter((p) => p.estado === filtro || p.tipo === filtro);
 
-  async function toggleEstado(id: string, estadoActual: string) {
+  async function toggleEstado(id, estadoActual) {
     setCarregando(true);
     try {
       if (estadoActual === "activo") {
         await api.pausarProduto(id);
-        setProdutos((prev: any[]) => prev.map(p => p.id === id ? { ...p, estado: "pausado" } : p));
+        setProdutos((prev) => prev.map((p) => p.id === id ? { ...p, estado: "pausado" } : p));
       } else {
         await api.reativarProduto(id);
-        // Volta a PENDENTE_APROVACAO no backend — mostramos como "pendente" no frontend
-        setProdutos((prev: any[]) => prev.map(p => p.id === id ? { ...p, estado: "pendente_aprovacao" } : p));
+        setProdutos((prev) => prev.map((p) => p.id === id ? { ...p, estado: "pendente aprovacao" } : p));
       }
-    } catch (e: any) {
-      alert("Erro ao alterar estado: " + e.message);
-    } finally {
-      setCarregando(false);
-    }
+    } catch (e) { alert("Erro ao alterar estado: " + e.message); }
+    finally { setCarregando(false); }
   }
 
-  async function eliminar(id: string) {
+  async function eliminar(id) {
     if (!window.confirm("Tens a certeza que queres eliminar este anúncio?")) return;
     setCarregando(true);
     try {
       await api.eliminarProduto(id);
-      setProdutos((prev: any[]) => prev.filter(p => p.id !== id));
-    } catch (e: any) {
-      alert("Erro ao eliminar: " + e.message);
-    } finally {
-      setCarregando(false);
-    }
+      setProdutos((prev) => prev.filter((p) => p.id !== id));
+    } catch (e) { alert("Erro ao eliminar: " + e.message); }
+    finally { setCarregando(false); }
   }
 
   return (
@@ -214,18 +183,19 @@ function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
           Os meus anúncios <span className="font-normal text-gray-400 text-xs">({lista.length})</span>
         </p>
         <button
-          onClick={onPublicar}
-          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer border-0"
+          onClick={onPublicar} disabled={carregando}
+          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer border-0 disabled:opacity-60"
         >
           <IcoPlus /> Publicar
         </button>
       </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
-        {FILTROS.map(f => (
+        {FILTROS.map((f) => (
           <button key={f} onClick={() => setFiltro(f)}
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer
-              ${filtro === f ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 hover:border-green-400 bg-transparent"}`}>
+              ${filtro === f ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 hover:border-green-400 bg-transparent"}`}
+          >
             {f === "servico" ? "Serviço" : f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
@@ -235,7 +205,7 @@ function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
         {lista.length === 0 && (
           <div className="text-center text-sm text-gray-400 py-12">Nenhum anúncio encontrado.</div>
         )}
-        {lista.map((p: any) => (
+        {lista.map((p) => (
           <div key={p.id} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-xl hover:border-green-200 transition-all">
             <div className="w-11 h-11 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
               {p.tipo === "produto" ? <IcoProduto /> : <IcoServico />}
@@ -243,7 +213,7 @@ function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">{p.nome}</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {p.vendas ?? p.totalVendas ?? 0} vendas · {p.tipo === "produto" ? `Stock: ${p.stock ?? 0}` : `Serviço`}
+                {p.vendas ?? 0} vendas · {p.tipo === "produto" ? `Stock: ${p.stock ?? 0}` : "Serviço"}
               </p>
               <div className="flex gap-1.5 mt-1.5 flex-wrap">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.estado === "activo" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"}`}>
@@ -252,17 +222,9 @@ function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
                 <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">
                   {p.tipo === "produto" ? "Produto" : "Serviço"}
                 </span>
-                {(p.afiliados ?? p.aceitaAfiliados) && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-800">
-                    Afiliados {p.comissao ?? p.comissaoAfiliado}%
-                  </span>
-                )}
-                {p.atacado && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800">Atacado</span>
-                )}
-                {(p.entrega ?? p.temEntrega) && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">Entrega</span>
-                )}
+                {p.afiliados && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-800">Afiliados {p.comissao}%</span>}
+                {p.atacado  && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800">Atacado</span>}
+                {p.entrega  && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">Entrega</span>}
               </div>
             </div>
             <div className="text-right flex-shrink-0 hidden sm:block">
@@ -272,10 +234,7 @@ function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
             </div>
             <div className="flex gap-1.5 flex-shrink-0">
               <IconBtn title="Editar" onClick={() => onEditar(p)}><IcoEdit /></IconBtn>
-              <IconBtn
-                title={p.estado === "activo" ? "Pausar" : "Activar"}
-                onClick={() => toggleEstado(p.id, p.estado)}
-              >
+              <IconBtn title={p.estado === "activo" ? "Pausar" : "Activar"} onClick={() => toggleEstado(p.id, p.estado)}>
                 {p.estado === "activo" ? <IcoPause /> : <IcoPlay />}
               </IconBtn>
               <IconBtn danger title="Eliminar" onClick={() => eliminar(p.id)}><IcoTrash /></IconBtn>
@@ -287,11 +246,11 @@ function TabProdutos({ produtos, setProdutos, onPublicar, onEditar }: any) {
   );
 }
 
-// ─── Tab: Pedidos ─────────────────────────────────────────────────────────────
+// ── Tab: Pedidos ──────────────────────────────────────────────────
 function TabPedidos() {
   const [filtro, setFiltro] = useState("todos");
   const FILTROS = ["todos", "pendente", "pago", "enviado", "concluído"];
-  const lista = filtro === "todos" ? PEDIDOS : PEDIDOS.filter(p => p.estado === filtro);
+  const lista = filtro === "todos" ? PEDIDOS : PEDIDOS.filter((p) => p.estado === filtro);
 
   return (
     <div>
@@ -302,16 +261,17 @@ function TabPedidos() {
         </button>
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
-        {FILTROS.map(f => (
+        {FILTROS.map((f) => (
           <button key={f} onClick={() => setFiltro(f)}
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer
-              ${filtro === f ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 hover:border-green-400 bg-transparent"}`}>
+              ${filtro === f ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500 hover:border-green-400 bg-transparent"}`}
+          >
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
       </div>
       <div className="flex flex-col gap-2">
-        {lista.map(p => (
+        {lista.map((p) => (
           <div key={p.id} className="p-4 bg-white border border-gray-100 rounded-xl">
             <div className="flex items-start justify-between mb-2">
               <div>
@@ -319,7 +279,7 @@ function TabPedidos() {
                 <div className="text-sm font-semibold text-gray-900 mt-0.5">{p.produto}</div>
                 <div className="text-xs text-gray-500 mt-0.5 font-mono">{fmt(p.valor)}</div>
               </div>
-              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_CLS[p.estado] ?? "bg-gray-100 text-gray-500"}`}>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_CLS[p.estado] || "bg-gray-100 text-gray-500"}`}>
                 {p.estado}
               </span>
             </div>
@@ -343,28 +303,24 @@ function TabPedidos() {
   );
 }
 
-// ─── Tab: Afiliados ───────────────────────────────────────────────────────────
-function TabAfiliados({ produtos, setProdutos }: any) {
+// ── Tab: Afiliados ────────────────────────────────────────────────
+function TabAfiliados({ produtos, setProdutos }) {
   const totalGerado = produtos
-    .filter((p: any) => p.afiliados ?? p.aceitaAfiliados)
-    .reduce((acc: number, p: any) => acc + (p.vendas ?? 0) * p.preco * ((p.comissao ?? p.comissaoAfiliado ?? 0) / 100), 0);
+    .filter((p) => p.afiliados)
+    .reduce((acc, p) => acc + (p.vendas ?? 0) * p.preco * (p.comissao / 100), 0);
 
-  async function toggleAff(id: string, aceitaAtual: boolean) {
+  async function toggleAff(id, aceitaAtual) {
     try {
       await api.atualizarProduto(id, { aceitaAfiliados: !aceitaAtual });
-      setProdutos((prev: any[]) => prev.map(p => p.id === id ? { ...p, afiliados: !aceitaAtual, aceitaAfiliados: !aceitaAtual } : p));
-    } catch (e: any) {
-      alert("Erro: " + e.message);
-    }
+      setProdutos((prev) => prev.map((p) => p.id === id ? { ...p, afiliados: !aceitaAtual } : p));
+    } catch (e) { alert("Erro: " + e.message); }
   }
 
-  async function updateComissao(id: string, val: number) {
+  async function updateComissao(id, val) {
     try {
       await api.atualizarProduto(id, { comissaoAfiliado: val });
-      setProdutos((prev: any[]) => prev.map(p => p.id === id ? { ...p, comissao: val, comissaoAfiliado: val } : p));
-    } catch (e: any) {
-      alert("Erro: " + e.message);
-    }
+      setProdutos((prev) => prev.map((p) => p.id === id ? { ...p, comissao: Number(val) } : p));
+    } catch (e) { alert("Erro: " + e.message); }
   }
 
   return (
@@ -380,56 +336,47 @@ function TabAfiliados({ produtos, setProdutos }: any) {
         <p className="text-xs text-blue-800">Afiliados promovem os seus produtos e recebem comissão apenas quando há venda. Você só paga quando vende.</p>
       </div>
       <div className="flex flex-col gap-2">
-        {produtos.map((p: any) => {
-          const aff = p.afiliados ?? p.aceitaAfiliados ?? false;
-          const com = p.comissao ?? p.comissaoAfiliado ?? 5;
-          return (
-            <div key={p.id} className="p-4 bg-white border border-gray-100 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
-                  {p.tipo === "produto" ? <IcoProduto /> : <IcoServico />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{p.nome}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {aff ? `Comissão: ${com}% · activo` : "Afiliados desactivados"}
-                  </p>
-                </div>
-                {aff && (
-                  <div className="text-right mr-3 hidden sm:block flex-shrink-0">
-                    <p className="text-sm font-semibold text-green-600 font-mono">
-                      {Math.round((p.vendas ?? 0) * p.preco * com / 100).toLocaleString("pt-MZ")}
-                    </p>
-                    <p className="text-xs text-gray-400">MZN gerado</p>
-                  </div>
-                )}
-                <Toggle value={aff} onChange={() => toggleAff(p.id, aff)} />
+        {produtos.map((p) => (
+          <div key={p.id} className="p-4 bg-white border border-gray-100 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+                {p.tipo === "produto" ? <IcoProduto /> : <IcoServico />}
               </div>
-              {aff && (
-                <div className="mt-3 flex items-center gap-3 px-1 bg-gray-50 rounded-lg p-2">
-                  <span className="text-xs text-gray-500 w-24 flex-shrink-0">Comissão: {com}%</span>
-                  <input
-                    type="range" min="1" max="30" step="1" value={com}
-                    onChange={e => updateComissao(p.id, Number(e.target.value))}
-                    className="flex-1"
-                  />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{p.nome}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {p.afiliados ? `Comissão: ${p.comissao}% · activo` : "Afiliados desactivados"}
+                </p>
+              </div>
+              {p.afiliados && (
+                <div className="text-right mr-3 hidden sm:block flex-shrink-0">
+                  <p className="text-sm font-semibold text-green-600 font-mono">
+                    {Math.round(((p.vendas ?? 0) * p.preco * p.comissao) / 100).toLocaleString("pt-MZ")}
+                  </p>
+                  <p className="text-xs text-gray-400">MZN gerado</p>
                 </div>
               )}
+              <Toggle value={p.afiliados} onChange={() => toggleAff(p.id, p.afiliados)} />
             </div>
-          );
-        })}
+            {p.afiliados && (
+              <div className="mt-3 flex items-center gap-3 px-1 bg-gray-50 rounded-lg p-2">
+                <span className="text-xs text-gray-500 w-24 flex-shrink-0">Comissão: {p.comissao}%</span>
+                <input type="range" min="1" max="30" step="1" value={p.comissao}
+                  onChange={(e) => updateComissao(p.id, e.target.value)} className="flex-1" />
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-// ─── Tab: Promoções ───────────────────────────────────────────────────────────
-function TabPromocoes({ produtos }: any) {
+// ── Tab: Promoções ────────────────────────────────────────────────
+function TabPromocoes({ produtos }) {
   return (
     <div>
-      <div className="mb-4">
-        <p className="text-sm font-semibold text-gray-800 mb-1">Promoções e destaque</p>
-      </div>
+      <p className="text-sm font-semibold text-gray-800 mb-4">Promoções e destaque</p>
       <div className="p-4 bg-white border border-gray-100 rounded-xl mb-4">
         <div className="flex items-center gap-2 mb-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
@@ -441,7 +388,7 @@ function TabPromocoes({ produtos }: any) {
           Pague uma taxa e o seu anúncio ganha prioridade no feed. Mais visibilidade significa mais cliques e mais vendas.
         </p>
         <div className="grid grid-cols-3 gap-2 mt-4">
-          {PROMO_PLANS.map(pl => (
+          {PROMO_PLANS.map((pl) => (
             <div key={pl.nome} className={`p-3 rounded-xl border ${pl.popular ? "border-amber-300 bg-amber-50" : "border-gray-100 bg-gray-50"}`}>
               {pl.popular && <div className="text-xs font-bold text-amber-700 mb-1">POPULAR</div>}
               <div className="text-sm font-bold text-gray-900">{pl.nome}</div>
@@ -453,7 +400,7 @@ function TabPromocoes({ produtos }: any) {
       </div>
       <p className="text-sm font-semibold text-gray-800 mb-3">Anúncios elegíveis</p>
       <div className="flex flex-col gap-2">
-        {produtos.filter((p: any) => p.estado === "activo").map((p: any) => (
+        {produtos.filter((p) => p.estado === "activo").map((p) => (
           <div key={p.id} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl">
             <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
               {p.tipo === "produto" ? <IcoProduto /> : <IcoServico />}
@@ -472,9 +419,9 @@ function TabPromocoes({ produtos }: any) {
   );
 }
 
-// ─── Tab: Estatísticas ────────────────────────────────────────────────────────
-function TabStats({ produtos }: any) {
-  const top = [...produtos].sort((a: any, b: any) => (b.vendas ?? 0) - (a.vendas ?? 0)).slice(0, 4);
+// ── Tab: Estatísticas ─────────────────────────────────────────────
+function TabStats({ produtos }) {
+  const top = [...produtos].sort((a, b) => (b.vendas ?? 0) - (a.vendas ?? 0)).slice(0, 4);
   const max = top[0]?.vendas || 1;
   const RANK_CLS = ["bg-green-500", "bg-blue-500", "bg-gray-400", "bg-gray-300"];
 
@@ -506,12 +453,12 @@ function TabStats({ produtos }: any) {
       </div>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Mais vendidos</p>
       <div className="flex flex-col gap-3 mb-5">
-        {top.map((p: any, i: number) => (
+        {top.map((p, i) => (
           <div key={p.id} className="flex items-center gap-3">
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${RANK_CLS[i]}`}>{i + 1}</div>
             <p className="text-sm font-medium text-gray-800 flex-1 truncate min-w-0">{p.nome}</p>
             <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
-              <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.round((p.vendas ?? 0) / max * 100)}%` }} />
+              <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.round(((p.vendas ?? 0) / max) * 100)}%` }} />
             </div>
             <span className="text-sm font-semibold text-gray-700 flex-shrink-0 font-mono w-8 text-right">{p.vendas ?? 0}</span>
           </div>
@@ -538,52 +485,54 @@ function TabStats({ produtos }: any) {
   );
 }
 
-// ─── Modal Publicar/Editar ────────────────────────────────────────────────────
-function ModalPublicar({ item, onClose, onSalvar }: any) {
-  const [tipo, setTipo] = useState(item?.tipo || "produto");
-  const [nome, setNome] = useState(item?.nome || "");
-  const [desc, setDesc] = useState(item?.descricao || "");
-  const [cat, setCat] = useState(item?.cat || item?.categoria || "");
-  const [preco, setPreco] = useState(item?.preco || "");
-  const [stock, setStock] = useState(item?.stock || "");
-  const [afiliados, setAfiliados] = useState(item?.afiliados ?? item?.aceitaAfiliados ?? false);
-  const [comissao, setComissao] = useState(item?.comissao ?? item?.comissaoAfiliado ?? 5);
-  const [entrega, setEntrega] = useState(item?.entrega ?? item?.temEntrega ?? false);
-  const [atacado, setAtacado] = useState(item?.atacado ?? false);
-  const [imagens, setImagens] = useState<FileList | null>(null);
-  const [enviando, setEnviando] = useState(false);
+// ── Modal Publicar/Editar ─────────────────────────────────────────
+function ModalPublicar({ item, onClose, onSalvar }) {
+  const [tipo, setTipo]           = useState(item?.tipo || "produto");
+  const [nome, setNome]           = useState(item?.nome || "");
+  const [desc, setDesc]           = useState(item?.descricao || "");
+  const [cat, setCat]             = useState(item?.cat || "");
+  const [preco, setPreco]         = useState(item?.preco || "");
+  const [stock, setStock]         = useState(item?.stock || "");
+  const [afiliados, setAfiliados] = useState(item?.afiliados || false);
+  const [comissao, setComissao]   = useState(item?.comissao || 5);
+  const [entrega, setEntrega]     = useState(item?.entrega || false);
+  const [atacado, setAtacado]     = useState(item?.atacado || false);
+  const [imagens, setImagens]     = useState(null);
+  const [enviando, setEnviando]   = useState(false);
 
-  const taxa = preco ? Math.round(Number(preco) * 0.105) : 0;
-  const liquido = preco ? Math.round(Number(preco) - taxa) : 0;
+  const taxa    = preco ? Math.round(Number(preco) * 0.105) : 0;
+  const liquido = preco ? Math.round(Number(preco) - taxa)  : 0;
 
   async function handleSalvar() {
     if (!nome.trim() || !preco) { alert("Preenche o nome e o preço."); return; }
     setEnviando(true);
     try {
       await onSalvar({
-        id: item?.id,
-        nome: nome.trim(),
-        descricao: desc,
-        tipo,
-        preco: Number(preco),
-        stock: tipo === "produto" ? Number(stock) || 0 : undefined,
-        aceitaAfiliados: afiliados,
+        id:               item?.id,
+        nome:             nome.trim(),
+        descricao:        desc,
+        // "produto" → "FISICO", "servico" → "SERVICO"
+        tipo:             tipo === "produto" ? "FISICO" : "SERVICO",
+        preco:            Number(preco),
+        stock:            tipo === "produto" ? Number(stock) || 0 : undefined,
+        categoriaId:      cat,
+        aceitaAfiliados:  Boolean(afiliados),
         comissaoAfiliado: afiliados ? Number(comissao) : 0,
-        temEntrega: entrega,
+        temEntrega:       entrega,
         atacado,
-        categoria: cat || "Outro",
+        metodosPagamento: ["MPESA", "EMOLA"],
         imagens,
       });
       onClose();
-    } catch (e: any) {
-      alert("Erro ao guardar: " + e.message);
-    } finally {
-      setEnviando(false);
-    }
+    } catch (e) { alert("Erro ao guardar: " + e.message); }
+    finally { setEnviando(false); }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-5">
@@ -592,10 +541,11 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
           </div>
 
           <div className="flex gap-2 mb-4">
-            {["produto", "servico"].map(t => (
+            {["produto", "servico"].map((t) => (
               <button key={t} onClick={() => setTipo(t)}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all cursor-pointer
-                  ${tipo === t ? "border-green-500 text-green-700 bg-green-50" : "border-gray-200 text-gray-500 bg-transparent"}`}>
+                  ${tipo === t ? "border-green-500 text-green-700 bg-green-50" : "border-gray-200 text-gray-500 bg-transparent"}`}
+              >
                 {t === "produto" ? "📦 Produto" : "🛠️ Serviço"}
               </button>
             ))}
@@ -604,20 +554,20 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-gray-500 block mb-1">Nome do anúncio *</label>
-              <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex: Smartphone Samsung A54"
+              <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="ex: Smartphone Samsung A54"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-500 block mb-1">Descrição *</label>
-              <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Descreva com clareza..."
+              <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="Descreva com clareza..."
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 resize-none" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-500 block mb-1">Categoria *</label>
-              <select value={cat} onChange={e => setCat(e.target.value)}
+              <select value={cat} onChange={(e) => setCat(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500">
                 <option value="">Selecionar categoria...</option>
-                {["Electrónica","Moda e Vestuário","Casa e Decoração","Serviços Profissionais","Educação e Formação","Saúde e Beleza","Alimentação","Veículos","Outro"].map(c => (
+                {["Electrónica","Moda e Vestuário","Casa e Decoração","Serviços Profissionais","Educação e Formação","Saúde e Beleza","Alimentação","Veículos","Outro"].map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>
@@ -625,13 +575,13 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
             <div className="flex gap-2">
               <div className="flex-1">
                 <label className="text-xs font-medium text-gray-500 block mb-1">Preço (MZN) *</label>
-                <input type="number" value={preco} onChange={e => setPreco(e.target.value)} placeholder="0.00"
+                <input type="number" value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="0.00"
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
               </div>
               {tipo === "produto" && (
                 <div className="w-24">
                   <label className="text-xs font-medium text-gray-500 block mb-1">Stock *</label>
-                  <input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="qtd" min="0"
+                  <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="qtd" min="0"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
                 </div>
               )}
@@ -639,21 +589,26 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
 
             {Number(preco) > 0 && (
               <div className="p-3 bg-gray-50 rounded-lg text-xs space-y-1.5">
-                <div className="flex justify-between"><span className="text-gray-500">Preço base</span><span className="font-mono">{Number(preco).toLocaleString("pt-MZ")} MZN</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Taxa plataforma (10.5%)</span><span className="font-mono text-red-500">−{taxa.toLocaleString("pt-MZ")} MZN</span></div>
-                <div className="flex justify-between pt-1.5 border-t border-gray-200"><span className="font-semibold">Você recebe</span><span className="font-mono font-bold text-green-600">{liquido.toLocaleString("pt-MZ")} MZN</span></div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Preço base</span>
+                  <span className="font-mono">{Number(preco).toLocaleString("pt-MZ")} MZN</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Taxa plataforma (10.5%)</span>
+                  <span className="font-mono text-red-500">−{taxa.toLocaleString("pt-MZ")} MZN</span>
+                </div>
+                <div className="flex justify-between pt-1.5 border-t border-gray-200">
+                  <span className="font-semibold">Você recebe</span>
+                  <span className="font-mono font-bold text-green-600">{liquido.toLocaleString("pt-MZ")} MZN</span>
+                </div>
               </div>
             )}
 
-            {/* Imagens — só para produtos novos */}
             {tipo === "produto" && (
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">Imagens (máx. 12)</label>
-                <input
-                  type="file" accept="image/*" multiple
-                  onChange={e => setImagens(e.target.files)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
-                />
+                <input type="file" accept="image/*" multiple onChange={(e) => setImagens(e.target.files)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
               </div>
             )}
 
@@ -661,14 +616,12 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
               <p className="text-sm font-medium text-gray-700">Entrega disponível</p>
               <Toggle value={entrega} onChange={setEntrega} />
             </div>
-
             {tipo === "produto" && (
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700">Venda em atacado</p>
                 <Toggle value={atacado} onChange={setAtacado} />
               </div>
             )}
-
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-gray-700">Aceitar afiliados</p>
@@ -683,7 +636,7 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
                   <span className="text-sm font-bold text-green-600 font-mono">{comissao}%</span>
                 </div>
                 <input type="range" min="1" max="30" step="1" value={comissao}
-                  onChange={e => setComissao(Number(e.target.value))} className="w-full" />
+                  onChange={(e) => setComissao(Number(e.target.value))} className="w-full" />
               </div>
             )}
           </div>
@@ -704,56 +657,76 @@ function ModalPublicar({ item, onClose, onSalvar }: any) {
   );
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
+// ── Componente principal ──────────────────────────────────────────
 const TABS = [
-  { id: "produtos",   label: "Produtos",     icon: IcoHome },
-  { id: "pedidos",    label: "Pedidos",      icon: IcoBag },
-  { id: "afiliados",  label: "Afiliados",    icon: IcoUsers },
-  { id: "promos",     label: "Promoções",    icon: IcoStar },
-  { id: "stats",      label: "Estatísticas", icon: IcoBar },
+  { id: "produtos",  label: "Produtos",      icon: IcoHome  },
+  { id: "pedidos",   label: "Pedidos",        icon: IcoBag   },
+  { id: "afiliados", label: "Afiliados",      icon: IcoUsers },
+  { id: "promos",    label: "Promoções",      icon: IcoStar  },
+  { id: "stats",     label: "Estatísticas",   icon: IcoBar   },
 ];
 
 export function SecaoVendas() {
-  const [tab, setTab] = useState("produtos");
-  const [produtos, setProdutos] = useState<any[]>([]);
+  const [tab, setTab]               = useState("produtos");
+  const [produtos, setProdutos]     = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-  const [modal, setModal] = useState<null | "novo" | { item: any }>(null);
+  const [erro, setErro]             = useState(null);
+  const [modal, setModal]           = useState(null);
 
-  // ── Carrega produtos do backend ao montar ──────────────────────
   useEffect(() => {
     api.meusProdutos()
-      .then(res => {
-        const lista = res.dados?.produtos ?? [];
+      .then((res) => {
+        const lista = res.dados?.produtos ?? res.dados ?? [];
         setProdutos(lista.map(mapearProduto));
       })
-      .catch(e => setErro(e.message))
+      .catch((e) => setErro(e.message))
       .finally(() => setCarregando(false));
   }, []);
 
-  // ── Salvar: criar ou editar ────────────────────────────────────
-  async function handleSalvar(dadosModal: any) {
+  // ── CORRECÇÃO PRINCIPAL ──────────────────────────────────────────
+  // O problema anterior: Object.entries(...).forEach(([k,v]) => form.append(k, String(v)))
+  // convertia numbers e booleans de volta para string, e arrays nunca eram enviados.
+  // Agora cada tipo é tratado correctamente antes de entrar no FormData.
+  async function handleSalvar(dadosModal) {
     const { id, imagens, ...resto } = dadosModal;
 
     if (id) {
-      // EDITAR — PUT sem imagens
-      const res = await api.atualizarProduto(id, resto);
-      setProdutos(prev => prev.map(p => p.id === id ? mapearProduto(res.dados) : p));
+      // Edição: JSON simples, tipos já correctos
+      const res        = await api.atualizarProduto(id, resto);
+      const atualizado = mapearProduto(res.dados);
+      setProdutos((prev) => prev.map((p) => p.id === id ? atualizado : p));
     } else {
-      // CRIAR — POST com FormData (para o multer receber as imagens)
+      // Criação: FormData — cada tipo tem tratamento específico
       const form = new FormData();
+
       Object.entries(resto).forEach(([k, v]) => {
-        if (v !== null && v !== undefined) form.append(k, String(v));
+        if (v === null || v === undefined) return;
+
+        if (Array.isArray(v)) {
+          // Arrays: adicionar cada item individualmente (ex: metodosPagamento[])
+          v.forEach((item) => form.append(k, String(item)));
+        } else if (typeof v === "boolean") {
+          // Booleans: "true" / "false" como string é o padrão aceite por FormData
+          form.append(k, v ? "true" : "false");
+        } else if (typeof v === "number") {
+          // Numbers: converter explicitamente para string numérica (sem locale)
+          form.append(k, String(v));
+        } else {
+          form.append(k, v);
+        }
       });
+
+      // Imagens: cada ficheiro como entrada separada
       if (imagens) {
-        Array.from(imagens as FileList).forEach((f: any) => form.append("imagens", f));
+        Array.from(imagens).forEach((f) => form.append("imagens", f));
       }
-      const res = await api.criarProduto(form);
-      setProdutos(prev => [mapearProduto(res.dados), ...prev]);
+
+      const res  = await api.criarProduto(form);
+      const novo = mapearProduto(res.dados);
+      setProdutos((prev) => [novo, ...prev]);
     }
   }
 
-  // ── Estados de loading e erro ──────────────────────────────────
   if (carregando) {
     return (
       <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
@@ -766,11 +739,9 @@ export function SecaoVendas() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
         <p className="text-red-500 text-sm font-medium">Erro ao carregar produtos</p>
-        <p className="text-gray-400 text-xs">{erro}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="text-xs bg-green-600 text-white px-4 py-2 rounded-lg border-0 cursor-pointer hover:bg-green-700"
-        >
+        <p className="text-gray-400 text-xs max-w-xs">{erro}</p>
+        <button onClick={() => window.location.reload()}
+          className="text-xs bg-green-600 text-white px-4 py-2 rounded-lg border-0 cursor-pointer hover:bg-green-700">
           Tentar novamente
         </button>
       </div>
@@ -782,7 +753,9 @@ export function SecaoVendas() {
       {/* Cabeçalho */}
       <div className="flex items-center justify-between pb-3 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AM</div>
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            AM
+          </div>
           <div>
             <div className="text-base font-semibold text-gray-900">Minhas Vendas</div>
             <div className="text-xs text-gray-400">Ana Machava · ana.machava@email.com</div>
@@ -796,7 +769,7 @@ export function SecaoVendas() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <StatCard label="Vendas"          valor="47"     sub="este mês"   delta="+12%" />
+        <StatCard label="Vendas"          valor="47"     sub="este mês"  delta="+12%" />
         <StatCard label="Receita bruta"   valor="128.5k" sub="MZN" />
         <StatCard label="Receita líquida" valor="112.3k" sub="após taxas" />
         <StatCard label="Conversão"       valor="6.4%"   sub="dos cliques" />
@@ -804,12 +777,13 @@ export function SecaoVendas() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
-        {TABS.map(t => {
+        {TABS.map((t) => {
           const Icon = t.icon;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer border-0
-                ${tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700 bg-transparent"}`}>
+                ${tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700 bg-transparent"}`}
+            >
               <Icon />
               <span className="hidden sm:inline">{t.label}</span>
             </button>
@@ -818,14 +792,7 @@ export function SecaoVendas() {
       </div>
 
       {/* Conteúdo */}
-      {tab === "produtos"  && (
-        <TabProdutos
-          produtos={produtos}
-          setProdutos={setProdutos}
-          onPublicar={() => setModal("novo")}
-          onEditar={(item: any) => setModal({ item })}
-        />
-      )}
+      {tab === "produtos"  && <TabProdutos produtos={produtos} setProdutos={setProdutos} onPublicar={() => setModal("novo")} onEditar={(item) => setModal({ item })} />}
       {tab === "pedidos"   && <TabPedidos />}
       {tab === "afiliados" && <TabAfiliados produtos={produtos} setProdutos={setProdutos} />}
       {tab === "promos"    && <TabPromocoes produtos={produtos} />}
@@ -834,7 +801,7 @@ export function SecaoVendas() {
       {/* Modal */}
       {modal && (
         <ModalPublicar
-          item={modal === "novo" ? null : (modal as any).item}
+          item={modal === "novo" ? null : modal.item}
           onClose={() => setModal(null)}
           onSalvar={handleSalvar}
         />

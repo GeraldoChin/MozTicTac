@@ -12,6 +12,7 @@ import TrendingPage from "./pages/Site/TrendingPage";
 import BlogPage from "./pages/Site/Blogpage";
 import PromoBannersPage from "./pages/Site/PromobannerPage";
 import PaginaFAQ from "./pages/Site/PaginaFacs";
+import LoginPage from "./pages/Site/Loginpage";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/promos" element={<PromoBannersPage />} />
       <Route path="/faq" element={<PaginaFAQ />} />
+      <Route path="/login" element={<LoginPage />} />
       {/* Resto das rotas... */}
     </Routes>
   );
