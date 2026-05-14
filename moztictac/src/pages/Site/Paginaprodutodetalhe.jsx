@@ -7,6 +7,7 @@ import {
   Shield, BadgeCheck,
 } from "lucide-react";
 import { Cabecalho } from "../../components/Cabecalho";
+import { adicionarAoCarrinho } from "../../utils/carrinho";
 
 // ── API BASE ──────────────────────────────────────────────────────
 const BASE_URL =
@@ -47,7 +48,7 @@ function normalizarProduto(raw) {
     imagens:         raw.imagens ?? (raw.img ? [raw.img] : []),
     descricao:       raw.descricao ?? raw.description ?? "",
     vendedor: {
-      id:              raw.vendedor?.id ?? null,           // ← necessário para iniciar chat
+      id:              raw.vendedor?.id ?? null,
       nome:            raw.vendedor?.nome ?? raw.vendedor?.nomeCompleto ?? raw.vendedor?.name ?? "Vendedor",
       iniciais:        (raw.vendedor?.nome ?? raw.vendedor?.nomeCompleto ?? raw.vendedor?.name ?? "VV")
                          .split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase(),
@@ -245,12 +246,30 @@ export default function PaginaProdutoDetalhe() {
 
   function gerarLink() { setLink(`moztictac.mz/p/${id}?ref=ANA82KP9XBTU`); }
   function copiar()    { navigator.clipboard?.writeText(link); setCopiado(true); setTimeout(() => setCopiado(false), 2000); }
-  function addCart()   { setAdicionado(true); setTimeout(() => setAdicionado(false), 2000); }
 
-  // ── Passa productId E vendedorId para o chat poder iniciar a conversa ──
+  // ── CORRIGIDO: grava no localStorage via utilitário ──
+  function addCart() {
+    if (!produto) return;
+    adicionarAoCarrinho({
+      id:           produto.id,
+      nome:         produto.nome,
+      preco:        produto.preco,
+      imagem:       produto.imagens?.[0] ?? null,
+      quantidade:   qty,
+      vendedorId:   produto.vendedor.id,
+      vendedorNome: produto.vendedor.nome,
+      localidade:   produto.vendedor.cidade,
+      estado:       produto.estado,
+      entrega:      produto.comEntrega,
+      afiliado:     produto.afiliado,
+      atacado:      false,
+    });
+    setAdicionado(true);
+    setTimeout(() => setAdicionado(false), 2000);
+  }
+
   function contactarVendedor() {
     if (!produto?.vendedor?.id) {
-      // Fallback: vai para o chat sem contexto
       navigate("/chat");
       return;
     }
@@ -423,6 +442,7 @@ export default function PaginaProdutoDetalhe() {
             </div>
 
             <div className="flex gap-2 sm:gap-3 flex-wrap">
+              {/* ── CORRIGIDO: chama addCart que usa o utilitário ── */}
               <button
                 onClick={addCart}
                 className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm cursor-pointer border-none transition-all active:scale-95"

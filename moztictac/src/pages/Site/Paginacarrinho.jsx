@@ -6,12 +6,20 @@ import {
   X, Edit2, Loader, Link, Save,
 } from "lucide-react";
 import { Header } from "../../components/Header";
+import {
+  lerCarrinho,
+  gravarCarrinho,
+  adicionarAoCarrinho,
+  removerDoCarrinho,
+  alterarQuantidade,
+  limparCarrinho,
+} from "../../utils/carrinho";
 
 // ─── constantes ───────────────────────────────────────────────────────────────
 const VERDE        = "#00b96b";
 const VERDE_ESCURO = "#009a5a";
 
-const TAXA_PLATAFORMA = 0.03;   // 3% (frontend só para exibição; valor real vem do backend)
+const TAXA_PLATAFORMA = 0.03;   // 3 % (frontend só para exibição; valor real vem do backend)
 const ENTREGA_FIXA    = 150;
 
 const METODOS_PAGAMENTO = [
@@ -27,7 +35,6 @@ const PROVINCIAS = [
 ];
 
 // ─── cliente HTTP centralizado ─────────────────────────────────────────────────
-// Ajusta BASE_URL via variável de ambiente (VITE_API_URL no .env)
 const BASE_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:3000/api/v1";
 
 async function apiFetch(path, options = {}) {
@@ -112,7 +119,7 @@ function BadgeEntrega()  { return <span className="flex items-center gap-1 text-
 function BadgeAtacado()  { return <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Atacado</span>; }
 function BadgeAfiliado() { return <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200"><Link size={10} />Afiliado</span>; }
 
-// ─── item do carrinho ─────────────────────────────────────────────────────────
+// ─── item do carrinho ─────────────────────────────────────────────
 function ItemCarrinho({ item, aoMudarQtd, aoRemoverClick }) {
   return (
     <div className="flex gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-shadow">
@@ -308,11 +315,9 @@ function ModalRemover({ open, item, onConfirm, onClose }) {
 }
 
 // ─── modal: endereço ──────────────────────────────────────────────────────────
-// GET /api/v1/utilizadores/perfil  → pré-preencher (carregado na página principal)
-// PUT /api/v1/utilizadores/perfil  → persistir { provincia, cidade, bairro }
 function ModalEndereco({ open, endereco, onChange, onClose }) {
   const [form, setForm] = useState({ ...endereco });
-  const [step, setStep] = useState("idle"); // idle | loading | success | error
+  const [step, setStep] = useState("idle");
   const [erro, setErro] = useState("");
 
   useEffect(() => { setForm({ ...endereco }); }, [endereco]);
@@ -348,9 +353,9 @@ function ModalEndereco({ open, endereco, onChange, onClose }) {
           </select>
         </div>
         {[
-          ["Cidade / Distrito", "cidade",       "Ex: Beira"],
-          ["Bairro",            "bairro",       "Ex: Ponta-Gêa"],
-          ["Referência (opcional)", "referencia", "Ex: Próximo ao mercado"],
+          ["Cidade / Distrito", "cidade",           "Ex: Beira"],
+          ["Bairro",            "bairro",            "Ex: Ponta-Gêa"],
+          ["Referência (opcional)", "referencia",    "Ex: Próximo ao mercado"],
         ].map(([label, key, placeholder]) => (
           <div key={key}>
             <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
@@ -381,7 +386,6 @@ function ModalEndereco({ open, endereco, onChange, onClose }) {
 }
 
 // ─── modal: guardar carrinho ──────────────────────────────────────────────────
-// Tenta POST /api/v1/cart/save; fallback para localStorage se o endpoint não existir
 function ModalGuardar({ open, itens, onClose }) {
   const [step, setStep] = useState("idle");
   const [erro, setErro] = useState("");
@@ -399,8 +403,7 @@ function ModalGuardar({ open, itens, onClose }) {
           }),
         });
       } catch {
-        // Fallback local
-        localStorage.setItem("moztictac_cart", JSON.stringify(itens));
+        // Fallback: já está no localStorage via gravarCarrinho
       }
       setStep("success");
     } catch (e) {
@@ -458,10 +461,8 @@ function ModalGuardar({ open, itens, onClose }) {
 }
 
 // ─── modal: chat com vendedor ─────────────────────────────────────────────────
-// POST /api/v1/chat/:destinatarioId — iniciar/obter conversa (chatControlador.iniciarOuObterConversa)
-// Socket.IO: window.mozSocket.emit("nova_mensagem", { conversaId, conteudo })
 function ModalChat({ open, vendedores, onClose }) {
-  const [selecionado, setSelecionado] = useState(null); // { id, nome }
+  const [selecionado, setSelecionado] = useState(null);
   const [msg,  setMsg]  = useState("");
   const [step, setStep] = useState("idle");
   const [erro, setErro] = useState("");
@@ -471,14 +472,10 @@ function ModalChat({ open, vendedores, onClose }) {
     setStep("loading");
     setErro("");
     try {
-      // Iniciar ou obter conversa existente com o vendedor
       const { dados: conversa } = await apiFetch(`/chat/${selecionado.id}`, { method: "POST" });
-
-      // Enviar mensagem via Socket.IO se disponível (instância global)
       if (msg.trim() && window.mozSocket?.connected) {
         window.mozSocket.emit("nova_mensagem", { conversaId: conversa.id, conteudo: msg });
       }
-
       setStep("success");
     } catch (e) {
       setErro(e.message);
@@ -550,11 +547,6 @@ function ModalChat({ open, vendedores, onClose }) {
 }
 
 // ─── modal: pagamento ─────────────────────────────────────────────────────────
-// Fluxo real:
-//   1. POST /api/v1/pedidos          → pedidoControlador.criar  → devolve pedidosCriados[]
-//   2. POST /api/v1/pedidos/:id/pagar → pedidoControlador.pagar  → inicia push M-Pesa/E-Mola/mKesh
-//   3. Confirmação via Socket.IO: window.mozSocket.once("payment_confirmed", ...)
-//      ou timeout de segurança (30s) para métodos síncronos (Visa/Banco)
 function ModalPagamento({ open, metodo, total, itens, endereco, onClose, onPedidoCriado }) {
   const [step,     setStep]     = useState("confirm");
   const [telefone, setTelefone] = useState("");
@@ -570,7 +562,6 @@ function ModalPagamento({ open, metodo, total, itens, endereco, onClose, onPedid
     setErro("");
 
     try {
-      // ── 1. Criar pedido(s) ────────────────────────────────────────────────
       const { dados: pedidosCriados } = await apiFetch("/pedidos", {
         method: "POST",
         body: JSON.stringify({
@@ -586,7 +577,6 @@ function ModalPagamento({ open, metodo, total, itens, endereco, onClose, onPedid
       if (!pedidosCriados?.length) throw new Error("Nenhum pedido criado");
       setPedidoId(pedidosCriados[0]?.id ?? null);
 
-      // ── 2. Iniciar pagamento para cada pedido ─────────────────────────────
       await Promise.all(
         pedidosCriados.map((pedido) =>
           apiFetch(`/pedidos/${pedido.id}/pagar`, {
@@ -599,22 +589,17 @@ function ModalPagamento({ open, metodo, total, itens, endereco, onClose, onPedid
         )
       );
 
-      // ── 3. Aguardar confirmação ───────────────────────────────────────────
       if (window.mozSocket?.connected) {
-        // Socket.IO disponível: aguardar evento "payment_confirmed"
         const timeout = setTimeout(() => {
-          // Após 30s sem resposta, assume sucesso (pagamento aceite pelo operador)
           setStep("success");
           onPedidoCriado?.(pedidosCriados);
         }, 30_000);
-
         window.mozSocket.once("payment_confirmed", () => {
           clearTimeout(timeout);
           setStep("success");
           onPedidoCriado?.(pedidosCriados);
         });
       } else {
-        // Sem Socket.IO: sucesso imediato
         setStep("success");
         onPedidoCriado?.(pedidosCriados);
       }
@@ -746,12 +731,12 @@ export default function PaginaCarrinho() {
   const [modalChat,      setModalChat]       = useState(false);
   const [modalPagamento, setModalPagamento]  = useState(false);
 
-  // ── inicialização: perfil + carrinho local ────────────────────────────────
-  // GET /api/v1/utilizadores/perfil → endereço do utilizador
-  // localStorage "moztictac_cart"   → itens (até existir endpoint GET /api/v1/cart)
+  // ── inicialização ──────────────────────────────────────────────
   useEffect(() => {
     async function init() {
       setCarregando(true);
+
+      // Carregar endereço do perfil
       try {
         const { dados } = await apiFetch("/utilizadores/perfil");
         setEndereco({
@@ -763,27 +748,47 @@ export default function PaginaCarrinho() {
       } catch {
         // utilizador não autenticado: manter endereço vazio
       }
-      try {
-        const guardado = localStorage.getItem("moztictac_cart");
-        if (guardado) setItens(JSON.parse(guardado).map(normalizarItem));
-      } catch {
-        // sem carrinho guardado
-      }
+
+      // ── CORRIGIDO: ler carrinho via utilitário ──
+      const guardado = lerCarrinho();
+      setItens(guardado.map(normalizarItem));
+
       setCarregando(false);
     }
     init();
   }, []);
 
-  // Persistir carrinho localmente sempre que itens mudam
+  // ── Sincronizar com outros separadores/janelas ─────────────────
+  // Se o utilizador adicionar um produto noutro tab, o carrinho
+  // desta página actualiza-se automaticamente via evento storage.
   useEffect(() => {
-    if (!carregando) localStorage.setItem("moztictac_cart", JSON.stringify(itens));
+    function handleStorage(e) {
+      if (e.key === "moztictac_cart") {
+        const novo = lerCarrinho();
+        setItens(novo.map(normalizarItem));
+      }
+    }
+    function handleEvento() {
+      const novo = lerCarrinho();
+      setItens(novo.map(normalizarItem));
+    }
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("carrinho-atualizado", handleEvento);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("carrinho-atualizado", handleEvento);
+    };
+  }, []);
+
+  // ── Persistir carrinho quando itens mudam (via utilitário) ─────
+  useEffect(() => {
+    if (!carregando) gravarCarrinho(itens);
   }, [itens, carregando]);
 
-  // ── derivados ─────────────────────────────────────────────────────────────
+  // ── derivados ─────────────────────────────────────────────────
   const totalItens = itens.reduce((a, i) => a + i.quantidade, 0);
   const grupos     = groupByVendedor(itens);
 
-  // Lista de vendedores únicos para o modal de chat
   const vendedores = [...new Map(itens.map((i) => [i.vendedorId, { id: i.vendedorId, nome: i.vendedorNome }])).values()]
     .filter((v) => v.id);
 
@@ -791,7 +796,7 @@ export default function PaginaCarrinho() {
   const taxa     = Math.round(subtotal * TAXA_PLATAFORMA);
   const total    = subtotal + ENTREGA_FIXA + taxa;
 
-  // ── handlers ──────────────────────────────────────────────────────────────
+  // ── handlers ──────────────────────────────────────────────────
   function aoMudarQtd(id, novaQtd) {
     if (novaQtd < 1) return setModalRemover({ open: true, item: itens.find((i) => i.id === id) });
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, quantidade: novaQtd } : i)));
@@ -804,11 +809,11 @@ export default function PaginaCarrinho() {
 
   function handlePedidoCriado() {
     setItens([]);
-    localStorage.removeItem("moztictac_cart");
+    limparCarrinho();
     setFinalizado(true);
   }
 
-  // ── ecrã de carregamento ───────────────────────────────────────────────────
+  // ── ecrã de carregamento ───────────────────────────────────────
   if (carregando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -817,7 +822,7 @@ export default function PaginaCarrinho() {
     );
   }
 
-  // ── ecrã de sucesso final ──────────────────────────────────────────────────
+  // ── ecrã de sucesso final ──────────────────────────────────────
   if (finalizado) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -837,7 +842,7 @@ export default function PaginaCarrinho() {
     );
   }
 
-  // ── ecrã principal ─────────────────────────────────────────────────────────
+  // ── ecrã principal ─────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
       <Header utilizadorAutenticado contagemCarrinho={totalItens} valorPesquisa={pesquisa}
@@ -873,7 +878,7 @@ export default function PaginaCarrinho() {
                     ({totalItens} {totalItens === 1 ? "item" : "itens"})
                   </span>
                 </h1>
-                <button onClick={() => setItens([])}
+                <button onClick={() => { setItens([]); limparCarrinho(); }}
                   className="text-xs text-red-400 hover:text-red-600 cursor-pointer transition-colors border-none bg-transparent font-medium">
                   Limpar tudo
                 </button>
@@ -905,7 +910,7 @@ export default function PaginaCarrinho() {
                 </div>
               ))}
 
-              {/* cupão / código de afiliado */}
+              {/* cupão */}
               <div className="flex gap-2 p-4 bg-white rounded-xl border border-gray-100">
                 <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-lg px-3 py-2">
                   <Tag size={14} className="text-gray-400 shrink-0" />
@@ -913,7 +918,6 @@ export default function PaginaCarrinho() {
                     placeholder="Código de desconto ou afiliado..."
                     className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400 bg-transparent" />
                 </div>
-                {/* O codigoCupao é passado como codigoAfiliado no POST /api/v1/pedidos */}
                 <button
                   className="px-4 py-2 text-sm font-semibold rounded-lg cursor-pointer transition-colors border-none"
                   style={{ background: VERDE, color: "white" }}

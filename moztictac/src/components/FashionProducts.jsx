@@ -1,6 +1,7 @@
 // src/components/FashionProducts.jsx
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { adicionarAoCarrinho } from "../utils/carrinho";
 
 // ── API BASE ──────────────────────────────────────────────────────
 const BASE_URL =
@@ -39,7 +40,7 @@ const apiPublico = {
   categorias: () => req("/publico/categorias"),
 };
 
-// ── API desejos — produtoId vai na URL (backend: POST /desejos/:produtoId) ───
+// ── API desejos ───────────────────────────────────────────────────
 const apiDesejos = {
   adicionar: (produtoId) =>
     reqAuth(`/desejos/${produtoId}`, { method: "POST" }),
@@ -123,13 +124,16 @@ function Paginacao({ pagina, totalPaginas, onChange }) {
 }
 
 // ── ProductCard ───────────────────────────────────────────────────
-function ProductCardInterno({ p, onAddToCart }) {
+function ProductCardInterno({ p }) {
   const navigate = useNavigate();
 
   // ── Estado wishlist ──
-  const [noDesejo, setNoDesejo] = useState(false);
-  const [salvando, setSalvando] = useState(false);
+  const [noDesejo, setNoDesejo]   = useState(false);
+  const [salvando, setSalvando]   = useState(false);
   const [erroDesejo, setErroDesejo] = useState(null);
+
+  // ── Estado "adicionado ao carrinho" ──
+  const [adicionado, setAdicionado] = useState(false);
 
   async function toggleDesejo(e) {
     e.stopPropagation();
@@ -154,11 +158,31 @@ function ProductCardInterno({ p, onAddToCart }) {
     } catch (err) {
       console.error("Erro wishlist:", err.message);
       setErroDesejo(err.message);
-      // Limpa o erro após 3s
       setTimeout(() => setErroDesejo(null), 3000);
     } finally {
       setSalvando(false);
     }
+  }
+
+  // ── CORRIGIDO: usa utilitário de carrinho ──
+  function handleAddToCart(e) {
+    e.stopPropagation();
+    adicionarAoCarrinho({
+      id:           p.id,
+      nome:         p.nome      ?? p.name      ?? "Produto",
+      preco:        Number(p.preco ?? p.price ?? 0),
+      imagem:       p.imagens?.[0] ?? p.img   ?? null,
+      quantidade:   1,
+      vendedorId:   p.vendedor?.id   ?? null,
+      vendedorNome: p.vendedor?.nome ?? p.vendedor?.nomeCompleto ?? "",
+      localidade:   p.vendedor?.cidade ?? p.city ?? "",
+      estado:       p.estadoItem === "NOVO" || p.isNew ? "Novo" : "Usado",
+      entrega:      p.entregaDisponivel ?? p.hasDelivery  ?? false,
+      afiliado:     p.aceitaAfiliados  ?? p.hasAffiliate ?? false,
+      atacado:      false,
+    });
+    setAdicionado(true);
+    setTimeout(() => setAdicionado(false), 1500);
   }
 
   // Normalizar campos
@@ -206,16 +230,32 @@ function ProductCardInterno({ p, onAddToCart }) {
 
         {/* Overlay com acções */}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 gap-2">
-          {/* Adicionar ao carrinho */}
+
+          {/* ── CORRIGIDO: Adicionar ao carrinho ── */}
           <button
-            onClick={e => { e.stopPropagation(); onAddToCart?.({ id: p.id, nome, preco, imagem, categoria }); }}
-            className="flex items-center gap-1.5 bg-white text-gray-800 text-[11px] font-semibold px-3 py-1 rounded shadow-sm hover:bg-green-500 hover:text-white transition-all duration-150"
+            onClick={handleAddToCart}
+            className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded shadow-sm transition-all duration-150"
+            style={{
+              background: adicionado ? "#16a34a" : "white",
+              color:      adicionado ? "white"   : "#1f2937",
+            }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-              <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
-            </svg>
-            Adicionar
+            {adicionado ? (
+              <>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Adicionado!
+              </>
+            ) : (
+              <>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                </svg>
+                Adicionar
+              </>
+            )}
           </button>
 
           {/* ── Botão Wishlist ── */}
@@ -337,7 +377,7 @@ function ProductCardInterno({ p, onAddToCart }) {
 }
 
 // ── Componente principal ──────────────────────────────────────────
-export function FashionProducts({ onAddToCart }) {
+export function FashionProducts() {
   const [produtos, setProdutos]           = useState([]);
   const [categorias, setCategorias]       = useState([]);
   const [total, setTotal]                 = useState(0);
@@ -632,7 +672,7 @@ export function FashionProducts({ onAddToCart }) {
               <>
                 <div className={`grid gap-4 ${filtersOpen ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"}`}>
                   {filtered.map(p => (
-                    <ProductCardInterno key={p.id} p={p} onAddToCart={onAddToCart} />
+                    <ProductCardInterno key={p.id} p={p} />
                   ))}
                 </div>
 
