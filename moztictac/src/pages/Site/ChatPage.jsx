@@ -1,10 +1,26 @@
-import { useState, useRef, useEffect } from "react";
+// ─────────────────────────────────────────────
+// MOZTICTAC — ChatPage (Comprador)
+// ─────────────────────────────────────────────
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ALL_PRODUCTS } from "../../components/FashionProducts";
 import { Header } from "../../components/Header";
+import {
+  connectSocket,
+  disconnectSocket,
+  entrarConversa,
+  sairConversa,
+  enviarMensagem as emitirMensagem,
+  marcarLidas,
+  onNovaMensagem,
+  onMensagensLidas,
+  onPresenca,
+  onErroSocket,
+  iniciarConversa,
+  listarConversas,
+  obterMensagens,
+} from "../../services/chatService";
 
 const GREEN       = "#00b96b";
-const GREEN_DARK  = "#009a5a";
 const GREEN_LIGHT = "#e6f9f0";
 
 /* ── Ícones ─────────────────────────────────────────────────────── */
@@ -32,17 +48,6 @@ const IconImage = () => (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
     <polyline points="21 15 16 10 5 21"/>
-  </svg>
-);
-const IconSmile = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/>
-    <line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-  </svg>
-);
-const IconPin = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
   </svg>
 );
 const IconCheck2 = () => (
@@ -75,84 +80,81 @@ const IconBubble = () => (
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
   </svg>
 );
+const IconRefresh = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+  </svg>
+);
 
-/* ── Conversas iniciais ─────────────────────────────────────────── */
-const CONVERSATIONS_INIT = [
-  {
-    id: 1, name: "Ana Paula Silva", avatar: "AP", avatarColor: "#8b5cf6",
-    product: ALL_PRODUCTS[0], online: true,
-    lastMsg: "Ainda tem em stock? Posso pagar hoje mesmo 🙏", lastTime: "14:32", unread: 2,
-    messages: [
-      { id: 1, from: "them", text: "Olá! Vi o seu anúncio do Relógio Premium Swiss Style. Ainda está disponível?", time: "14:10", read: true },
-      { id: 2, from: "me",   text: "Bom dia! Sim, ainda está disponível. Está em perfeito estado.", time: "14:15", read: true },
-      { id: 3, from: "them", text: "Que bom! Pode fazer algum desconto? Estou muito interessada", time: "14:20", read: true },
-      { id: 4, from: "me",   text: "Para pagamento imediato posso fazer um pequeno ajuste sim 😊", time: "14:25", read: true },
-      { id: 5, from: "them", text: "Ainda tem em stock? Posso pagar hoje mesmo 🙏", time: "14:32", read: false },
-    ],
-  },
-  {
-    id: 2, name: "Carlos Nhantumbo", avatar: "CN", avatarColor: "#f59e0b",
-    product: ALL_PRODUCTS[4], online: false,
-    lastMsg: "Ok, vou passar amanhã buscar.", lastTime: "Ontem", unread: 0,
-    messages: [
-      { id: 1, from: "them", text: "Boa tarde! O Samsung Galaxy A55 ainda tem garantia?", time: "Ontem 10:00", read: true },
-      { id: 2, from: "me",   text: "Sim! Tem garantia de 1 ano da Samsung. Caixa original com todos os acessórios.", time: "Ontem 10:05", read: true },
-      { id: 3, from: "them", text: "Perfeito. Posso ir buscar em Maputo?", time: "Ontem 10:10", read: true },
-      { id: 4, from: "me",   text: "Claro, estou disponível a partir das 8h. Fica na Av. Julius Nyerere.", time: "Ontem 10:15", read: true },
-      { id: 5, from: "them", text: "Ok, vou passar amanhã buscar.", time: "Ontem 10:20", read: true },
-    ],
-  },
-  {
-    id: 3, name: "Fátima Machava", avatar: "FM", avatarColor: "#ec4899",
-    product: ALL_PRODUCTS[3], online: true,
-    lastMsg: "Aceita M-Pesa? O meu número é 84...", lastTime: "12:48", unread: 1,
-    messages: [
-      { id: 1, from: "them", text: "Boa tarde! A Capulana ainda está disponível? Vi que tem entrega 😊", time: "12:30", read: true },
-      { id: 2, from: "me",   text: "Olá Fátima! Sim, está disponível. Entrega disponível para Maputo cidade.", time: "12:35", read: true },
-      { id: 3, from: "them", text: "Aceita M-Pesa? O meu número é 84...", time: "12:48", read: false },
-    ],
-  },
-  {
-    id: 4, name: "José Tembe", avatar: "JT", avatarColor: "#06b6d4",
-    product: ALL_PRODUCTS[6], online: false,
-    lastMsg: "Você: Enviado! Obrigado pela compra 🎉", lastTime: "Seg", unread: 0,
-    messages: [
-      { id: 1, from: "them", text: "Os Auscultadores Sony XM5 são originais?", time: "Seg 09:00", read: true },
-      { id: 2, from: "me",   text: "100% originais. Comprei na loja oficial. Tenho nota fiscal.", time: "Seg 09:10", read: true },
-      { id: 3, from: "them", text: "Feito! Vou comprar. Confirmo o pagamento agora.", time: "Seg 09:20", read: true },
-      { id: 4, from: "me",   text: "Enviado! Obrigado pela compra 🎉", time: "Seg 09:30", read: true },
-    ],
-  },
-  {
-    id: 5, name: "Lurdes Cossa", avatar: "LC", avatarColor: "#10b981",
-    product: ALL_PRODUCTS[10], online: true,
-    lastMsg: "Tem no tamanho M? Preciso urgente", lastTime: "11:05", unread: 3,
-    messages: [
-      { id: 1, from: "them", text: "Olá! Gostei muito do Vestido Chitenge. Que tamanhos tem disponíveis?", time: "10:50", read: true },
-      { id: 2, from: "me",   text: "Temos S, M, L e XL. Todas as cores do padrão tradicional.", time: "10:55", read: true },
-      { id: 3, from: "them", text: "Tem no tamanho M? Preciso urgente", time: "11:05", read: false },
-    ],
-  },
-  {
-    id: 6, name: "Mário Bila", avatar: "MB", avatarColor: "#f97316",
-    product: ALL_PRODUCTS[8], online: false,
-    lastMsg: "Boa, combinado então para sábado.", lastTime: "Dom", unread: 0,
-    messages: [
-      { id: 1, from: "them", text: "O Caju Torrado vem de Nacala? Como é feita a entrega?", time: "Dom 15:00", read: true },
-      { id: 2, from: "me",   text: "Sim! Enviamos por transportadora. Chega em 2-3 dias úteis em Maputo.", time: "Dom 15:10", read: true },
-      { id: 3, from: "them", text: "Boa, combinado então para sábado.", time: "Dom 15:15", read: true },
-    ],
-  },
-];
+/* ── Helpers ─────────────────────────────────────────────────────── */
+function formatarHora(dataISO) {
+  if (!dataISO) return "";
+  return new Date(dataISO).toLocaleTimeString("pt-MZ", { hour: "2-digit", minute: "2-digit" });
+}
 
-/* ── Sub-componentes ────────────────────────────────────────────── */
-function Avatar({ initials, color, size = "md", online = false }) {
+function formatarData(dataISO) {
+  if (!dataISO) return "";
+  const d = new Date(dataISO);
+  const hoje = new Date();
+  const ontem = new Date(); ontem.setDate(hoje.getDate() - 1);
+  if (d.toDateString() === hoje.toDateString()) return "Hoje";
+  if (d.toDateString() === ontem.toDateString()) return "Ontem";
+  return d.toLocaleDateString("pt-MZ", { day: "2-digit", month: "short" });
+}
+
+// FIX: aceita tanto remetenteId como outros campos possíveis
+function normalizarMensagem(m, meuId) {
+  return {
+    id:      m.id,
+    from:    m.remetenteId === meuId ? "me" : "them",
+    text:    m.conteudo,
+    time:    formatarHora(m.criadoEm),
+    read:    m.lida,
+    dataISO: m.criadoEm,
+  };
+}
+
+// FIX: suporta nomeCompleto (backend) e nome (fallback)
+function normalizarConversa(c, meuId) {
+  const outroPart = c.outroParticipante ?? {};
+  const nomeCompleto = outroPart.nomeCompleto ?? outroPart.nome ?? "Desconhecido";
+  const nomes     = nomeCompleto.split(" ");
+  const initials  = nomes.length >= 2
+    ? nomes[0][0] + nomes[nomes.length - 1][0]
+    : nomeCompleto.slice(0, 2);
+  const ultimaMsg = c.mensagens?.[0];
+
+  return {
+    id:          c.id,
+    name:        nomeCompleto,
+    avatar:      initials.toUpperCase(),
+    avatarColor: stringParaCor(outroPart.id ?? ""),
+    fotoPerfil:  outroPart.fotoPerfil ?? null,
+    online:      false,
+    lastMsg:     ultimaMsg?.conteudo ?? "",
+    lastTime:    formatarData(ultimaMsg?.criadoEm ?? c.ultimaMensagemEm),
+    unread:      c.naoLidas ?? 0,
+    outroId:     outroPart.id,
+    messages:    [],
+  };
+}
+
+function stringParaCor(str) {
+  const cores = ["#8b5cf6","#f59e0b","#ec4899","#06b6d4","#10b981","#f97316","#6366f1","#14b8a6"];
+  let h = 0;
+  for (const c of str) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return cores[Math.abs(h) % cores.length];
+}
+
+/* ── Sub-componentes ─────────────────────────────────────────────── */
+function Avatar({ initials, color, fotoPerfil, size = "md", online = false }) {
   const sizes = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
   return (
     <div className="relative flex-shrink-0">
-      <div className={`${sizes[size]} rounded-full flex items-center justify-center font-bold text-white`} style={{ background: color }}>
-        {initials}
-      </div>
+      {fotoPerfil
+        ? <img src={fotoPerfil} alt={initials} className={`${sizes[size]} rounded-full object-cover`} />
+        : <div className={`${sizes[size]} rounded-full flex items-center justify-center font-bold text-white`} style={{ background: color }}>{initials}</div>
+      }
       {online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white" />}
     </div>
   );
@@ -165,8 +167,9 @@ function MessageBubble({ msg, isMe }) {
         className={`max-w-[75%] sm:max-w-xs lg:max-w-sm px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
           isMe ? "rounded-br-sm text-white" : "rounded-bl-sm bg-white border border-gray-100 text-gray-800"
         }`}
-        style={isMe ? { background: GREEN } : {}}>
-        <p>{msg.text}</p>
+        style={isMe ? { background: GREEN } : {}}
+      >
+        <p style={{ wordBreak: "break-word" }}>{msg.text}</p>
         <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
           <span className={`text-[10px] ${isMe ? "text-green-100" : "text-gray-400"}`}>{msg.time}</span>
           {isMe && (msg.read ? <IconCheckDouble /> : <span className="text-green-200"><IconCheck2 /></span>)}
@@ -176,132 +179,217 @@ function MessageBubble({ msg, isMe }) {
   );
 }
 
-function ProductSnippet({ product, onClick }) {
-  if (!product) return null;
+function ErroToast({ msg, onDismiss }) {
+  if (!msg) return null;
   return (
-    <div onClick={onClick}
-      className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 cursor-pointer hover:border-green-200 hover:shadow-sm transition-all duration-150 mx-3 sm:mx-4 mt-3 mb-1 flex-shrink-0">
-      <img src={product.img} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-bold text-gray-800 line-clamp-1">{product.name}</p>
-        <p className="text-xs text-gray-400">{product.category}</p>
-        <p className="text-sm font-black" style={{ color: GREEN }}>{product.price.toLocaleString("pt-MZ")} MZN</p>
-      </div>
-      <span className="text-xs font-semibold px-2 py-1 rounded-lg flex-shrink-0" style={{ background: GREEN_LIGHT, color: GREEN }}>
-        Ver →
-      </span>
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+      {msg}
+      <button onClick={onDismiss} className="border-none bg-transparent text-white cursor-pointer"><IconClose /></button>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   PÁGINA PRINCIPAL
+   PÁGINA PRINCIPAL — COMPRADOR
 ══════════════════════════════════════════════════════════════════ */
 export function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [conversations, setConversations] = useState(CONVERSATIONS_INIT);
-  const [activeId, setActiveId]           = useState(null);
-  const [inputText, setInputText]         = useState("");
-  const [searchQuery, setSearchQuery]     = useState("");
-  const [showInfo, setShowInfo]           = useState(false);
-  const [mobileView, setMobileView]       = useState("list"); // "list" | "chat"
+  // FIX: garantir que meuId existe — sem ele nenhuma mensagem aparece como "minha"
+  const meuId = localStorage.getItem("usuarioId") ?? localStorage.getItem("userId") ?? "";
+
+  const [conversas,      setConversas]      = useState([]);
+  const [activeId,       setActiveId]       = useState(null);
+  const [inputText,      setInputText]      = useState("");
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [showInfo,       setShowInfo]       = useState(false);
+  const [mobileView,     setMobileView]     = useState("list");
+  const [carregando,     setCarregando]     = useState(true);
+  const [carregandoMsgs, setCarregandoMsgs] = useState(false);
+  const [erro,           setErro]           = useState(null);
+  const [enviando,       setEnviando]       = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef       = useRef(null);
+  const activeIdRef    = useRef(activeId);
 
-  const active = conversations.find(c => c.id === activeId);
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
 
-  /* ── receber productId ao chegar do ProductPage ── */
+  const active = conversas.find(c => c.id === activeId) ?? null;
+
+  // ── 1. Carregar conversas ─────────────────────────────────────
+  const carregarConversas = useCallback(async () => {
+    try {
+      setCarregando(true);
+      const dados = await listarConversas();
+      setConversas(dados.map(c => normalizarConversa(c, meuId)));
+    } catch (e) {
+      console.error("Erro ao carregar conversas:", e.message);
+      setErro("Não foi possível carregar as conversas. Tenta novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  }, [meuId]);
+
+  useEffect(() => { carregarConversas(); }, [carregarConversas]);
+
+  // ── 2. Socket ─────────────────────────────────────────────────
   useEffect(() => {
-    const productId = location.state?.productId;
+    const token = localStorage.getItem("token");
+    connectSocket(token);
 
-    if (!productId) {
-      setActiveId(CONVERSATIONS_INIT[0].id);
-      return;
-    }
+    const offMsg = onNovaMensagem((msg) => {
+      const normalizada = normalizarMensagem(msg, meuId);
+      setConversas(prev => prev.map(c => {
+        if (c.id !== msg.conversaId) return c;
+        const jáExiste = c.messages.some(m => m.id === normalizada.id);
+        if (jáExiste) return c;
+        const isActiva = activeIdRef.current === msg.conversaId;
+        return {
+          ...c,
+          messages: [...c.messages, normalizada],
+          lastMsg:  msg.conteudo,
+          lastTime: formatarData(msg.criadoEm),
+          unread:   isActiva ? 0 : (c.unread + (normalizada.from === "them" ? 1 : 0)),
+        };
+      }));
+      if (activeIdRef.current === msg.conversaId && msg.remetenteId !== meuId) {
+        marcarLidas(msg.conversaId);
+      }
+    });
 
-    const existing = CONVERSATIONS_INIT.find(c => c.product?.id === productId);
-    if (existing) {
-      setActiveId(existing.id);
-      setMobileView("chat");
-      return;
-    }
+    const offLidas = onMensagensLidas(({ conversaId }) => {
+      setConversas(prev => prev.map(c =>
+        c.id === conversaId
+          ? { ...c, messages: c.messages.map(m => m.from === "me" ? { ...m, read: true } : m) }
+          : c
+      ));
+    });
 
-    const prod = ALL_PRODUCTS.find(p => p.id === productId);
-    if (!prod) { setActiveId(CONVERSATIONS_INIT[0].id); return; }
+    const offPresenca = onPresenca(({ utilizadorId, online }) => {
+      setConversas(prev => prev.map(c =>
+        c.outroId === utilizadorId ? { ...c, online } : c
+      ));
+    });
 
-    const now     = new Date().toLocaleTimeString("pt-MZ", { hour: "2-digit", minute: "2-digit" });
-    const initMsg = `Olá! Tenho interesse no produto "${prod.name}". Ainda está disponível?`;
-    const newConv = {
-      id: Date.now(),
-      name: `Vendedor — ${prod.name.split(" ").slice(0, 2).join(" ")}`,
-      avatar: "VD",
-      avatarColor: GREEN,
-      product: prod,
-      online: true,
-      lastMsg: initMsg,
-      lastTime: now,
-      unread: 0,
-      messages: [{ id: 1, from: "me", text: initMsg, time: now, read: false }],
+    const offErro = onErroSocket(({ mensagem }) => setErro(mensagem));
+
+    return () => {
+      offMsg(); offLidas(); offPresenca(); offErro();
+      disconnectSocket();
     };
-    setConversations(prev => [newConv, ...prev]);
-    setActiveId(newConv.id);
-    setMobileView("chat");
-  }, []); // eslint-disable-line
+  }, [meuId]);
 
-  /* scroll ao fundo */
+  // ── 3. Abrir conversa via router state (produto → chat) ───────
+  useEffect(() => {
+    if (carregando) return;
+
+    const vendedorId   = location.state?.vendedorId;
+    const vendedorNome = location.state?.vendedorNome;
+    const vendedorFoto = location.state?.vendedorFoto;
+
+    if (vendedorId) {
+      // FIX: passar info do vendedor para enriquecer outroParticipante
+      iniciarConversa(vendedorId, { nome: vendedorNome, fotoPerfil: vendedorFoto })
+        .then(conv => {
+          const normalizada = normalizarConversa({ ...conv, naoLidas: 0 }, meuId);
+          setConversas(prev => {
+            const existe = prev.find(c => c.id === normalizada.id);
+            return existe ? prev.map(c => c.id === normalizada.id ? normalizada : c) : [normalizada, ...prev];
+          });
+          abrirConversa(normalizada.id);
+        })
+        .catch((e) => {
+          console.error("Erro ao iniciar conversa:", e.message);
+          setErro("Não foi possível iniciar a conversa.");
+        });
+      return;
+    }
+
+    // Sem intenção de produto → abrir primeira conversa disponível
+    if (conversas[0]) abrirConversa(conversas[0].id);
+  // eslint-disable-next-line
+  }, [carregando]);
+
+  // ── 4. Carregar mensagens ao abrir conversa ───────────────────
+  async function abrirConversa(id) {
+    setActiveId(id);
+    setMobileView("chat");
+    setShowInfo(false);
+
+    if (activeIdRef.current && activeIdRef.current !== id) {
+      sairConversa(activeIdRef.current);
+    }
+    entrarConversa(id);
+
+    setConversas(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
+    marcarLidas(id);
+
+    const convActual = conversas.find(c => c.id === id);
+    if (convActual?.messages?.length > 0) return;
+
+    try {
+      setCarregandoMsgs(true);
+      const dados = await obterMensagens(id);
+      // FIX: dados já é { total, pagina, mensagens } — não precisa de .dados
+      const msgs = (dados.mensagens ?? []).map(m => normalizarMensagem(m, meuId));
+      setConversas(prev => prev.map(c => c.id === id ? { ...c, messages: msgs } : c));
+    } catch (e) {
+      console.error("Erro ao carregar mensagens:", e.message);
+      setErro("Não foi possível carregar as mensagens.");
+    } finally {
+      setCarregandoMsgs(false);
+    }
+  }
+
+  // ── 5. Scroll para o fim ──────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeId, active?.messages?.length]);
 
-  /* marcar lido */
-  useEffect(() => {
-    if (!activeId) return;
-    setConversations(prev =>
-      prev.map(c => c.id === activeId
-        ? { ...c, unread: 0, messages: c.messages.map(m => ({ ...m, read: true })) }
-        : c)
-    );
-  }, [activeId]);
-
-  const filteredConvs = conversations.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.product?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const totalUnread = conversations.reduce((acc, c) => acc + c.unread, 0);
-
-  function openConv(id) { setActiveId(id); setMobileView("chat"); setShowInfo(false); }
-
-  function sendMessage() {
+  // ── 6. Enviar mensagem ────────────────────────────────────────
+  function enviar() {
     const text = inputText.trim();
-    if (!text) return;
-    const now    = new Date().toLocaleTimeString("pt-MZ", { hour: "2-digit", minute: "2-digit" });
-    const newMsg = { id: Date.now(), from: "me", text, time: now, read: false };
-    setConversations(prev =>
-      prev.map(c => c.id === activeId
-        ? { ...c, messages: [...c.messages, newMsg], lastMsg: `Você: ${text}`, lastTime: now }
-        : c)
-    );
+    if (!text || !activeId || enviando) return;
+
+    const agora  = new Date().toISOString();
+    const tmpMsg = { id: `tmp-${Date.now()}`, from: "me", text, time: formatarHora(agora), read: false, dataISO: agora };
+
+    setConversas(prev => prev.map(c =>
+      c.id === activeId
+        ? { ...c, messages: [...c.messages, tmpMsg], lastMsg: `Você: ${text}`, lastTime: "Agora" }
+        : c
+    ));
     setInputText("");
     inputRef.current?.focus();
+    emitirMensagem({ conversaId: activeId, conteudo: text });
   }
 
   function handleKeyDown(e) {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
   }
 
-  function renderMessages() {
+  const filteredConvs = conversas.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const totalUnread = conversas.reduce((acc, c) => acc + c.unread, 0);
+
+  function renderMensagens() {
     if (!active) return null;
+    let ultimaData = null;
     return active.messages.map((msg, i) => {
       const isMe       = msg.from === "me";
+      const dataLabel  = formatarData(msg.dataISO);
+      const mostrarData = dataLabel && dataLabel !== ultimaData;
+      if (mostrarData) ultimaData = dataLabel;
       const showAvatar = !isMe && (i === 0 || active.messages[i - 1]?.from === "me");
+
       return (
         <div key={msg.id}>
-          {i === 0 && (
-            <div className="flex justify-center mb-4">
-              <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Hoje</span>
+          {mostrarData && (
+            <div className="flex justify-center my-4">
+              <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">{dataLabel}</span>
             </div>
           )}
           <div className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"} mb-1`}>
@@ -319,8 +407,10 @@ export function ChatPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden" style={{ fontFamily: "Manrope, sans-serif" }}>
-<Header/>
-      {/* ── Top bar ── */}
+      <Header />
+      <ErroToast msg={erro} onDismiss={() => setErro(null)} />
+
+      {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 flex-shrink-0">
         <button
           onClick={() => mobileView === "chat" && window.innerWidth < 640 ? setMobileView("list") : navigate(-1)}
@@ -338,17 +428,17 @@ export function ChatPage() {
           )}
         </h1>
         <div className="flex-1" />
+        <button onClick={carregarConversas} className="text-gray-400 hover:text-green-600 border-none bg-transparent cursor-pointer transition-colors">
+          <IconRefresh />
+        </button>
       </div>
 
-      {/* ── Corpo ── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ══ Sidebar conversas ══ */}
+        {/* ══ Sidebar ══ */}
         <aside className={[
           "bg-white border-r border-gray-100 flex-col flex-shrink-0",
-          /* mobile: lista visível só quando mobileView=list */
           mobileView === "list" ? "flex w-full" : "hidden",
-          /* sm+: sempre visível, largura fixa */
           "sm:flex sm:w-72 md:w-80",
         ].join(" ")}>
 
@@ -368,19 +458,31 @@ export function ChatPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {filteredConvs.length === 0 ? (
+            {carregando ? (
+              <div className="flex flex-col gap-3 p-4">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-200 rounded w-2/3 mb-2" />
+                      <div className="h-2 bg-gray-100 rounded w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredConvs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                 <p className="text-gray-400 text-sm font-medium">Nenhuma conversa encontrada</p>
               </div>
             ) : filteredConvs.map(conv => (
-              <button key={conv.id} onClick={() => openConv(conv.id)}
+              <button key={conv.id} onClick={() => abrirConversa(conv.id)}
                 className={[
                   "w-full flex items-center gap-3 px-4 py-3.5 text-left border-none cursor-pointer transition-all duration-150 border-l-4",
                   activeId === conv.id
                     ? "bg-green-50 border-l-green-500"
                     : "bg-transparent border-l-transparent hover:bg-gray-50",
                 ].join(" ")}>
-                <Avatar initials={conv.avatar} color={conv.avatarColor} size="md" online={conv.online} />
+                <Avatar initials={conv.avatar} color={conv.avatarColor} fotoPerfil={conv.fotoPerfil} size="md" online={conv.online} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className={`text-sm font-bold truncate ${activeId === conv.id ? "text-gray-900" : "text-gray-800"}`}>
@@ -398,11 +500,6 @@ export function ChatPage() {
                       </span>
                     )}
                   </div>
-                  {conv.product && (
-                    <p className="text-[10px] text-gray-400 mt-0.5 truncate flex items-center gap-1">
-                      <IconPin />{conv.product.name}
-                    </p>
-                  )}
                 </div>
               </button>
             ))}
@@ -411,27 +508,21 @@ export function ChatPage() {
 
         {/* ══ Área de chat ══ */}
         {!active ? (
-          /* estado vazio — só visível em desktop */
           <div className="flex-1 hidden sm:flex flex-col items-center justify-center bg-gray-50 gap-3">
             <IconBubble />
             <p className="text-sm font-semibold text-gray-400">Selecciona uma conversa</p>
             <p className="text-xs text-gray-300">As tuas mensagens aparecem aqui</p>
           </div>
         ) : (
-          <div className={[
-            "flex-1 flex-col overflow-hidden",
-            mobileView === "chat" ? "flex" : "hidden sm:flex",
-          ].join(" ")}>
+          <div className={["flex-1 flex-col overflow-hidden", mobileView === "chat" ? "flex" : "hidden sm:flex"].join(" ")}>
 
-            {/* Header do chat */}
+            {/* Header */}
             <div className="bg-white border-b border-gray-100 px-3 sm:px-5 py-3.5 flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              {/* Voltar — mobile only */}
               <button onClick={() => setMobileView("list")}
                 className="sm:hidden w-8 h-8 flex items-center justify-center text-gray-500 cursor-pointer border-none bg-transparent flex-shrink-0">
                 <IconChevronLeft />
               </button>
-
-              <Avatar initials={active.avatar} color={active.avatarColor} size="md" online={active.online} />
+              <Avatar initials={active.avatar} color={active.avatarColor} fotoPerfil={active.fotoPerfil} size="md" online={active.online} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-black text-gray-900 truncate">{active.name}</p>
                 <p className="text-xs">
@@ -451,26 +542,34 @@ export function ChatPage() {
               </div>
             </div>
 
-            {/* Produto */}
-            <ProductSnippet product={active.product} onClick={() => navigate(`/produto/${active.product.id}`)} />
-
             {/* Mensagens */}
-            <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-3">
-              {renderMessages()}
+            <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-3" style={{ background: "#f8fafc" }}>
+              {carregandoMsgs ? (
+                <div className="flex flex-col gap-3 py-4">
+                  {[1,2,3].map(i => (
+                    <div key={i} className={`flex ${i % 2 === 0 ? "justify-end" : "justify-start"} animate-pulse`}>
+                      <div className={`h-10 rounded-2xl bg-gray-200 ${i % 2 === 0 ? "w-40" : "w-52"}`} />
+                    </div>
+                  ))}
+                </div>
+              ) : active.messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 gap-2">
+                  <IconBubble />
+                  <p className="text-sm font-medium">Nenhuma mensagem ainda</p>
+                  <p className="text-xs">Envia a primeira mensagem!</p>
+                </div>
+              ) : (
+                renderMensagens()
+              )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
             <div className="bg-white border-t border-gray-100 px-3 sm:px-4 py-3 flex-shrink-0">
               <div className="flex items-end gap-2">
-                <div className="flex gap-1 pb-1">
-                  <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 cursor-pointer border-none bg-transparent transition-colors">
-                    <IconImage />
-                  </button>
-                  <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 cursor-pointer border-none bg-transparent transition-colors hidden sm:flex">
-                    <IconSmile />
-                  </button>
-                </div>
+                <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 cursor-pointer border-none bg-transparent transition-colors pb-1">
+                  <IconImage />
+                </button>
                 <div className="flex-1">
                   <textarea ref={inputRef} rows={1} value={inputText}
                     onChange={e => setInputText(e.target.value)}
@@ -479,7 +578,7 @@ export function ChatPage() {
                     className="w-full resize-none bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors max-h-28 overflow-y-auto"
                     style={{ lineHeight: "1.5" }} />
                 </div>
-                <button onClick={sendMessage} disabled={!inputText.trim()}
+                <button onClick={enviar} disabled={!inputText.trim() || enviando}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0 cursor-pointer border-none transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: inputText.trim() ? GREEN : "#d1d5db" }}>
                   <IconSend />
@@ -502,44 +601,30 @@ export function ChatPage() {
               </button>
             </div>
             <div className="flex flex-col items-center py-6 px-4 border-b border-gray-50">
-              <Avatar initials={active.avatar} color={active.avatarColor} size="lg" online={active.online} />
+              <Avatar initials={active.avatar} color={active.avatarColor} fotoPerfil={active.fotoPerfil} size="lg" online={active.online} />
               <p className="mt-3 text-base font-black text-gray-900 text-center">{active.name}</p>
-              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                <IconPin /> {active.product?.city}, {active.product?.province}
-              </p>
               <div className="flex items-center gap-0.5 mt-1">
                 <IconStar /><IconStar /><IconStar /><IconStar /><IconStar />
                 <span className="text-xs text-gray-500 ml-1">Verificado</span>
               </div>
             </div>
-            {active.product && (
-              <div className="p-4 border-b border-gray-50">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Produto em discussão</p>
-                <div onClick={() => navigate(`/produto/${active.product.id}`)} className="flex gap-3 cursor-pointer group">
-                  <img src={active.product.img} alt={active.product.name} className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover flex-shrink-0 group-hover:opacity-90 transition-opacity" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-green-600 transition-colors">{active.product.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{active.product.category}</p>
-                    <p className="text-sm font-black mt-1" style={{ color: GREEN }}>{active.product.price.toLocaleString("pt-MZ")} MZN</p>
-                  </div>
-                </div>
-              </div>
-            )}
             <div className="p-4">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Acções</p>
               <div className="flex flex-col gap-2">
-                {[{ label: "Ver perfil do vendedor", icon: "👤" }, { label: "Bloquear contacto", icon: "🚫" }, { label: "Reportar conversa", icon: "⚠️" }]
-                  .map(a => (
-                    <button key={a.label}
-                      className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 cursor-pointer border-none text-left transition-colors">
-                      <span>{a.icon}</span>{a.label}
-                    </button>
-                  ))}
+                {[
+                  { label: "Ver perfil do vendedor", icon: "👤" },
+                  { label: "Bloquear contacto",      icon: "🚫" },
+                  { label: "Reportar conversa",       icon: "⚠️" },
+                ].map(a => (
+                  <button key={a.label}
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 cursor-pointer border-none text-left transition-colors">
+                    <span>{a.icon}</span>{a.label}
+                  </button>
+                ))}
               </div>
             </div>
           </aside>
         )}
-
       </div>
     </div>
   );

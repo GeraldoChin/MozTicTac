@@ -250,7 +250,7 @@ function TabPedidos() {
       const d = res.sucesso ? res.dados : res.data ?? {};
       setPedidos(d.pedidos ?? []);
       setTotal(d.total ?? 0);
-      setTotalPaginas(d.totalPaginas ?? Math.ceil((d.total ?? 0) / 20) || 1);
+   setTotalPaginas(d.totalPaginas ?? (Math.ceil((d.total ?? 0) / 20) || 1));
     } catch (e) {
       setErro(e.message);
     } finally {
