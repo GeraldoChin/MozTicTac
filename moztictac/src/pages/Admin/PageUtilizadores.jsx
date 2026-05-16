@@ -1,362 +1,961 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
-// ── Cores & tokens ────────────────────────────────────────────
-const C = {
-  bg:       "#f5f6fa",
-  card:     "#ffffff",
-  border:   "#e8eaf0",
-  text:     "#1a1d2e",
-  textSub:  "#5a6080",
-  textMute: "#9aa0bc",
-  blue:     "#3b6ef8",
-  blueLt:   "#eef2ff",
-  green:    "#22c55e",
-  greenLt:  "#f0fdf4",
-  amber:    "#f59e0b",
-  amberLt:  "#fffbeb",
-  red:      "#ef4444",
-  redLt:    "#fef2f2",
-  purple:   "#8b5cf6",
-  purpleLt: "#f5f3ff",
-};
+// ── API ───────────────────────────────────────────────────────────
+const BASE_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+  "http://localhost:3000/api/v1";
 
-// ── Ícones SVG minimalistas ───────────────────────────────────
-const Icon = ({ name, size = 14, color = "currentColor" }) => {
-  const s = { width: size, height: size, flexShrink: 0 };
-  const icons = {
-    download:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-    plus:      <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-    search:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-    refresh:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg>,
-    eye:       <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-    x:         <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-    check:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
-    users:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
-    bag:       <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
-    package:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
-    link:      <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>,
-    block:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
-    chevL:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>,
-    chevR:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>,
-    updown:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18" opacity=".4"/></svg>,
+async function requisitar(caminho, opcoes = {}) {
+  const token = localStorage.getItem("token");
+  const cabecalhos = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...opcoes.headers,
   };
-  return icons[name] || null;
+  const resposta = await fetch(`${BASE_URL}${caminho}`, {
+    ...opcoes,
+    headers: cabecalhos,
+  });
+  const dados = await resposta.json();
+  if (!resposta.ok)
+    throw new Error(dados.mensagem || dados.message || `Erro ${resposta.status}`);
+  return dados;
+}
+
+const apiAdmin = {
+  listarUtilizadores: ({ pagina, busca, estado, nivelVerificacao, scoreMin, scoreMax, dataInicio, dataFim }) => {
+    const qs = new URLSearchParams();
+    if (pagina) qs.set("pagina", pagina);
+    if (busca)  qs.set("busca", busca);
+    if (estado && estado !== "todos") {
+      const mapa = { ativo: "ATIVA", bloqueado: "BLOQUEADA", pendente: "PENDENTE" };
+      qs.set("estado", mapa[estado] || estado);
+    }
+    if (nivelVerificacao && nivelVerificacao !== "todos") qs.set("nivelVerificacao", nivelVerificacao);
+    if (scoreMin) qs.set("scoreMin", scoreMin);
+    if (scoreMax) qs.set("scoreMax", scoreMax);
+    if (dataInicio) qs.set("dataInicio", dataInicio);
+    if (dataFim)    qs.set("dataFim", dataFim);
+    return requisitar(`/admin/utilizadores?${qs.toString()}`);
+  },
+  bloquear:    (id, motivo) => requisitar(`/admin/utilizadores/${id}/bloquear`,    { method: "POST", body: JSON.stringify({ motivo }) }),
+  desbloquear: (id)         => requisitar(`/admin/utilizadores/${id}/desbloquear`, { method: "POST" }),
+  eliminar:    (id, motivo) => requisitar(`/admin/utilizadores/${id}`,             { method: "DELETE", body: JSON.stringify({ motivo }) }),
+  aprovarKyc:  (id)         => requisitar(`/admin/kyc/${id}/aprovar`,              { method: "POST" }),
+  rejeitarKyc: (id, motivo) => requisitar(`/admin/kyc/${id}/rejeitar`,             { method: "POST", body: JSON.stringify({ motivo }) }),
+  ajustarSaldo:(usuarioId, valor, tipo, descricao) =>
+    requisitar(`/admin/financeiro/ajustar-saldo`, { method: "POST", body: JSON.stringify({ usuarioId, valor, tipo, descricao }) }),
+  obterPerfil: (id)         => requisitar(`/admin/utilizadores/${id}`),
+  obterLogs:   (id)         => requisitar(`/admin/auditoria?usuarioId=${id}&pagina=1`),
+  enviarNotificacao: (usuarioId, titulo, mensagem, tipo) =>
+    requisitar(`/admin/notificacoes`, { method: "POST", body: JSON.stringify({ usuarioId, titulo, mensagem, tipo }) }),
 };
 
-// ── Badge ─────────────────────────────────────────────────────
-const BADGE_STYLES = {
-  success: { bg: C.greenLt,  dot: C.green,  text: "#15803d" },
-  danger:  { bg: C.redLt,    dot: C.red,    text: "#b91c1c" },
-  warning: { bg: C.amberLt,  dot: C.amber,  text: "#b45309" },
-  info:    { bg: C.blueLt,   dot: C.blue,   text: "#1d4ed8" },
-  purple:  { bg: C.purpleLt, dot: C.purple, text: "#6d28d9" },
-  default: { bg: C.bg,       dot: C.textMute, text: C.textSub, border: C.border },
+// ── Helpers ───────────────────────────────────────────────────────
+const fmtData = (iso) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("pt-MZ", { day: "2-digit", month: "short", year: "numeric" });
+};
+const fmtMZN = (v) =>
+  Number(v || 0).toLocaleString("pt-MZ", { style: "currency", currency: "MZN", maximumFractionDigits: 0 });
+
+const ESTADO_MAP = {
+  ATIVA:     { label: "Ativo",     cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  BLOQUEADA: { label: "Bloqueado", cls: "bg-red-50 text-red-700 border border-red-200" },
+  PENDENTE:  { label: "Pendente",  cls: "bg-amber-50 text-amber-700 border border-amber-200" },
+};
+const KYC_MAP = {
+  KYC_COMPLETO:    { label: "KYC Completo",    cls: "bg-blue-50 text-blue-700 border border-blue-200" },
+  EMAIL_VERIFICADO:{ label: "Email OK",         cls: "bg-sky-50 text-sky-700 border border-sky-200" },
+  NAO_VERIFICADO:  { label: "Não verificado",  cls: "bg-zinc-100 text-zinc-500 border border-zinc-200" },
 };
 
-function Badge({ label, type = "default" }) {
-  const s = BADGE_STYLES[type] || BADGE_STYLES.default;
+const scoreClass = (s) =>
+  s >= 70 ? "text-emerald-600 font-semibold" :
+  s >= 40 ? "text-amber-600 font-semibold"   :
+            "text-red-600 font-semibold";
+
+const AVATAR_BG = [
+  "bg-blue-500","bg-violet-500","bg-emerald-500",
+  "bg-amber-500","bg-pink-500","bg-teal-500",
+];
+
+function Avatar({ name = "", idx = 0, size = "md" }) {
+  const initials = (name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  const sz = size === "lg" ? "w-12 h-12 text-base" : "w-9 h-9 text-sm";
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      padding: "3px 9px", borderRadius: 20, fontSize: 12, fontWeight: 500,
-      background: s.bg, color: s.text, whiteSpace: "nowrap",
-      border: s.border ? `1px solid ${s.border}` : "none",
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot, flexShrink: 0 }} />
+    <div className={`${sz} rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0 ${AVATAR_BG[idx % AVATAR_BG.length]}`}>
+      {initials}
+    </div>
+  );
+}
+
+function Badge({ label, cls }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${cls}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
       {label}
     </span>
   );
 }
 
-// ── Botão ──────────────────────────────────────────────────────
-function Btn({ label, icon, variant = "secondary", size = "md", onClick }) {
-  const base = {
-    display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer",
-    border: "none", fontFamily: "inherit", fontWeight: 500, transition: "all .15s",
-    borderRadius: size === "sm" ? 7 : 9,
-    padding: size === "sm" ? "5px 10px" : "8px 14px",
-    fontSize: size === "sm" ? 12 : 13,
-  };
+// ── Toast ─────────────────────────────────────────────────────────
+function Toast({ items, remove }) {
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
+      {items.map(t => (
+        <div key={t.id} className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium shadow-lg border pointer-events-auto animate-in slide-in-from-bottom-2
+          ${t.type === "error"
+            ? "bg-red-50 border-red-200 text-red-700"
+            : t.type === "warning"
+            ? "bg-amber-50 border-amber-200 text-amber-700"
+            : "bg-emerald-50 border-emerald-200 text-emerald-700"}`}>
+          <span>{t.type === "error" ? "✕" : t.type === "warning" ? "⚠" : "✓"}</span>
+          {t.msg}
+          <button onClick={() => remove(t.id)} className="ml-2 opacity-50 hover:opacity-100">✕</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Modal genérico ────────────────────────────────────────────────
+function Modal({ title, subtitle, icon, iconBg, children, onClose, maxW = "max-w-md" }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full ${maxW} overflow-hidden`}>
+        <div className="flex items-center justify-between p-6 border-b border-zinc-100">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${iconBg}`}>{icon}</div>
+            <div>
+              <div className="font-semibold text-zinc-900 text-sm">{title}</div>
+              {subtitle && <div className="text-xs text-zinc-400 mt-0.5">{subtitle}</div>}
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors text-sm">✕</button>
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Btn({ label, icon, variant = "secondary", size = "md", onClick, loading, disabled, className = "" }) {
+  const base = `inline-flex items-center gap-2 font-medium transition-all rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`;
+  const sizes = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2 text-sm" };
   const variants = {
-    secondary: { background: C.card, border: `1.5px solid ${C.border}`, color: C.textSub },
-    primary:   { background: C.text, color: "#fff", border: "none" },
-    ghost:     { background: "transparent", color: C.textSub, border: "none", padding: size === "sm" ? "5px 8px" : "8px 10px" },
-    danger:    { background: C.redLt, color: C.red, border: `1px solid #fecaca` },
+    primary:   "bg-zinc-900 text-white hover:bg-zinc-700",
+    secondary: "bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50",
+    danger:    "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100",
+    ghost:     "text-zinc-500 hover:bg-zinc-100",
+    success:   "bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100",
+    warning:   "bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100",
   };
   return (
-    <button style={{ ...base, ...variants[variant] }} onClick={onClick}>
-      {icon && <Icon name={icon} size={13} />}
+    <button className={`${base} ${sizes[size]} ${variants[variant]} ${className}`} onClick={onClick} disabled={disabled || loading}>
+      {loading
+        ? <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        : icon && <span className="text-xs">{icon}</span>
+      }
       {label}
     </button>
   );
 }
 
-// ── StatCard ──────────────────────────────────────────────────
-function StatCard({ label, value, icon, color, trend, trendUp = true }) {
+// ── Modal Bloquear ────────────────────────────────────────────────
+function ModalBloquear({ user, onConfirm, onClose, loading }) {
+  const [motivo, setMotivo] = useState("");
   return (
-    <div style={{
-      background: C.card, border: `1px solid ${C.border}`, borderRadius: 12,
-      padding: 16, position: "relative", overflow: "hidden",
-      boxShadow: "0 1px 3px rgba(0,0,0,.07)",
-    }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: color }} />
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 26, fontWeight: 700, letterSpacing: -1, color: C.text }}>{value}</div>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: .8, textTransform: "uppercase", color: C.textMute, marginTop: 2 }}>{label}</div>
-      {trend && (
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 500,
-          marginTop: 8, padding: "3px 7px", borderRadius: 20,
-          background: trendUp ? C.greenLt : C.redLt,
-          color: trendUp ? "#15803d" : "#b91c1c",
-        }}>
-          {trendUp ? "▲" : "▲"} {trend}
+    <Modal title="Bloquear utilizador" subtitle={user?.nomeCompleto} icon="🚫" iconBg="bg-red-50 text-red-500" onClose={onClose}>
+      <p className="text-sm text-zinc-500 mb-4">O utilizador perderá acesso à plataforma. Indica o motivo:</p>
+      <textarea
+        value={motivo} onChange={e => setMotivo(e.target.value)}
+        placeholder="Ex: Comportamento suspeito, spam, violação de termos..."
+        rows={3}
+        className="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-zinc-900/10 bg-zinc-50"
+      />
+      <div className="flex justify-end gap-2 mt-4">
+        <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} />
+        <Btn label="Bloquear" variant="danger" onClick={() => onConfirm(motivo || "Sem motivo")} loading={loading} disabled={!motivo.trim()} />
+      </div>
+    </Modal>
+  );
+}
+
+// ── Modal Eliminar ────────────────────────────────────────────────
+function ModalEliminar({ user, onConfirm, onClose, loading }) {
+  const [motivo, setMotivo] = useState("");
+  const [confirmacao, setConfirmacao] = useState("");
+  const nomeEsperado = user?.nomeCompleto?.split(" ")[0] || "";
+  return (
+    <Modal title="Eliminar conta" subtitle={user?.nomeCompleto} icon="🗑" iconBg="bg-red-50 text-red-500" onClose={onClose}>
+      <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+        <p className="text-xs text-red-600 font-medium">⚠ Esta acção é irreversível. Todos os dados do utilizador serão eliminados permanentemente.</p>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">Motivo da eliminação</label>
+          <textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2}
+            placeholder="Motivo detalhado..."
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500/20 bg-zinc-50" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">
+            Escreve <span className="font-bold text-zinc-700">"{nomeEsperado}"</span> para confirmar
+          </label>
+          <input value={confirmacao} onChange={e => setConfirmacao(e.target.value)}
+            placeholder={nomeEsperado}
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 bg-zinc-50" />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} />
+        <Btn label="Eliminar permanentemente" variant="danger"
+          onClick={() => onConfirm(motivo)} loading={loading}
+          disabled={confirmacao !== nomeEsperado || !motivo.trim()} />
+      </div>
+    </Modal>
+  );
+}
+
+// ── Modal KYC ─────────────────────────────────────────────────────
+function ModalKyc({ user, onAprovar, onRejeitar, onClose, loading }) {
+  const [motivo, setMotivo] = useState("");
+  const [aba, setAba] = useState("aprovar");
+  return (
+    <Modal title="Gestão KYC" subtitle={user?.nomeCompleto} icon="🛡" iconBg="bg-blue-50 text-blue-500" onClose={onClose}>
+      <div className="flex gap-2 mb-4">
+        {["aprovar","rejeitar"].map(a => (
+          <button key={a} onClick={() => setAba(a)}
+            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${aba===a ? (a==="aprovar"?"bg-emerald-600 text-white":"bg-red-600 text-white") : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}>
+            {a === "aprovar" ? "✓ Aprovar KYC" : "✕ Rejeitar KYC"}
+          </button>
+        ))}
+      </div>
+      {aba === "aprovar" ? (
+        <div>
+          <p className="text-sm text-zinc-500 mb-4">O utilizador receberá nível <strong>KYC_COMPLETO</strong> e poderá efectuar saques.</p>
+          <div className="flex justify-end gap-2">
+            <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} />
+            <Btn label="Aprovar KYC" variant="success" onClick={onAprovar} loading={loading} />
+          </div>
+        </div>
+      ) : (
+        <div>
+          <textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={3}
+            placeholder="Motivo da rejeição (ex: documento ilegível, dados inconsistentes...)"
+            className="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500/20 bg-zinc-50 mb-4" />
+          <div className="flex justify-end gap-2">
+            <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} />
+            <Btn label="Rejeitar" variant="danger" onClick={() => onRejeitar(motivo)} loading={loading} disabled={!motivo.trim()} />
+          </div>
         </div>
       )}
+    </Modal>
+  );
+}
+
+// ── Modal Ajustar Saldo ───────────────────────────────────────────
+function ModalAjustarSaldo({ user, onConfirm, onClose, loading }) {
+  const [tipo, setTipo] = useState("CREDITO");
+  const [valor, setValor] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const valOk = Number(valor) > 0 && descricao.length >= 10;
+  return (
+    <Modal title="Ajustar saldo" subtitle={user?.nomeCompleto} icon="💰" iconBg="bg-amber-50 text-amber-500" onClose={onClose}>
+      <div className="bg-zinc-50 rounded-xl p-3 mb-4 flex items-center justify-between">
+        <span className="text-xs text-zinc-500">Saldo disponível</span>
+        <span className="font-semibold text-zinc-900 text-sm">{fmtMZN(user?.carteira?.saldoDisponivel)}</span>
+      </div>
+      <div className="flex gap-2 mb-4">
+        {["CREDITO","DEBITO"].map(t => (
+          <button key={t} onClick={() => setTipo(t)}
+            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tipo===t ? (t==="CREDITO"?"bg-emerald-600 text-white":"bg-red-600 text-white") : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}>
+            {t === "CREDITO" ? "+ Crédito" : "− Débito"}
+          </button>
+        ))}
+      </div>
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">Valor (MZN)</label>
+          <input type="number" value={valor} onChange={e => setValor(e.target.value)} min="1"
+            placeholder="0"
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/10 bg-zinc-50" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">Descrição <span className="text-zinc-400">(mín. 10 caracteres)</span></label>
+          <textarea value={descricao} onChange={e => setDescricao(e.target.value)} rows={2}
+            placeholder="Ex: Compensação por falha no pagamento de pedido #..."
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-zinc-900/10 bg-zinc-50" />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} />
+        <Btn label="Confirmar ajuste" variant="primary" onClick={() => onConfirm(Number(valor), tipo, descricao)} loading={loading} disabled={!valOk} />
+      </div>
+    </Modal>
+  );
+}
+
+// ── Modal Notificação ─────────────────────────────────────────────
+function ModalNotificacao({ user, onConfirm, onClose, loading }) {
+  const [titulo, setTitulo] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const [tipo, setTipo] = useState("INFO");
+  const TIPOS = ["INFO","AVISO","URGENTE"];
+  return (
+    <Modal title="Enviar notificação" subtitle={user?.nomeCompleto} icon="🔔" iconBg="bg-violet-50 text-violet-500" onClose={onClose}>
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">Tipo</label>
+          <div className="flex gap-2">
+            {TIPOS.map(t => (
+              <button key={t} onClick={() => setTipo(t)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${tipo===t?"bg-violet-600 text-white":"bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">Título</label>
+          <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Título da notificação"
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 bg-zinc-50" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-zinc-500 mb-1 block">Mensagem</label>
+          <textarea value={mensagem} onChange={e => setMensagem(e.target.value)} rows={3}
+            placeholder="Conteúdo da mensagem..."
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/20 bg-zinc-50" />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} />
+        <Btn label="Enviar" variant="primary" onClick={() => onConfirm(titulo, mensagem, tipo)}
+          loading={loading} disabled={!titulo.trim() || !mensagem.trim()} />
+      </div>
+    </Modal>
+  );
+}
+
+// ── Drawer Perfil ─────────────────────────────────────────────────
+function DrawerPerfil({ user, idx, onClose, onAbrirKyc, onAbrirSaldo, onAbrirNotif, onBloquear, onDesbloquear, onEliminar }) {
+  const [logs, setLogs] = useState([]);
+  const [logsLoad, setLogsLoad] = useState(false);
+
+  useEffect(() => {
+    setLogsLoad(true);
+    apiAdmin.obterLogs(user.id)
+      .then(r => setLogs(r.dados?.logs || r.data?.logs || []))
+      .catch(() => {})
+      .finally(() => setLogsLoad(false));
+  }, [user.id]);
+
+  const bloqueado = user.estadoConta === "BLOQUEADA";
+  const estado = ESTADO_MAP[user.estadoConta] || { label: user.estadoConta, cls: "bg-zinc-100 text-zinc-500" };
+  const kyc    = KYC_MAP[user.nivelVerificacao]  || { label: user.nivelVerificacao, cls: "bg-zinc-100 text-zinc-500" };
+
+  return (
+    <div className="fixed inset-0 z-30 flex" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="flex-1 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-white h-full overflow-y-auto shadow-2xl flex flex-col animate-in slide-in-from-right-4 duration-200">
+
+        {/* Header */}
+        <div className="p-5 border-b border-zinc-100 flex items-center justify-between sticky top-0 bg-white z-10">
+          <span className="text-sm font-semibold text-zinc-700">Perfil do utilizador</span>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors text-sm">✕</button>
+        </div>
+
+        {/* Identidade */}
+        <div className="p-5 border-b border-zinc-100">
+          <div className="flex items-center gap-4 mb-4">
+            <Avatar name={user.nomeCompleto} idx={idx} size="lg" />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-zinc-900 truncate">{user.nomeCompleto}</div>
+              <div className="text-xs text-zinc-400 truncate">{user.email}</div>
+              {user.telefone && <div className="text-xs text-zinc-400 font-mono">{user.telefone}</div>}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Badge label={estado.label} cls={estado.cls} />
+            <Badge label={kyc.label}    cls={kyc.cls} />
+            {user.cidade && <span className="text-xs text-zinc-400 flex items-center gap-1">📍 {user.cidade}</span>}
+          </div>
+        </div>
+
+        {/* Score de confiança */}
+        <div className="p-5 border-b border-zinc-100">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-zinc-500">Score de confiança</span>
+            <span className={`text-sm ${scoreClass(user.scoreConfianca || 0)}`}>{user.scoreConfianca || 0}/100</span>
+          </div>
+          <div className="w-full bg-zinc-100 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all ${(user.scoreConfianca||0) >= 70 ? "bg-emerald-500" : (user.scoreConfianca||0) >= 40 ? "bg-amber-500" : "bg-red-500"}`}
+              style={{ width: `${user.scoreConfianca || 0}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Carteira */}
+        <div className="p-5 border-b border-zinc-100">
+          <div className="text-xs font-medium text-zinc-500 mb-3">Carteira</div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "Disponível",  v: user.carteira?.saldoDisponivel, color: "text-emerald-600" },
+              { label: "Pendente",    v: user.carteira?.saldoPendente,    color: "text-amber-600" },
+            ].map(({ label, v, color }) => (
+              <div key={label} className="bg-zinc-50 rounded-xl p-3">
+                <div className="text-xs text-zinc-400 mb-1">{label}</div>
+                <div className={`text-sm font-semibold ${color}`}>{fmtMZN(v)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Datas */}
+        <div className="p-5 border-b border-zinc-100">
+          <div className="space-y-2">
+            {[
+              { label: "Registado em", v: fmtData(user.criadoEm) },
+              { label: "Último login", v: user.ultimoLogin ? fmtData(user.ultimoLogin) : "Nunca" },
+            ].map(({ label, v }) => (
+              <div key={label} className="flex items-center justify-between text-sm">
+                <span className="text-zinc-400 text-xs">{label}</span>
+                <span className="text-zinc-700 text-xs font-medium">{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Logs recentes */}
+        <div className="p-5 border-b border-zinc-100">
+          <div className="text-xs font-medium text-zinc-500 mb-3">Actividade recente</div>
+          {logsLoad ? (
+            <div className="flex items-center gap-2 text-xs text-zinc-400">
+              <span className="w-3 h-3 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
+              A carregar...
+            </div>
+          ) : logs.length === 0 ? (
+            <p className="text-xs text-zinc-400">Sem registos de auditoria.</p>
+          ) : (
+            <div className="space-y-2">
+              {logs.slice(0, 5).map(log => (
+                <div key={log.id} className="flex items-start justify-between gap-2">
+                  <span className="text-xs text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-md font-mono">{log.acao}</span>
+                  <span className="text-xs text-zinc-400 whitespace-nowrap">{fmtData(log.criadoEm)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Acções */}
+        <div className="p-5 space-y-2 mt-auto">
+          <div className="text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wide">Acções</div>
+          <div className="grid grid-cols-2 gap-2">
+            <Btn label="Ajustar saldo"   icon="💰" variant="secondary" size="sm" onClick={onAbrirSaldo}   className="justify-center" />
+            <Btn label="Notificação"      icon="🔔" variant="secondary" size="sm" onClick={onAbrirNotif}   className="justify-center" />
+            <Btn label="Gerir KYC"        icon="🛡" variant="secondary" size="sm" onClick={onAbrirKyc}     className="justify-center" />
+            {bloqueado
+              ? <Btn label="Desbloquear" icon="✓" variant="success"   size="sm" onClick={onDesbloquear}  className="justify-center" />
+              : <Btn label="Bloquear"    icon="🚫" variant="warning"   size="sm" onClick={onBloquear}     className="justify-center" />
+            }
+          </div>
+          <Btn label="Eliminar conta permanentemente" icon="🗑" variant="danger" size="sm" onClick={onEliminar} className="w-full justify-center mt-1" />
+        </div>
+
+      </div>
     </div>
   );
 }
 
-// ── Avatar ────────────────────────────────────────────────────
-const AVATAR_COLORS = [
-  "linear-gradient(135deg,#3b6ef8,#6b8ff8)",
-  "linear-gradient(135deg,#14b8a6,#2dd4bf)",
-  "linear-gradient(135deg,#22c55e,#4ade80)",
-  "linear-gradient(135deg,#f59e0b,#fbbf24)",
-  "linear-gradient(135deg,#ec4899,#f472b6)",
-  "linear-gradient(135deg,#8b5cf6,#a78bfa)",
-];
-function Avatar({ initials, index = 0 }) {
+// ── Filtros avançados ─────────────────────────────────────────────
+function PainelFiltros({ filtros, setFiltros, onLimpar, show }) {
+  if (!show) return null;
   return (
-    <div style={{
-      width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      background: AVATAR_COLORS[index % AVATAR_COLORS.length],
-      fontSize: 13, fontWeight: 700, color: "#fff",
-    }}>{initials}</div>
+    <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">Nível verificação</label>
+        <select value={filtros.nivelVerificacao} onChange={e => setFiltros(f => ({ ...f, nivelVerificacao: e.target.value }))}
+          className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10">
+          <option value="todos">Todos</option>
+          <option value="KYC_COMPLETO">KYC Completo</option>
+          <option value="EMAIL_VERIFICADO">Email verificado</option>
+          <option value="NAO_VERIFICADO">Não verificado</option>
+        </select>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">Score mín.</label>
+        <input type="number" min="0" max="100" value={filtros.scoreMin} onChange={e => setFiltros(f => ({ ...f, scoreMin: e.target.value }))}
+          placeholder="0" className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">Score máx.</label>
+        <input type="number" min="0" max="100" value={filtros.scoreMax} onChange={e => setFiltros(f => ({ ...f, scoreMax: e.target.value }))}
+          placeholder="100" className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">Registado desde</label>
+        <input type="date" value={filtros.dataInicio} onChange={e => setFiltros(f => ({ ...f, dataInicio: e.target.value }))}
+          className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10" />
+      </div>
+      <div className="col-span-2 md:col-span-4 flex justify-end">
+        <Btn label="Limpar filtros avançados" variant="ghost" size="sm" onClick={onLimpar} />
+      </div>
+    </div>
   );
 }
 
-// ── Checkbox ──────────────────────────────────────────────────
-function Checkbox({ checked, onChange }) {
+// ── Paginação ─────────────────────────────────────────────────────
+const POR_PAGINA = 20;
+
+function Paginacao({ page, total, onChange }) {
+  const totalPags = Math.max(1, Math.ceil(total / POR_PAGINA));
+  if (totalPags <= 1) return null;
+
+  const pages = [];
+  if (totalPags <= 7) {
+    for (let i = 1; i <= totalPags; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (page > 3) pages.push("…");
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPags - 1, page + 1); i++) pages.push(i);
+    if (page < totalPags - 2) pages.push("…");
+    pages.push(totalPags);
+  }
+
   return (
-    <input type="checkbox" checked={checked} onChange={onChange}
-      style={{ width: 15, height: 15, accentColor: C.blue, cursor: "pointer" }} />
+    <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-100">
+      <span className="text-xs text-zinc-400">
+        Página {page} de {totalPags} — {total.toLocaleString("pt-MZ")} utilizadores
+      </span>
+      <div className="flex items-center gap-1">
+        <button onClick={() => onChange(page - 1)} disabled={page === 1}
+          className="h-8 px-3 rounded-lg border border-zinc-200 text-xs text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          ‹
+        </button>
+        {pages.map((p, i) => (
+          <button key={i} onClick={() => typeof p === "number" && onChange(p)} disabled={p === "…"}
+            className={`h-8 w-8 rounded-lg text-xs font-medium transition-all ${p === page ? "bg-zinc-900 text-white border-zinc-900" : p === "…" ? "text-zinc-300 cursor-default" : "border border-zinc-200 text-zinc-500 hover:bg-zinc-50"} border`}>
+            {p}
+          </button>
+        ))}
+        <button onClick={() => onChange(page + 1)} disabled={page === totalPags}
+          className="h-8 px-3 rounded-lg border border-zinc-200 text-xs text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          ›
+        </button>
+      </div>
+    </div>
   );
 }
 
-// ── Dados mockados ────────────────────────────────────────────
-const USERS = [
-  { id: "USR001", name: "João Matos",   email: "joao@gmail.com",    tipo: "Afiliado Ouro",  tipoType: "purple",  data: "12 Jan 2025", provincia: "Maputo",  compras: 14, estado: "Ativo",     estadoType: "success", blocked: false },
-  { id: "USR002", name: "Ana Lopes",    email: "ana@gmail.com",     tipo: "Vendedor",        tipoType: "info",    data: "08 Fev 2025", provincia: "Sofala",  compras:  3, estado: "Ativo",     estadoType: "success", blocked: false },
-  { id: "USR003", name: "Carlos Nhaca", email: "carlos@hotmail.com",tipo: "Comprador",       tipoType: "default", data: "20 Mar 2025", provincia: "Nampula", compras: 22, estado: "Ativo",     estadoType: "success", blocked: false },
-  { id: "USR004", name: "spam_user99",  email: "spam99@test.com",   tipo: "Comprador",       tipoType: "default", data: "01 Abr 2025", provincia: null,      compras:  0, estado: "Bloqueado", estadoType: "danger",  blocked: true  },
-  { id: "USR005", name: "Fátima Dique", email: "fatima@gmail.com",  tipo: "Afiliado Prata", tipoType: "info",    data: "15 Mar 2025", provincia: "Gaza",    compras:  8, estado: "Ativo",     estadoType: "success", blocked: false },
-];
-
-const TIPOS = ["Todos os tipos", "Comprador", "Vendedor", "Afiliado Ouro", "Afiliado Prata"];
-const ESTADOS = ["Todos os estados", "Ativo", "Bloqueado", "Pendente"];
-const PROVINCIAS = ["Todas as províncias", "Maputo", "Gaza", "Sofala", "Nampula", "Zambézia"];
-
-// ── Componente principal ──────────────────────────────────────
+// ── Página principal ──────────────────────────────────────────────
 export default function PageUtilizadores() {
-  const [search, setSearch] = useState("");
-  const [tipo, setTipo] = useState("Todos os tipos");
-  const [estado, setEstado] = useState("Todos os estados");
-  const [provincia, setProvincia] = useState("Todas as províncias");
-  const [selected, setSelected] = useState([]);
-  const [users, setUsers] = useState(USERS);
-  const [page, setPage] = useState(1);
+  const [users, setUsers]             = useState([]);
+  const [total, setTotal]             = useState(0);
+  const [page, setPage]               = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch]           = useState("");
+  const [estado, setEstado]           = useState("todos");
+  const [loading, setLoading]         = useState(false);
+  const [actionId, setActionId]       = useState(null);
+  const [selected, setSelected]       = useState([]);
+  const [showFiltros, setShowFiltros] = useState(false);
+  const [filtros, setFiltros]         = useState({ nivelVerificacao: "todos", scoreMin: "", scoreMax: "", dataInicio: "", dataFim: "" });
 
-  // Filtros
-  const filtered = users.filter(u => {
-    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
-                        u.email.toLowerCase().includes(search.toLowerCase()) ||
-                        u.id.toLowerCase().includes(search.toLowerCase());
-    const matchTipo = tipo === "Todos os tipos" || u.tipo === tipo;
-    const matchEstado = estado === "Todos os estados" || u.estado === estado;
-    const matchProv = provincia === "Todas as províncias" || u.provincia === provincia;
-    return matchSearch && matchTipo && matchEstado && matchProv;
-  });
+  const [drawer, setDrawer]           = useState(null); // { user, idx }
+  const [modal, setModal]             = useState(null); // { type, user, idx }
+  const [toasts, setToasts]           = useState([]);
 
-  // Selecção
-  const allSelected = filtered.length > 0 && filtered.every(u => selected.includes(u.id));
-  const toggleAll = () => setSelected(allSelected ? [] : filtered.map(u => u.id));
+  // ── Toast helpers ─────────────────────────────────────────────
+  const addToast = useCallback((msg, type = "success") => {
+    const id = Date.now();
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000);
+  }, []);
+  const removeToast = useCallback((id) => setToasts(t => t.filter(x => x.id !== id)), []);
+
+  // ── Carregar ──────────────────────────────────────────────────
+  const carregar = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res   = await apiAdmin.listarUtilizadores({ pagina: page, busca: search, estado, ...filtros });
+      const lista = res.dados?.utilizadores || res.data?.utilizadores || [];
+      const tot   = res.dados?.total        || res.data?.total        || 0;
+      setUsers(lista);
+      setTotal(tot);
+    } catch (err) {
+      addToast(err.message || "Erro ao carregar", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, estado, filtros, addToast]);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 500);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // ── Selecção ──────────────────────────────────────────────────
+  const allSel    = users.length > 0 && users.every(u => selected.includes(u.id));
+  const toggleAll = () => setSelected(allSel ? [] : users.map(u => u.id));
   const toggleOne = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
-  // Bloquear / Ativar
-  const toggleBlock = (id) => {
-    setUsers(prev => prev.map(u => u.id !== id ? u : {
-      ...u,
-      blocked: !u.blocked,
-      estado: u.blocked ? "Ativo" : "Bloqueado",
-      estadoType: u.blocked ? "success" : "danger",
-    }));
+  // ── Limpar filtros ─────────────────────────────────────────────
+  const limparTudo = () => {
+    setSearchInput(""); setSearch(""); setEstado("todos"); setPage(1);
+    setFiltros({ nivelVerificacao: "todos", scoreMin: "", scoreMax: "", dataInicio: "", dataFim: "" });
   };
+  const limparFiltrosAvancados = () =>
+    setFiltros({ nivelVerificacao: "todos", scoreMin: "", scoreMax: "", dataInicio: "", dataFim: "" });
 
-  const limpar = () => { setSearch(""); setTipo("Todos os tipos"); setEstado("Todos os estados"); setProvincia("Todas as províncias"); };
+  // ── Acções ────────────────────────────────────────────────────
+  const fecharModal  = () => setModal(null);
 
-  const selectStyle = {
-    padding: "9px 12px", fontSize: 13, fontFamily: "inherit",
-    border: `1.5px solid ${C.border}`, borderRadius: 9,
-    color: C.text, background: C.bg, outline: "none", cursor: "pointer",
-  };
+  async function handleBloquear(user, motivo) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.bloquear(user.id, motivo);
+      addToast(`${user.nomeCompleto} bloqueado`);
+      fecharModal(); setDrawer(null); carregar();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
 
-  const thStyle = {
-    padding: "10px 14px", textAlign: "left", fontSize: 10.5, fontWeight: 600,
-    letterSpacing: .7, textTransform: "uppercase", color: C.textMute, whiteSpace: "nowrap",
-  };
-  const tdStyle = { padding: "12px 14px", verticalAlign: "middle" };
+  async function handleDesbloquear(user) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.desbloquear(user.id);
+      addToast(`${user.nomeCompleto} desbloqueado`);
+      setDrawer(null); carregar();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
+
+  async function handleEliminar(user, motivo) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.eliminar(user.id, motivo);
+      addToast(`Conta de ${user.nomeCompleto} eliminada`, "warning");
+      fecharModal(); setDrawer(null); carregar();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
+
+  async function handleAprovarKyc(user) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.aprovarKyc(user.id);
+      addToast(`KYC de ${user.nomeCompleto} aprovado`);
+      fecharModal(); carregar();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
+
+  async function handleRejeitarKyc(user, motivo) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.rejeitarKyc(user.id, motivo);
+      addToast(`KYC de ${user.nomeCompleto} rejeitado`);
+      fecharModal(); carregar();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
+
+  async function handleAjustarSaldo(user, valor, tipo, descricao) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.ajustarSaldo(user.id, valor, tipo, descricao);
+      addToast(`Saldo de ${user.nomeCompleto} ajustado (${tipo === "CREDITO" ? "+" : "-"}${fmtMZN(valor)})`);
+      fecharModal(); carregar();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
+
+  async function handleNotificacao(user, titulo, mensagem, tipo) {
+    setActionId(user.id);
+    try {
+      await apiAdmin.enviarNotificacao(user.id, titulo, mensagem, tipo);
+      addToast(`Notificação enviada a ${user.nomeCompleto}`);
+      fecharModal();
+    } catch (e) { addToast(e.message, "error"); }
+    finally { setActionId(null); }
+  }
+
+  // ── Acções em massa ───────────────────────────────────────────
+  async function handleBloquearMassa() {
+    for (const id of selected) {
+      const u = users.find(x => x.id === id);
+      if (u && u.estadoConta !== "BLOQUEADA") await apiAdmin.bloquear(id, "Acção em massa").catch(() => {});
+    }
+    addToast(`${selected.length} utilizadores bloqueados`);
+    setSelected([]); carregar();
+  }
+
+  async function handleDesbloquearMassa() {
+    for (const id of selected) await apiAdmin.desbloquear(id).catch(() => {});
+    addToast(`${selected.length} utilizadores desbloqueados`);
+    setSelected([]); carregar();
+  }
+
+  function exportarCSV() {
+    const cabecalho = ["ID","Nome","Email","Telefone","Estado","Verificação","Score","Saldo","Registado"];
+    const linhas = users
+      .filter(u => selected.length === 0 || selected.includes(u.id))
+      .map(u => [u.id, u.nomeCompleto, u.email, u.telefone||"", u.estadoConta, u.nivelVerificacao, u.scoreConfianca||0, u.carteira?.saldoDisponivel||0, fmtData(u.criadoEm)]);
+    const csv = [cabecalho, ...linhas].map(r => r.join(";")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `utilizadores-${new Date().toISOString().split("T")[0]}.csv`; a.click();
+    addToast("CSV exportado");
+  }
+
+  // ── Modal helpers ─────────────────────────────────────────────
+  const abrirModal = (type, user, idx) => setModal({ type, user, idx });
+  const abrirDrawer = (user, idx) => setDrawer({ user, idx });
+
+  const filtrosAtivos = Object.values(filtros).some(v => v && v !== "todos");
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", padding: 24, fontFamily: "'DM Sans', sans-serif", color: C.text, fontSize: 14 }}>
+    <div className="min-h-screen bg-zinc-50 p-4 md:p-8 font-sans">
+
+      {/* Modais */}
+      {modal?.type === "bloquear" && (
+        <ModalBloquear user={modal.user} loading={actionId === modal.user?.id}
+          onConfirm={m => handleBloquear(modal.user, m)} onClose={fecharModal} />
+      )}
+      {modal?.type === "eliminar" && (
+        <ModalEliminar user={modal.user} loading={actionId === modal.user?.id}
+          onConfirm={m => handleEliminar(modal.user, m)} onClose={fecharModal} />
+      )}
+      {modal?.type === "kyc" && (
+        <ModalKyc user={modal.user} loading={actionId === modal.user?.id}
+          onAprovar={() => handleAprovarKyc(modal.user)}
+          onRejeitar={m => handleRejeitarKyc(modal.user, m)}
+          onClose={fecharModal} />
+      )}
+      {modal?.type === "saldo" && (
+        <ModalAjustarSaldo user={modal.user} loading={actionId === modal.user?.id}
+          onConfirm={(v, t, d) => handleAjustarSaldo(modal.user, v, t, d)} onClose={fecharModal} />
+      )}
+      {modal?.type === "notif" && (
+        <ModalNotificacao user={modal.user} loading={actionId === modal.user?.id}
+          onConfirm={(ti, me, tp) => handleNotificacao(modal.user, ti, me, tp)} onClose={fecharModal} />
+      )}
+
+      {/* Drawer */}
+      {drawer && (
+        <DrawerPerfil
+          user={drawer.user} idx={drawer.idx}
+          onClose={() => setDrawer(null)}
+          onAbrirKyc={()   => { setDrawer(null); abrirModal("kyc",    drawer.user, drawer.idx); }}
+          onAbrirSaldo={()  => { setDrawer(null); abrirModal("saldo",  drawer.user, drawer.idx); }}
+          onAbrirNotif={()  => { setDrawer(null); abrirModal("notif",  drawer.user, drawer.idx); }}
+          onBloquear={()    => { setDrawer(null); abrirModal("bloquear",drawer.user, drawer.idx); }}
+          onDesbloquear={() => handleDesbloquear(drawer.user)}
+          onEliminar={()    => { setDrawer(null); abrirModal("eliminar",drawer.user, drawer.idx); }}
+        />
+      )}
+
+      <Toast items={toasts} remove={removeToast} />
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
         <div>
-          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -.3 }}>Gestão de Utilizadores</div>
-          <div style={{ color: C.textSub, fontSize: 13, marginTop: 3 }}>Ver, filtrar e gerir todos os utilizadores da plataforma</div>
+          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">Gestão de Utilizadores</h1>
+          <p className="text-sm text-zinc-400 mt-0.5">
+            {total > 0 ? `${total.toLocaleString("pt-MZ")} utilizadores registados` : "Ver, filtrar e gerir todos os utilizadores"}
+          </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Btn label="Exportar Excel" icon="download" variant="secondary" />
-          <Btn label="Novo Utilizador" icon="plus" variant="primary" />
+        <div className="flex items-center gap-2">
+          <Btn label="Exportar CSV" icon="⬇" variant="secondary" size="sm" onClick={exportarCSV} />
+          <Btn label="Atualizar" icon="↻" variant="secondary" size="sm" onClick={carregar} loading={loading} />
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 20 }}>
-        <StatCard label="Total"       value="12 480" icon="users"   color={C.blue}   trend="+3.2% este mês" />
-        <StatCard label="Compradores" value="9 840"  icon="bag"     color={C.green}  trend="+142 novos" />
-        <StatCard label="Vendedores"  value="1 340"  icon="package" color={C.amber}  trend="+28 novos" />
-        <StatCard label="Afiliados"   value="892"    icon="link"    color={C.purple} trend="+67 novos" />
-        <StatCard label="Bloqueados"  value="408"    icon="block"   color={C.red}    trend="+12 esta semana" trendUp={false} />
-      </div>
-
-      {/* Main Card */}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,.07)" }}>
+      {/* Card principal */}
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
 
         {/* Filtros */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 18, alignItems: "center", flexWrap: "wrap" }}>
-          {/* Search */}
-          <div style={{ flex: 1, minWidth: 220, position: "relative" }}>
-            <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: C.textMute, display: "flex" }}>
-              <Icon name="search" size={14} />
-            </span>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Pesquisar por nome, email ou ID..."
-              style={{
-                width: "100%", padding: "9px 12px 9px 34px",
-                border: `1.5px solid ${C.border}`, borderRadius: 9,
-                fontSize: 13, fontFamily: "inherit", color: C.text, background: C.bg,
-                outline: "none",
-              }}
-            />
+        <div className="p-4 border-b border-zinc-100">
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Pesquisa */}
+            <div className="flex-1 relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">🔍</span>
+              <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
+                placeholder="Pesquisar por nome, email ou telefone..."
+                className="w-full pl-9 pr-4 py-2 text-sm border border-zinc-200 rounded-xl bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white transition-all" />
+            </div>
+            {/* Estado */}
+            <select value={estado} onChange={e => { setEstado(e.target.value); setPage(1); }}
+              className="px-3 py-2 text-sm border border-zinc-200 rounded-xl bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 text-zinc-700">
+              <option value="todos">Todos os estados</option>
+              <option value="ativo">Ativo</option>
+              <option value="bloqueado">Bloqueado</option>
+              <option value="pendente">Pendente</option>
+            </select>
+            {/* Filtros avançados toggle */}
+            <button onClick={() => setShowFiltros(s => !s)}
+              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-xl border transition-all font-medium ${showFiltros || filtrosAtivos ? "bg-zinc-900 text-white border-zinc-900" : "border-zinc-200 text-zinc-500 hover:bg-zinc-50"}`}>
+              ⚙ Filtros {filtrosAtivos && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+            </button>
+            <Btn label="Limpar" icon="↺" variant="ghost" size="md" onClick={limparTudo} />
           </div>
 
-          <select style={selectStyle} value={tipo} onChange={e => setTipo(e.target.value)}>
-            {TIPOS.map(t => <option key={t}>{t}</option>)}
-          </select>
-          <select style={selectStyle} value={estado} onChange={e => setEstado(e.target.value)}>
-            {ESTADOS.map(e => <option key={e}>{e}</option>)}
-          </select>
-          <select style={selectStyle} value={provincia} onChange={e => setProvincia(e.target.value)}>
-            {PROVINCIAS.map(p => <option key={p}>{p}</option>)}
-          </select>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
-            <Btn label="Limpar" icon="refresh" variant="secondary" size="sm" onClick={limpar} />
-            <span style={{ fontSize: 12, color: C.textMute, whiteSpace: "nowrap" }}>{filtered.length} de 12 480</span>
+          {/* Filtros avançados */}
+          <div className={`overflow-hidden transition-all duration-200 ${showFiltros ? "mt-3 max-h-96" : "max-h-0"}`}>
+            <PainelFiltros filtros={filtros} setFiltros={setFiltros} onLimpar={limparFiltrosAvancados} show={showFiltros} />
           </div>
         </div>
 
+        {/* Barra de selecção em massa */}
+        {selected.length > 0 && (
+          <div className="px-4 py-2.5 bg-blue-50 border-b border-blue-100 flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-semibold text-blue-700">{selected.length} selecionado(s)</span>
+            <Btn label="Bloquear todos"   icon="🚫" variant="warning"   size="sm" onClick={handleBloquearMassa} />
+            <Btn label="Desbloquear todos" icon="✓" variant="success"   size="sm" onClick={handleDesbloquearMassa} />
+            <Btn label="Exportar seleção" icon="⬇" variant="secondary" size="sm" onClick={exportarCSV} />
+            <button onClick={() => setSelected([])} className="text-xs text-blue-500 hover:text-blue-700 ml-auto">Limpar selecção</button>
+          </div>
+        )}
+
         {/* Tabela */}
-        <div style={{ overflowX: "auto", borderRadius: 10, border: `1px solid ${C.border}` }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead style={{ background: C.bg }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-zinc-50 border-b border-zinc-100">
               <tr>
-                <th style={{ ...thStyle, width: 40 }}><Checkbox checked={allSelected} onChange={toggleAll} /></th>
-                <th style={thStyle}>Utilizador <Icon name="updown" size={11} color={C.textMute} /></th>
-                <th style={thStyle}>Tipo</th>
-                <th style={thStyle}>Registado <Icon name="updown" size={11} color={C.textMute} /></th>
-                <th style={thStyle}>Província</th>
-                <th style={thStyle}>Compras</th>
-                <th style={thStyle}>Estado</th>
-                <th style={thStyle}>Ações</th>
+                <th className="w-10 px-4 py-3">
+                  <input type="checkbox" checked={allSel} onChange={toggleAll}
+                    className="w-4 h-4 accent-zinc-900 cursor-pointer rounded" />
+                </th>
+                {["Utilizador","Verificação","Score","Registado","Último login","Saldo","Estado","Acções"].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-zinc-400 whitespace-nowrap">{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((u, i) => (
-                <tr key={u.id} style={{
-                  borderTop: `1px solid ${C.border}`,
-                  opacity: u.blocked ? .75 : 1,
-                  background: selected.includes(u.id) ? "#f8f9ff" : "transparent",
-                  transition: "background .1s",
-                }}>
-                  <td style={{ ...tdStyle, width: 40 }}>
-                    <Checkbox checked={selected.includes(u.id)} onChange={() => toggleOne(u.id)} />
-                  </td>
-                  <td style={tdStyle}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <Avatar initials={u.name.split(" ").map(w => w[0]).join("").slice(0,2)} index={i} />
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span style={{ fontWeight: 600, fontSize: 13.5 }}>{u.name}</span>
-                        <span style={{ color: C.textMute, fontSize: 11.5 }}>{u.email}</span>
-                        <span style={{ color: C.textMute, fontSize: 10.5, fontFamily: "monospace" }}>#{u.id}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={tdStyle}><Badge label={u.tipo} type={u.tipoType} /></td>
-                  <td style={{ ...tdStyle, color: C.textSub, fontSize: 13 }}>{u.data}</td>
-                  <td style={{ ...tdStyle, color: C.textSub, fontSize: 13 }}>
-                    {u.provincia || <span style={{ color: C.textMute }}>—</span>}
-                  </td>
-                  <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 13, fontWeight: 500 }}>{u.compras}</td>
-                  <td style={tdStyle}><Badge label={u.estado} type={u.estadoType} /></td>
-                  <td style={tdStyle}>
-                    <div style={{ display: "flex", gap: 5 }}>
-                      <Btn label="Ver" icon="eye" variant="ghost" size="sm" />
-                      {u.blocked
-                        ? <Btn label="Ativar"    icon="check" variant="secondary" size="sm" onClick={() => toggleBlock(u.id)} />
-                        : <Btn label="Bloquear"  icon="x"     variant="danger"    size="sm" onClick={() => toggleBlock(u.id)} />
-                      }
-                    </div>
+            <tbody className="divide-y divide-zinc-50">
+
+              {/* Loading */}
+              {loading && users.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="text-center py-16">
+                    <div className="w-7 h-7 border-3 border-zinc-200 border-t-zinc-700 rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-sm text-zinc-400">A carregar utilizadores...</p>
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={8} style={{ ...tdStyle, textAlign: "center", color: C.textMute, padding: 40 }}>Nenhum utilizador encontrado</td></tr>
               )}
+
+              {/* Vazio */}
+              {!loading && users.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="text-center py-16">
+                    <p className="text-zinc-400 text-sm">Nenhum utilizador encontrado.</p>
+                    <button onClick={limparTudo} className="mt-2 text-xs text-zinc-500 hover:text-zinc-700 underline">Limpar filtros</button>
+                  </td>
+                </tr>
+              )}
+
+              {/* Linhas */}
+              {users.map((u, i) => {
+                const estado_ = ESTADO_MAP[u.estadoConta] || { label: u.estadoConta, cls: "bg-zinc-100 text-zinc-500" };
+                const kyc_    = KYC_MAP[u.nivelVerificacao] || { label: u.nivelVerificacao, cls: "bg-zinc-100 text-zinc-500" };
+                const bloq    = u.estadoConta === "BLOQUEADA";
+                const emAcao  = actionId === u.id;
+                const saldo   = Number(u.carteira?.saldoDisponivel || 0);
+                const score   = u.scoreConfianca || 0;
+                const isSel   = selected.includes(u.id);
+
+                return (
+                  <tr key={u.id}
+                    className={`hover:bg-zinc-50 transition-colors cursor-pointer ${bloq ? "opacity-60" : ""} ${isSel ? "bg-blue-50/60" : ""}`}
+                    onClick={() => abrirDrawer(u, i)}>
+                    <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggleOne(u.id); }}>
+                      <input type="checkbox" checked={isSel} onChange={() => toggleOne(u.id)}
+                        className="w-4 h-4 accent-zinc-900 cursor-pointer rounded" />
+                    </td>
+
+                    {/* Utilizador */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={u.nomeCompleto} idx={i} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-zinc-900 text-sm truncate max-w-[160px]">{u.nomeCompleto}</div>
+                          <div className="text-xs text-zinc-400 truncate max-w-[160px]">{u.email}</div>
+                          {u.telefone && <div className="text-[10px] text-zinc-400 font-mono">{u.telefone}</div>}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Verificação */}
+                    <td className="px-4 py-3"><Badge label={kyc_.label} cls={kyc_.cls} /></td>
+
+                    {/* Score */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-zinc-100 rounded-full h-1.5">
+                          <div className={`h-1.5 rounded-full ${score>=70?"bg-emerald-500":score>=40?"bg-amber-500":"bg-red-500"}`} style={{ width: `${score}%` }} />
+                        </div>
+                        <span className={`text-xs ${scoreClass(score)}`}>{score}</span>
+                      </div>
+                    </td>
+
+                    {/* Datas */}
+                    <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{fmtData(u.criadoEm)}</td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap">
+                      {u.ultimoLogin ? <span className="text-zinc-500">{fmtData(u.ultimoLogin)}</span> : <span className="text-zinc-300">Nunca</span>}
+                    </td>
+
+                    {/* Saldo */}
+                    <td className="px-4 py-3 font-mono text-xs">
+                      {saldo > 0
+                        ? <span className="text-emerald-600 font-semibold">{fmtMZN(saldo)}</span>
+                        : <span className="text-zinc-300">0 MZN</span>}
+                    </td>
+
+                    {/* Estado */}
+                    <td className="px-4 py-3"><Badge label={estado_.label} cls={estado_.cls} /></td>
+
+                    {/* Acções */}
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-1">
+                        <button title="Ver perfil" onClick={() => abrirDrawer(u, i)}
+                          className="w-7 h-7 rounded-lg hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors text-xs">👤</button>
+                        <button title="Gerir KYC" onClick={() => abrirModal("kyc", u, i)}
+                          className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-zinc-400 hover:text-blue-600 transition-colors text-xs">🛡</button>
+                        <button title="Ajustar saldo" onClick={() => abrirModal("saldo", u, i)}
+                          className="w-7 h-7 rounded-lg hover:bg-amber-50 flex items-center justify-center text-zinc-400 hover:text-amber-600 transition-colors text-xs">💰</button>
+                        {bloq
+                          ? <button title="Desbloquear" onClick={() => handleDesbloquear(u)} disabled={emAcao}
+                              className="w-7 h-7 rounded-lg hover:bg-emerald-50 flex items-center justify-center text-zinc-400 hover:text-emerald-600 transition-colors text-xs disabled:opacity-40">
+                              {emAcao ? <span className="w-3 h-3 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" /> : "✓"}
+                            </button>
+                          : <button title="Bloquear" onClick={() => abrirModal("bloquear", u, i)}
+                              className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-zinc-400 hover:text-red-600 transition-colors text-xs">🚫</button>
+                        }
+                        <button title="Eliminar conta" onClick={() => abrirModal("eliminar", u, i)}
+                          className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-zinc-300 hover:text-red-500 transition-colors text-xs">🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
-        {/* Paginação */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, fontSize: 12, color: C.textMute }}>
-          <span>Mostrando 1–{filtered.length} de 12 480 utilizadores</span>
-          <div style={{ display: "flex", gap: 5 }}>
-            {[{ label: "‹ Anterior", p: null }, 1, 2, 3, "…", 420, { label: "Seguinte ›", p: null }].map((p, i) => {
-              const isNav = typeof p === "object";
-              const label = isNav ? p.label : p;
-              const isActive = p === page;
-              return (
-                <button key={i}
-                  onClick={() => typeof p === "number" && setPage(p)}
-                  style={{
-                    height: 30, borderRadius: 8, border: `1.5px solid ${isActive ? C.text : C.border}`,
-                    background: isActive ? C.text : "transparent",
-                    color: isActive ? "#fff" : C.textSub,
-                    fontSize: 12.5, cursor: "pointer", fontFamily: "inherit", fontWeight: 500,
-                    padding: isNav ? "0 12px" : "0",
-                    width: isNav ? "auto" : 30,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Rodapé: contagem + paginação */}
+        <div className="px-4 pb-4">
+          <Paginacao page={page} total={total} onChange={p => { setPage(p); setSelected([]); }} />
+          {!loading && users.length > 0 && (
+            <p className="text-xs text-zinc-400 mt-2 text-right">
+              A mostrar {users.length} de {total.toLocaleString("pt-MZ")} utilizadores
+            </p>
+          )}
         </div>
+
       </div>
     </div>
   );
