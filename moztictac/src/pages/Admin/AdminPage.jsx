@@ -5,6 +5,7 @@ import PageUtilizadores from "./PageUtilizadores";
 import PagePedidos from "./PagePedidos";
 import PageFinanceiro from "./PageFinanceiro";
 import PageSaques from "./PageSaques";
+import PagePromocoes from "./PagePromocoes";
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 const BASE_URL =
@@ -69,6 +70,7 @@ const NAV = [
       { id: "produtos",  label: "Produtos & Serviços", icon: "package" },
       { id: "pedidos",   label: "Pedidos",             icon: "shopping-bag" },
       { id: "afiliados", label: "Afiliados",           icon: "link" },
+      { id: "promocoes", label: "Promoções",           icon: "tag" },
     ],
   },
   {
@@ -95,6 +97,7 @@ const PAGE_LABELS = {
   pedidos: "Pedidos", afiliados: "Afiliados", financeiro: "Financeiro",
   saques: "Saques", relatorios: "Relatórios", configuracoes: "Configurações",
   seguranca: "Segurança & Auditoria", fraude: "Deteção de Fraude", permissoes: "Permissões",
+  promocoes: "Promoções"
 };
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -719,6 +722,7 @@ function renderPage(id, searchQuery) {
     case "financeiro":    return <PageFinanceiro />;
     case "saques":        return <PageSaques />;
     case "relatorios":    return <PageRelatorios />;
+    case "promocoes":     return <PagePromocoes />;
     case "configuracoes": return <PageConfiguracoes />;
     case "seguranca":     return <PageSeguranca />;
     case "fraude":        return <PageFraude />;
