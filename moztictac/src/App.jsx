@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { RotaProtegida } from "./components/RotaProtegida";
 import Home from "./pages/Site/Home";
 import MinhaConta from "./pages/Site/Minhaconta";
 import PaginaCarrinho from "./pages/Site/Paginacarrinho";
@@ -17,22 +18,23 @@ import LoginPage from "./pages/Site/Loginpage";
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/admin" element={<AdminPanel />} />
-      <Route path="/minha-conta" element={<MinhaConta />} />
-      <Route path="/carrinho" element={<PaginaCarrinho />} />
-      {/* <Route path="/comprar" element={<h1>Comprar</h1>} /> */}
+      {/* Rotas públicas */}
+      <Route path="/"         element={<Home />} />
+      <Route path="/login"    element={<LoginPage />} />
+      <Route path="/admin"    element={<AdminPanel />} />
       <Route path="/produto/:id" element={<PaginaProdutoDetalhe />} />
-      <Route path="/sobre-nos" element={<PaginaSobreNos />} />
-      <Route path="/desejos" element={<PaginaDesejos />} />
-      <Route path="/produtos" element={<ShopPage />} />
-      <Route path="/chat" element={<ChatPage />} />
-      <Route path="/trending" element={<TrendingPage />} />
-      <Route path="/blog" element={<BlogPage />} />
-      <Route path="/promos" element={<PromoBannersPage />} />
-      <Route path="/faq" element={<PaginaFAQ />} />
-      <Route path="/login" element={<LoginPage />} />
-      {/* Resto das rotas... */}
+      <Route path="/sobre-nos"   element={<PaginaSobreNos />} />
+      <Route path="/produtos"    element={<ShopPage />} />
+      <Route path="/trending"    element={<TrendingPage />} />
+      <Route path="/blog"        element={<BlogPage />} />
+      <Route path="/promos"      element={<PromoBannersPage />} />
+      <Route path="/faq"         element={<PaginaFAQ />} />
+
+      {/* Rotas protegidas */}
+      <Route path="/minha-conta" element={<RotaProtegida><MinhaConta /></RotaProtegida>} />
+      <Route path="/carrinho"    element={<RotaProtegida><PaginaCarrinho /></RotaProtegida>} />
+      <Route path="/desejos"     element={<RotaProtegida><PaginaDesejos /></RotaProtegida>} />
+      <Route path="/chat"        element={<RotaProtegida><ChatPage /></RotaProtegida>} />
     </Routes>
   );
 }

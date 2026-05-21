@@ -1,12 +1,14 @@
 // ─────────────────────────────────────────────────────────────────
-// MOZTICTAC — PAINEL ADMIN: GESTÃO DE PROMOÇÕES
-// Novas ações:
-//   - Aprovar / Rejeitar promoções pendentes
-//   - Cancelar promoções ATIVAS (com reembolso opcional)
-//   - Ativar produto manualmente
-//   - Rejeitar produto com motivo
-//   - Modal de detalhe completo com tabs Info / Financeiro
-//   - Modal de ação com toggle de reembolso e seleção de motivo
+// MOZTICTAC — PAINEL ADMIN: GESTÃO DE PROMOÇÕES (v3 — completo)
+// Melhorias incluídas:
+//   ✓ Botão "Ativar produto" quando produto está ATIVO (+ pausar)
+//   ✓ Botão "Aprovar tudo" (promoção + produto num só clique)
+//   ✓ Aviso visual no card quando produto não está ATIVO
+//   ✓ Coluna "Estado produto" na tabela geral
+//   ✓ Filtro por estado do produto na tab "Todas"
+//   ✓ Contador de dias em atraso na fila de pendentes
+//   ✓ Histórico de ações no modal de detalhe (tab Histórico)
+//   ✓ Botão "Reenviar notificação" ao vendedor
 // ─────────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from "react";
 
@@ -31,23 +33,26 @@ async function apiFetch(caminho, opcoes = {}) {
 }
 
 const api = {
-  // Promoções
-  listar: ({ pagina = 1, estado = "", busca = "", planoId = "" }) => {
+  listar: ({ pagina = 1, estado = "", busca = "", planoId = "", estadoProduto = "" }) => {
     const q = new URLSearchParams({ pagina });
-    if (estado)  q.set("estado",  estado);
-    if (busca)   q.set("busca",   busca);
-    if (planoId) q.set("planoId", planoId);
+    if (estado)        q.set("estado",        estado);
+    if (busca)         q.set("busca",         busca);
+    if (planoId)       q.set("planoId",       planoId);
+    if (estadoProduto) q.set("estadoProduto", estadoProduto);
     return apiFetch(`/admin/promocoes?${q}`);
   },
-  kpis:            ()                          => apiFetch("/admin/promocoes/kpis"),
-  detalhe:         (id)                        => apiFetch(`/admin/promocoes/${id}`),
-  aprovar:         (id)                        => apiFetch(`/admin/promocoes/${id}/aprovar`,  { method: "PUT" }),
-  rejeitar:        (id, motivo, reembolsar)    => apiFetch(`/admin/promocoes/${id}/rejeitar`, { method: "PUT",  body: JSON.stringify({ motivo, reembolsar }) }),
-  cancelar:        (id, motivo, reembolsar)    => apiFetch(`/admin/promocoes/${id}/cancelar`, { method: "PUT",  body: JSON.stringify({ motivo, reembolsar }) }),
-  expirarVencidas: ()                          => apiFetch("/admin/promocoes/expirar-vencidas", { method: "POST" }),
-  // Produtos (novas ações admin)
-  ativarProduto:   (id, observacao)            => apiFetch(`/admin/produtos/${id}/ativar`,   { method: "PUT",  body: JSON.stringify({ observacao }) }),
-  rejeitarProduto: (id, motivo)                => apiFetch(`/admin/produtos/${id}/rejeitar`, { method: "PUT",  body: JSON.stringify({ motivo }) }),
+  kpis:                ()                       => apiFetch("/admin/promocoes/kpis"),
+  detalhe:             (id)                     => apiFetch(`/admin/promocoes/${id}`),
+  aprovar:             (id)                     => apiFetch(`/admin/promocoes/${id}/aprovar`,  { method: "PUT" }),
+  rejeitar:            (id, motivo, reembolsar) => apiFetch(`/admin/promocoes/${id}/rejeitar`, { method: "PUT", body: JSON.stringify({ motivo, reembolsar }) }),
+  cancelar:            (id, motivo, reembolsar) => apiFetch(`/admin/promocoes/${id}/cancelar`, { method: "PUT", body: JSON.stringify({ motivo, reembolsar }) }),
+  expirarVencidas:     ()                       => apiFetch("/admin/promocoes/expirar-vencidas", { method: "POST" }),
+  // Produto
+  ativarProduto:       (id, observacao)         => apiFetch(`/admin/produtos/${id}/ativar`,   { method: "PUT", body: JSON.stringify({ observacao }) }),
+  pausarProduto:       (id, motivo)             => apiFetch(`/admin/produtos/${id}/pausar`,   { method: "PUT", body: JSON.stringify({ motivo }) }),
+  rejeitarProduto:     (id, motivo)             => apiFetch(`/admin/produtos/${id}/rejeitar`, { method: "PUT", body: JSON.stringify({ motivo }) }),
+  aprovarTudo:         (promoId, produtoId)     => apiFetch(`/admin/promocoes/${promoId}/aprovar-tudo`, { method: "PUT", body: JSON.stringify({ produtoId }) }),
+  reenviarNotificacao: (promoId)                => apiFetch(`/admin/promocoes/${promoId}/reenviar-notificacao`, { method: "POST" }),
 };
 
 // ── Paleta ────────────────────────────────────────────────────────
@@ -59,6 +64,7 @@ const C = {
   amber: "#d97706",  amberLt:  "#fffbeb",
   red: "#ef4444",    redLt:    "#fef2f2",
   purple: "#8b5cf6", purpleLt: "#f5f3ff",
+  teal: "#0d9488",   tealLt:   "#f0fdfa",
 };
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -66,6 +72,7 @@ const fmt   = (n) => `${Number(n || 0).toLocaleString("pt-MZ")} MZN`;
 const fmtD  = (d) => d ? new Date(d).toLocaleDateString("pt-MZ", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 const fmtDH = (d) => d ? new Date(d).toLocaleString("pt-MZ",    { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
 const diasR = (f) => f ? Math.ceil((new Date(f) - new Date()) / 86400000) : null;
+const diasAtraso = (d) => d ? Math.floor((new Date() - new Date(d)) / 86400000) : 0;
 
 const ESTADO_META = {
   PENDENTE_PAGAMENTO: { label: "Pend. Pagamento",   bg: "#fffbeb", color: "#d97706", dot: "#d97706" },
@@ -74,6 +81,14 @@ const ESTADO_META = {
   EXPIRADA:           { label: "Expirada",          bg: "#f5f6fa", color: "#9aa0bc", dot: "#9aa0bc" },
   CANCELADA:          { label: "Cancelada",         bg: "#fef2f2", color: "#ef4444", dot: "#ef4444" },
   REJEITADA:          { label: "Rejeitada",         bg: "#fef2f2", color: "#ef4444", dot: "#ef4444" },
+};
+
+const ESTADO_PRODUTO_META = {
+  ATIVO:              { label: "Ativo",     bg: "#f0fdf4", color: "#16a34a" },
+  PENDENTE_APROVACAO: { label: "Pendente",  bg: "#fef9c3", color: "#a16207" },
+  PAUSADO:            { label: "Pausado",   bg: "#fffbeb", color: "#d97706" },
+  REJEITADO:          { label: "Rejeitado", bg: "#fef2f2", color: "#ef4444" },
+  ELIMINADO:          { label: "Eliminado", bg: "#f5f6fa", color: "#9aa0bc" },
 };
 
 const PLANO_META = {
@@ -106,6 +121,15 @@ const MOTIVOS_PRODUTO = [
   "Outro motivo",
 ];
 
+const MOTIVOS_PAUSA = [
+  "Produto em análise por denúncia",
+  "Preço suspeito ou inflacionado",
+  "Imagens a ser revistas",
+  "Aguarda documentação adicional do vendedor",
+  "Solicitação temporária do vendedor",
+  "Outro motivo",
+];
+
 // ── Ícones ────────────────────────────────────────────────────────
 const I = ({ n, size = 14, c = "currentColor" }) => {
   const s = { width: size, height: size, flexShrink: 0, display: "block" };
@@ -120,12 +144,24 @@ const I = ({ n, size = 14, c = "currentColor" }) => {
     clock:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
     dl:      <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
     close:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-    play:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
-    pause:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
     reject:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+    pause:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
+    bell:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+    zap:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+    hist:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
   };
   return icons[n] || null;
 };
+
+// ── Badge de estado produto ───────────────────────────────────────
+function ProdutoBadge({ estado }) {
+  const m = ESTADO_PRODUTO_META[estado] || { label: estado || "—", bg: C.bg, color: C.mute };
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: m.bg, color: m.color, whiteSpace: "nowrap" }}>
+      {m.label}
+    </span>
+  );
+}
 
 // ── Componentes base ──────────────────────────────────────────────
 function Badge({ estado }) {
@@ -157,6 +193,7 @@ function Btn({ label, icon, variant = "secondary", size = "md", onClick, loading
     amber:     { background: C.amberLt, border: `1px solid #fcd34d`,       color: "#b45309" },
     blue:      { background: C.blueLt,  border: `1px solid #93c5fd`,       color: "#1d4ed8" },
     purple:    { background: C.purpleLt,border: `1px solid #c4b5fd`,       color: "#6d28d9" },
+    teal:      { background: C.tealLt,  border: `1px solid #5eead4`,       color: "#0f766e" },
   }[variant] || {};
   return (
     <button
@@ -189,10 +226,10 @@ function Spinner() {
 
 function Toast({ msg, type, onClose }) {
   useEffect(() => { const t = setTimeout(onClose, 4500); return () => clearTimeout(t); }, [msg]);
-  const err = type === "error";
+  const isErr = type === "error";
   return (
-    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 3000, display: "flex", alignItems: "center", gap: 10, background: err ? C.redLt : C.greenLt, border: `1px solid ${err ? "#fca5a5" : "#86efac"}`, borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 600, color: err ? "#b91c1c" : "#15803d", boxShadow: "0 8px 32px rgba(0,0,0,.12)", animation: "slideUp .25s ease", maxWidth: 400 }}>
-      <I n={err ? "warn" : "check"} size={15} c={err ? C.red : C.green} />
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 3000, display: "flex", alignItems: "center", gap: 10, background: isErr ? C.redLt : C.greenLt, border: `1px solid ${isErr ? "#fca5a5" : "#86efac"}`, borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 600, color: isErr ? "#b91c1c" : "#15803d", boxShadow: "0 8px 32px rgba(0,0,0,.12)", animation: "slideUp .25s ease", maxWidth: 420 }}>
+      <I n={isErr ? "warn" : "check"} size={15} c={isErr ? C.red : C.green} />
       <span style={{ flex: 1 }}>{msg}</span>
       <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 0, display: "flex" }}><I n="x" size={13} /></button>
     </div>
@@ -244,7 +281,6 @@ function StatCard({ label, value, icon, color, sub, loading }) {
   );
 }
 
-// ── Toggle switch ─────────────────────────────────────────────────
 function ToggleSwitch({ value, onChange }) {
   return (
     <button
@@ -256,7 +292,6 @@ function ToggleSwitch({ value, onChange }) {
   );
 }
 
-// ── Seletor de motivo ─────────────────────────────────────────────
 function SeletorMotivo({ motivos, value, onChange, cor = C.red }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -273,7 +308,6 @@ function SeletorMotivo({ motivos, value, onChange, cor = C.red }) {
   );
 }
 
-// ── Bloco de reembolso ────────────────────────────────────────────
 function BlocoReembolso({ valor, pagoEm, metodoPagamento, value, onChange }) {
   return (
     <div style={{ padding: 14, background: value ? C.greenLt : C.bg, border: `1.5px solid ${value ? "#86efac" : C.border}`, borderRadius: 14, transition: "all .2s" }}>
@@ -281,18 +315,69 @@ function BlocoReembolso({ valor, pagoEm, metodoPagamento, value, onChange }) {
         <div>
           <div style={{ fontSize: 13.5, fontWeight: 700, color: C.text }}>💰 Reembolsar vendedor?</div>
           <div style={{ fontSize: 11.5, color: C.sub, marginTop: 2 }}>
-            {pagoEm
-              ? `Devolver ${fmt(valor)} ao saldo da carteira`
-              : "Pagamento ainda não confirmado — reembolso pode não aplicar"}
+            {pagoEm ? `Devolver ${fmt(valor)} ao saldo da carteira` : "Pagamento não confirmado — reembolso pode não aplicar"}
           </div>
         </div>
         <ToggleSwitch value={value} onChange={onChange} />
       </div>
       <div style={{ marginTop: 10, padding: "7px 11px", background: C.card, borderRadius: 8, fontSize: 11.5, color: value ? "#15803d" : C.mute, fontWeight: 600 }}>
         {value
-          ? `✓ ${fmt(valor)} creditados automaticamente na carteira (${metodoPagamento === "SALDO_INTERNO" ? "saldo interno" : `reembolso via ${metodoPagamento}`})`
+          ? `✓ ${fmt(valor)} creditados automaticamente na carteira (${metodoPagamento === "SALDO_INTERNO" ? "saldo interno" : `via ${metodoPagamento}`})`
           : "Sem reembolso — o valor fica retido na plataforma"}
       </div>
+    </div>
+  );
+}
+
+// ── Aviso de produto não ativo ────────────────────────────────────
+function AvisoProdutoInativo({ estado }) {
+  if (estado === "ATIVO") return null;
+  const msgs = {
+    PENDENTE_APROVACAO: { icon: "⚠️", text: "Produto ainda pendente de aprovação — aprovar a promoção sem ativar o produto não o tornará visível na loja.", cor: C.amber, bg: C.amberLt, border: "#fcd34d" },
+    PAUSADO:            { icon: "⏸️", text: "Produto pausado — não está visível na loja mesmo com promoção activa.", cor: C.amber, bg: C.amberLt, border: "#fcd34d" },
+    REJEITADO:          { icon: "🚫", text: "Produto rejeitado — necessita de ser ativado antes de poder beneficiar de promoção.", cor: C.red, bg: C.redLt, border: "#fca5a5" },
+  };
+  const m = msgs[estado] || { icon: "❓", text: `Produto em estado: ${estado}`, cor: C.mute, bg: C.bg, border: C.border };
+  return (
+    <div style={{ padding: "10px 13px", background: m.bg, border: `1px solid ${m.border}`, borderRadius: 10, display: "flex", gap: 9, alignItems: "flex-start" }}>
+      <span style={{ fontSize: 14 }}>{m.icon}</span>
+      <span style={{ fontSize: 12, color: m.cor, fontWeight: 600, lineHeight: 1.4 }}>{m.text}</span>
+    </div>
+  );
+}
+
+// ── Histórico de ações ────────────────────────────────────────────
+function TabHistorico({ promo }) {
+  const historico = [
+    promo.criadoEm         && { acao: "Promoção submetida",      icone: "📝", data: promo.criadoEm,      cor: C.blue   },
+    promo.pagoEm           && { acao: "Pagamento confirmado",    icone: "💳", data: promo.pagoEm,         cor: C.green  },
+    promo.aprovadaEm       && { acao: `Aprovada por admin`,      icone: "✅", data: promo.aprovadaEm,     cor: C.green  },
+    promo.inicioEfetivo    && { acao: "Promoção iniciada",       icone: "🚀", data: promo.inicioEfetivo,  cor: C.teal   },
+    promo.fimEfetivo && promo.estado === "EXPIRADA" && { acao: "Promoção expirada", icone: "⌛", data: promo.fimEfetivo, cor: C.mute },
+    promo.estado === "CANCELADA"  && { acao: `Cancelada — ${promo.motivoCancelamento || "sem motivo"}`, icone: "⏸", data: promo.atualizadoEm ?? promo.aprovadaEm, cor: C.amber },
+    promo.estado === "REJEITADA"  && { acao: `Rejeitada — ${promo.motivoCancelamento || "sem motivo"}`, icone: "❌", data: promo.atualizadoEm ?? promo.aprovadaEm, cor: C.red   },
+  ].filter(Boolean).sort((a, b) => new Date(b.data) - new Date(a.data));
+
+  if (historico.length === 0)
+    return <div style={{ textAlign: "center", padding: "30px 0", color: C.mute, fontSize: 13 }}>Sem histórico disponível</div>;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+      {historico.map((h, i) => (
+        <div key={i} style={{ display: "flex", gap: 13, position: "relative" }}>
+          {i < historico.length - 1 && (
+            <div style={{ position: "absolute", left: 16, top: 34, bottom: 0, width: 2, background: C.border }} />
+          )}
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: `${h.cor}20`, border: `2px solid ${h.cor}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0, zIndex: 1 }}>
+            {h.icone}
+          </div>
+          <div style={{ flex: 1, paddingBottom: 18 }}>
+            <div style={{ fontWeight: 600, fontSize: 13, color: C.text }}>{h.acao}</div>
+            <div style={{ fontSize: 11.5, color: C.mute, marginTop: 2 }}>{fmtDH(h.data)}</div>
+            {h.admin && <div style={{ fontSize: 11, color: C.blue, marginTop: 2 }}>por {h.admin}</div>}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -300,10 +385,11 @@ function BlocoReembolso({ valor, pagoEm, metodoPagamento, value, onChange }) {
 // ══════════════════════════════════════════════════════════════════
 // MODAL DETALHE COMPLETO
 // ══════════════════════════════════════════════════════════════════
-function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAtivarProduto, onRejeitarProduto, acaoId }) {
+function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAtivarProduto, onPausarProduto, onRejeitarProduto, onAprovarTudo, onReenviar, acaoId }) {
   const [d, setD]       = useState(null);
   const [tab, setTab]   = useState("info");
   const [load, setLoad] = useState(true);
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     if (!promo) return;
@@ -321,26 +407,41 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
   const isAtiva  = p.estado === "ATIVA";
   const dias     = diasR(p.fimEfetivo);
 
-  // Estado do produto associado
-  const prodAtivo    = p.produto?.estado === "ATIVO";
-  const prodPendente = p.produto?.estado === "PENDENTE_APROVACAO";
-  const prodPausado  = p.produto?.estado === "PAUSADO";
-  const podAtivarProd = prodPendente || prodPausado || p.produto?.estado === "REJEITADO";
+  const prodEstado    = p.produto?.estado;
+  const prodAtivo     = prodEstado === "ATIVO";
+  const prodPendente  = prodEstado === "PENDENTE_APROVACAO";
+  const prodPausado   = prodEstado === "PAUSADO";
+  const prodRejeitado = prodEstado === "REJEITADO";
+  const podAtivarProd = prodPendente || prodPausado || prodRejeitado;
+  const podPausarProd = prodAtivo;
+  const podRejeitarProd = prodAtivo || prodPendente;
+  const podAprovarTudo = isPend && (prodPendente || prodPausado || prodRejeitado);
 
-  const TABS = [{ k: "info", l: "Informação" }, { k: "financeiro", l: "Financeiro" }, { k: "produto", l: "Produto" }];
+  const TABS = [
+    { k: "info",       l: "Informação"  },
+    { k: "financeiro", l: "Financeiro"  },
+    { k: "produto",    l: "Produto"     },
+    { k: "historico",  l: "Histórico"   },
+  ];
 
   const tabBtn = (t) => ({
-    padding: "11px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+    padding: "11px 14px", fontSize: 12.5, fontWeight: 600, cursor: "pointer",
     background: "none", border: "none", fontFamily: "inherit", transition: "all .15s",
     color: tab === t.k ? C.blue : C.mute,
     borderBottom: tab === t.k ? `2px solid ${C.blue}` : "2px solid transparent",
+    whiteSpace: "nowrap",
   });
 
+  async function handleReenviar() {
+    setEnviando(true);
+    try { await onReenviar(p.id); } finally { setEnviando(false); }
+  }
+
   return (
-    <Overlay onClose={onClose} width={640}>
+    <Overlay onClose={onClose} width={660}>
       <ModalHead title="Detalhe da promoção" sub={p.produto?.nome} emoji="📢" onClose={onClose} />
 
-      <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, padding: "0 22px" }}>
+      <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, padding: "0 22px", overflowX: "auto" }}>
         {TABS.map((t) => <button key={t.k} onClick={() => setTab(t.k)} style={tabBtn(t)}>{t.l}</button>)}
       </div>
 
@@ -352,6 +453,20 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
             {/* ── INFO ── */}
             {tab === "info" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* Aviso produto não ativo */}
+                {prodEstado && prodEstado !== "ATIVO" && <AvisoProdutoInativo estado={prodEstado} />}
+
+                {/* Botão Aprovar tudo */}
+                {podAprovarTudo && (
+                  <div style={{ padding: "13px 15px", background: C.tealLt, border: `1.5px solid #5eead4`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: C.teal }}>⚡ Aprovar tudo de uma vez</div>
+                      <div style={{ fontSize: 12, color: C.teal, opacity: .85, marginTop: 2 }}>Ativa a promoção E o produto num único clique</div>
+                    </div>
+                    <Btn label="⚡ Aprovar tudo" variant="teal" loading={emAcao} onClick={() => { onAprovarTudo(p.id, p.produto?.id); onClose(); }} />
+                  </div>
+                )}
+
                 <div style={{ display: "flex", gap: 14, padding: 14, background: C.bg, borderRadius: 12 }}>
                   <div style={{ width: 68, height: 68, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: C.border, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>
                     {p.produto?.imagens?.[0] ? <img src={p.produto.imagens[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "📦"}
@@ -362,6 +477,7 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
                     <div style={{ display: "flex", gap: 7, marginTop: 8, flexWrap: "wrap" }}>
                       <Badge estado={p.estado} />
                       <PlanoBadge planoId={p.planoId} />
+                      {prodEstado && <ProdutoBadge estado={prodEstado} />}
                       {dias !== null && dias > 0  && <span style={{ fontSize: 11.5, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: dias < 3 ? C.redLt : C.greenLt, color: dias < 3 ? C.red : C.green }}>{dias}d restantes</span>}
                       {dias !== null && dias <= 0 && <span style={{ fontSize: 11.5, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: C.redLt, color: C.red }}>Expirou há {Math.abs(dias)}d</span>}
                     </div>
@@ -375,14 +491,15 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
                     ["Plano",          `${p.planoNome || p.planoId || "—"} · ${p.duracaoDias || "—"} dias`],
                     ["Método pag.",    p.metodoPagamento || "—"],
                     ["Submetido em",   fmtDH(p.criadoEm)],
+                    ["Em espera há",   `${diasAtraso(p.criadoEm)} dias`],
                     ["Pago em",        p.pagoEm ? fmtDH(p.pagoEm) : "Não confirmado"],
                     ...(p.inicioEfetivo ? [["Início efectivo", fmtDH(p.inicioEfetivo)]] : []),
                     ...(p.fimEfetivo    ? [["Fim efectivo",    fmtDH(p.fimEfetivo)]]    : []),
                     ...(p.motivoCancelamento ? [["Motivo cancel.", p.motivoCancelamento]] : []),
                   ].map(([l, v]) => (
                     <div key={l} style={{ background: C.bg, borderRadius: 10, padding: "10px 13px" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 3 }}>{l}</div>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, color: C.text, wordBreak: "break-word" }}>{v}</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: l === "Em espera há" && diasAtraso(p.criadoEm) > 2 ? C.amber : C.mute, marginBottom: 3 }}>{l}</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: l === "Em espera há" && diasAtraso(p.criadoEm) > 2 ? C.amber : C.text, wordBreak: "break-word" }}>{v}</div>
                     </div>
                   ))}
                 </div>
@@ -399,13 +516,13 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
                   </div>
                 )}
 
-                {/* Ações promoção */}
                 <div style={{ paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
                   <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 10 }}>Acções — promoção</div>
                   <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
                     {isPend && <Btn label="✓ Aprovar promoção" variant="success" loading={emAcao} onClick={() => { onAprovar(p.id); onClose(); }} />}
-                    {isPend && <Btn label="Rejeitar" icon="x"                   variant="danger"  loading={emAcao} onClick={() => { onClose(); onRejeitar(p); }} />}
-                    {isAtiva && <Btn label="⏸ Cancelar promoção activa"          variant="amber"   loading={emAcao} onClick={() => { onClose(); onCancelar(p); }} />}
+                    {isPend && <Btn label="Rejeitar" icon="x" variant="danger" loading={emAcao} onClick={() => { onClose(); onRejeitar(p); }} />}
+                    {isAtiva && <Btn label="⏸ Cancelar promoção activa" variant="amber" loading={emAcao} onClick={() => { onClose(); onCancelar(p); }} />}
+                    <Btn label="Reenviar notif." icon="bell" variant="secondary" loading={enviando} onClick={handleReenviar} />
                     {!isPend && !isAtiva && <span style={{ fontSize: 12.5, color: C.mute }}>Nenhuma acção de promoção disponível ({p.estado}).</span>}
                   </div>
                 </div>
@@ -417,9 +534,9 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
               <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 }}>
                   {[
-                    { l: "Valor pago",          v: fmt(p.valor),         c: C.green  },
-                    { l: "Taxa plataforma (20%)",v: fmt(p.valor * 0.2),  c: C.blue   },
-                    { l: "Receita líquida",      v: fmt(p.valor * 0.8),  c: C.purple },
+                    { l: "Valor pago",           v: fmt(p.valor),        c: C.green  },
+                    { l: "Taxa plataforma (20%)", v: fmt(p.valor * 0.2), c: C.blue   },
+                    { l: "Receita líquida",       v: fmt(p.valor * 0.8), c: C.purple },
                   ].map(({ l, v, c }) => (
                     <div key={l} style={{ background: C.bg, borderRadius: 10, padding: 13 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 6 }}>{l}</div>
@@ -464,18 +581,23 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
             {/* ── PRODUTO ── */}
             {tab === "produto" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+                {prodEstado && prodEstado !== "ATIVO" && <AvisoProdutoInativo estado={prodEstado} />}
+
                 <div style={{ padding: 14, background: C.bg, borderRadius: 12 }}>
                   <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Estado do produto</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
                     {[
                       ["Nome",      p.produto?.nome || "—"],
-                      ["Estado",    p.produto?.estado || "—"],
+                      ["Estado",    prodEstado || "—"],
                       ["Categoria", p.produto?.categoria?.nome || "—"],
                       ["Vendedor",  p.produto?.vendedor?.nomeCompleto || p.usuario?.nomeCompleto || "—"],
                     ].map(([l, v]) => (
                       <div key={l} style={{ background: C.card, borderRadius: 10, padding: "10px 13px" }}>
                         <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 3 }}>{l}</div>
-                        <div style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{v}</div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: C.text, display: "flex", alignItems: "center", gap: 6 }}>
+                          {v}
+                          {l === "Estado" && prodEstado && <ProdutoBadge estado={prodEstado} />}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -488,15 +610,33 @@ function ModalDetalhe({ promo, onClose, onAprovar, onRejeitar, onCancelar, onAti
                       <Btn label="✓ Ativar produto" variant="success" loading={emAcao}
                         onClick={() => { onClose(); onAtivarProduto(p.produto); }} />
                     )}
-                    {(prodAtivo || prodPendente) && (
+                    {podPausarProd && (
+                      <Btn label="⏸ Pausar produto" icon="pause" variant="amber" loading={emAcao}
+                        onClick={() => { onClose(); onPausarProduto(p.produto); }} />
+                    )}
+                    {podRejeitarProd && (
                       <Btn label="Rejeitar produto" icon="reject" variant="danger" loading={emAcao}
                         onClick={() => { onClose(); onRejeitarProduto(p.produto); }} />
                     )}
-                    {!podAtivarProd && !prodAtivo && !prodPendente && (
-                      <span style={{ fontSize: 12.5, color: C.mute }}>Nenhuma acção de produto disponível ({p.produto?.estado}).</span>
+                    {!podAtivarProd && !podPausarProd && !podRejeitarProd && (
+                      <span style={{ fontSize: 12.5, color: C.mute }}>Nenhuma acção disponível ({prodEstado}).</span>
                     )}
                   </div>
+                  <div style={{ marginTop: 10, fontSize: 11.5, color: C.mute, lineHeight: 1.5 }}>
+                    {prodAtivo    && "✓ Produto ativo — pode pausar temporariamente ou rejeitar definitivamente."}
+                    {prodPendente && "⚠ Produto pendente — ativa-o para que a promoção seja eficaz."}
+                    {prodPausado  && "⏸ Produto pausado — ativa-o para que fique visível na loja."}
+                    {prodRejeitado && "🚫 Produto rejeitado — ativa-o para repor na loja."}
+                  </div>
                 </div>
+              </div>
+            )}
+
+            {/* ── HISTÓRICO ── */}
+            {tab === "historico" && (
+              <div>
+                <div style={{ fontSize: 12.5, color: C.mute, marginBottom: 16 }}>Linha do tempo de eventos desta promoção</div>
+                <TabHistorico promo={p} />
               </div>
             )}
           </>
@@ -529,7 +669,6 @@ function ModalAcaoPromocao({ promo, tipo, onClose, onConfirm, acaoId }) {
         onClose={onClose}
       />
       <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
-
         <div style={{ padding: "11px 14px", background: isCancelar ? C.amberLt : C.redLt, border: `1px solid ${isCancelar ? "#fcd34d" : "#fca5a5"}`, borderRadius: 12, display: "flex", gap: 9 }}>
           <I n="warn" size={15} c={isCancelar ? C.amber : C.red} />
           <div style={{ fontSize: 12.5, color: isCancelar ? C.amber : "#b91c1c" }}>
@@ -539,7 +678,6 @@ function ModalAcaoPromocao({ promo, tipo, onClose, onConfirm, acaoId }) {
           </div>
         </div>
 
-        {/* Resumo financeiro */}
         <div style={{ display: "flex", justifyContent: "space-between", background: C.bg, borderRadius: 10, padding: "12px 15px" }}>
           {[["Valor pago", fmt(promo.valor)], ["Método", promo.metodoPagamento || "—"], ["Pagamento", promo.pagoEm ? "✓ Confirmado" : "⚠ Pendente"]].map(([l, v]) => (
             <div key={l}>
@@ -553,13 +691,8 @@ function ModalAcaoPromocao({ promo, tipo, onClose, onConfirm, acaoId }) {
           <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 9 }}>Motivo *</div>
           <SeletorMotivo motivos={MOTIVOS_PROMOCAO} value={motivo} onChange={setMotivo} />
           {motivo === "Outro motivo" && (
-            <textarea
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-              rows={3}
-              placeholder="Descreve o motivo em detalhe (mínimo 5 caracteres)..."
-              style={{ width: "100%", marginTop: 8, padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }}
-            />
+            <textarea value={custom} onChange={(e) => setCustom(e.target.value)} rows={3} placeholder="Descreve o motivo em detalhe (mínimo 5 caracteres)..."
+              style={{ width: "100%", marginTop: 8, padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }} />
           )}
         </div>
 
@@ -569,10 +702,7 @@ function ModalAcaoPromocao({ promo, tipo, onClose, onConfirm, acaoId }) {
           <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={emAcao} full />
           <Btn
             label={isCancelar ? "⏸ Confirmar cancelamento" : "✕ Confirmar rejeição"}
-            variant="danger"
-            loading={emAcao}
-            disabled={!canSubmit}
-            full
+            variant="danger" loading={emAcao} disabled={!canSubmit} full
             onClick={() => onConfirm(promo.id, mFinal, reembolsar)}
           />
         </div>
@@ -600,21 +730,54 @@ function ModalAtivarProduto({ produto, onClose, onConfirm, loading }) {
         <div style={{ background: C.bg, borderRadius: 10, padding: "12px 15px" }}>
           <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 3 }}>Produto</div>
           <div style={{ fontSize: 13.5, fontWeight: 600 }}>{produto.nome}</div>
-          <div style={{ fontSize: 11.5, color: C.mute, marginTop: 2 }}>Estado actual: {produto.estado || "—"}</div>
+          <div style={{ fontSize: 11.5, color: C.mute, marginTop: 2 }}>Estado actual: <ProdutoBadge estado={produto.estado} /></div>
         </div>
         <div>
           <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 7 }}>Observação (opcional)</div>
-          <textarea
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-            rows={2}
+          <textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} rows={2}
             placeholder="Nota para o vendedor sobre a aprovação..."
-            style={{ width: "100%", padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }}
-          />
+            style={{ width: "100%", padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }} />
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} full />
           <Btn label="✓ Ativar produto" variant="success" loading={loading} full onClick={() => onConfirm(produto.id, observacao)} />
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MODAL PAUSAR PRODUTO
+// ══════════════════════════════════════════════════════════════════
+function ModalPausarProduto({ produto, onClose, onConfirm, loading }) {
+  const [motivo, setMotivo] = useState("");
+  const [custom, setCustom] = useState("");
+  if (!produto) return null;
+  const mFinal    = motivo === "Outro motivo" ? custom.trim() : motivo;
+  const canSubmit = motivo && (motivo !== "Outro motivo" || custom.trim().length >= 5);
+  return (
+    <Overlay onClose={onClose} width={480}>
+      <ModalHead title="Pausar produto" sub={produto.nome} emoji="⏸️" onClose={onClose} />
+      <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ padding: "11px 14px", background: C.amberLt, border: `1px solid #fcd34d`, borderRadius: 12, display: "flex", gap: 9 }}>
+          <I n="warn" size={15} c={C.amber} />
+          <div style={{ fontSize: 12.5, color: "#b45309" }}>
+            O produto ficará <strong>invisível na loja</strong> mas não será eliminado. O vendedor pode ser notificado. Podes reativar a qualquer momento.
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 9 }}>Motivo *</div>
+          <SeletorMotivo motivos={MOTIVOS_PAUSA} value={motivo} onChange={setMotivo} cor={C.amber} />
+          {motivo === "Outro motivo" && (
+            <textarea value={custom} onChange={(e) => setCustom(e.target.value)} rows={3}
+              placeholder="Descreve o motivo em detalhe (mínimo 5 caracteres)..."
+              style={{ width: "100%", marginTop: 8, padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }} />
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn label="Cancelar" variant="secondary" onClick={onClose} disabled={loading} full />
+          <Btn label="⏸ Confirmar pausa" variant="amber" loading={loading} disabled={!canSubmit} full onClick={() => onConfirm(produto.id, mFinal)} />
         </div>
       </div>
     </Overlay>
@@ -644,13 +807,9 @@ function ModalRejeitarProduto({ produto, onClose, onConfirm, loading }) {
           <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 9 }}>Motivo *</div>
           <SeletorMotivo motivos={MOTIVOS_PRODUTO} value={motivo} onChange={setMotivo} />
           {motivo === "Outro motivo" && (
-            <textarea
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-              rows={3}
+            <textarea value={custom} onChange={(e) => setCustom(e.target.value)} rows={3}
               placeholder="Descreve o motivo em detalhe (mínimo 5 caracteres)..."
-              style={{ width: "100%", marginTop: 8, padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }}
-            />
+              style={{ width: "100%", marginTop: 8, padding: "9px 11px", fontSize: 12.5, fontFamily: "inherit", border: `1.5px solid ${C.border}`, borderRadius: 10, resize: "vertical", outline: "none", color: C.text, background: C.bg, boxSizing: "border-box" }} />
           )}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -665,16 +824,27 @@ function ModalRejeitarProduto({ produto, onClose, onConfirm, loading }) {
 // ══════════════════════════════════════════════════════════════════
 // CARD FILA DE PENDENTES
 // ══════════════════════════════════════════════════════════════════
-function CardPendente({ promo, onAprovar, onRejeitar, onVer, acaoId }) {
-  const emAcao = acaoId === promo.id;
-  const p      = promo.produto || {};
-  const u      = promo.usuario || {};
-  const pm     = PLANO_META[promo.planoId] || PLANO_META.basico;
+function CardPendente({ promo, onAprovar, onRejeitar, onVer, onAprovarTudo, acaoId }) {
+  const emAcao    = acaoId === promo.id;
+  const p         = promo.produto || {};
+  const u         = promo.usuario || {};
+  const pm        = PLANO_META[promo.planoId] || PLANO_META.basico;
+  const atraso    = diasAtraso(promo.criadoEm);
+  const prodEstado = p.estado;
+  const prodNaoAtivo = prodEstado && prodEstado !== "ATIVO";
+  const podAprovarTudo = prodNaoAtivo && (prodEstado === "PENDENTE_APROVACAO" || prodEstado === "PAUSADO" || prodEstado === "REJEITADO");
 
   return (
-    <div style={{ background: C.card, border: `2px solid #fbbf2440`, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,.06)", marginBottom: 12 }}>
+    <div style={{ background: C.card, border: `2px solid ${prodNaoAtivo ? C.amber + "60" : "#fbbf2440"}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,.06)", marginBottom: 12 }}>
       <div style={{ height: 4, background: pm.bar }} />
       <div style={{ padding: 18 }}>
+        {/* Aviso produto não ativo */}
+        {prodNaoAtivo && (
+          <div style={{ marginBottom: 12 }}>
+            <AvisoProdutoInativo estado={prodEstado} />
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 13 }}>
           <div style={{ width: 64, height: 64, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: C.bg, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>
             {p.imagens?.[0] ? <img src={p.imagens[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "📦"}
@@ -684,6 +854,7 @@ function CardPendente({ promo, onAprovar, onRejeitar, onVer, acaoId }) {
               <span style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{p.nome || "—"}</span>
               <PlanoBadge planoId={promo.planoId} />
               <Badge estado={promo.estado} />
+              {prodEstado && <ProdutoBadge estado={prodEstado} />}
             </div>
             <div style={{ fontSize: 12, color: C.sub, marginBottom: 9 }}>
               👤 <strong>{u.nomeCompleto || "—"}</strong>
@@ -698,7 +869,8 @@ function CardPendente({ promo, onAprovar, onRejeitar, onVer, acaoId }) {
                   ? { label: "✓ Pagamento confirmado", bg: C.greenLt, color: C.green }
                   : { label: "⚠ Aguarda pagamento", bg: C.amberLt, color: C.amber },
                 { label: `💳 ${promo.metodoPagamento || "—"}`, bg: C.bg, color: C.sub, border: `1px solid ${C.border}` },
-              ].map((pill, i) => (
+                atraso > 0 ? { label: `🕐 ${atraso}d em espera`, bg: atraso > 2 ? C.redLt : C.amberLt, color: atraso > 2 ? C.red : C.amber } : null,
+              ].filter(Boolean).map((pill, i) => (
                 <span key={i} style={{ display: "inline-flex", alignItems: "center", fontSize: 12, fontWeight: 600, padding: "3px 11px", borderRadius: 20, background: pill.bg, color: pill.color, border: pill.border || "none" }}>
                   {pill.label}
                 </span>
@@ -710,9 +882,13 @@ function CardPendente({ promo, onAprovar, onRejeitar, onVer, acaoId }) {
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
           <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: .7, color: C.mute, marginBottom: 9 }}>Acções</div>
           <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-            <Btn label="Ver detalhes" icon="eye"             variant="secondary" onClick={() => onVer(promo)} />
-            <Btn label="✓ Aprovar promoção" variant="success" loading={emAcao}   onClick={() => onAprovar(promo.id)} />
-            <Btn label="Rejeitar" icon="x"                   variant="danger"   loading={emAcao} onClick={() => onRejeitar(promo)} />
+            <Btn label="Ver detalhes" icon="eye" variant="secondary" onClick={() => onVer(promo)} />
+            {podAprovarTudo
+              ? <Btn label="⚡ Aprovar tudo" variant="teal" loading={emAcao} onClick={() => onAprovarTudo(promo.id, p.id)} />
+              : <Btn label="✓ Aprovar promoção" variant="success" loading={emAcao} onClick={() => onAprovar(promo.id)} />
+            }
+            {!podAprovarTudo && <Btn label="✓ Aprovar promoção" variant="success" loading={emAcao} onClick={() => onAprovar(promo.id)} style={{ display: podAprovarTudo ? "none" : undefined }} />}
+            <Btn label="Rejeitar" icon="x" variant="danger" loading={emAcao} onClick={() => onRejeitar(promo)} />
           </div>
           {!promo.pagoEm && (
             <div style={{ marginTop: 9, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.amber, fontWeight: 600 }}>
@@ -727,7 +903,7 @@ function CardPendente({ promo, onAprovar, onRejeitar, onVer, acaoId }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TABELA GERAL
+// TABELA GERAL (com coluna estado produto + filtro)
 // ══════════════════════════════════════════════════════════════════
 function TabelaGeral({ lista, onVer, onAprovar, onRejeitar, onCancelar, acaoId }) {
   const th = { padding: "9px 13px", textAlign: "left", fontSize: 10.5, fontWeight: 700, letterSpacing: .7, textTransform: "uppercase", color: C.mute, whiteSpace: "nowrap", background: C.bg };
@@ -736,15 +912,16 @@ function TabelaGeral({ lista, onVer, onAprovar, onRejeitar, onCancelar, acaoId }
     <div style={{ overflowX: "auto", borderRadius: 12, border: `1px solid ${C.border}` }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
-          <tr>{["Produto / Vendedor", "Plano", "Valor", "Pago em", "Duração", "Estado", "Acções"].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
+          <tr>{["Produto / Vendedor", "Plano", "Valor", "Pago em", "Duração", "Est. Promoção", "Est. Produto", "Acções"].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
         </thead>
         <tbody>
-          {lista.length === 0 && <tr><td colSpan={7} style={{ ...td, textAlign: "center", padding: 44, color: C.mute }}>Nenhuma promoção encontrada</td></tr>}
+          {lista.length === 0 && <tr><td colSpan={8} style={{ ...td, textAlign: "center", padding: 44, color: C.mute }}>Nenhuma promoção encontrada</td></tr>}
           {lista.map((p, i) => {
             const emAcao  = acaoId === p.id;
             const isPend  = p.estado === "PENDENTE_APROVACAO";
             const isAtiva = p.estado === "ATIVA";
             const dias    = diasR(p.fimEfetivo);
+            const prodEstado = p.produto?.estado;
             return (
               <tr key={p.id} style={{ borderTop: `1px solid ${C.border}`, background: i % 2 === 0 ? "transparent" : "#fafbfe" }}>
                 <td style={td}>
@@ -753,7 +930,7 @@ function TabelaGeral({ lista, onVer, onAprovar, onRejeitar, onCancelar, acaoId }
                       {p.produto?.imagens?.[0] ? <img src={p.produto.imagens[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "📦"}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 12.5, color: C.text, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.produto?.nome || "—"}</div>
+                      <div style={{ fontWeight: 700, fontSize: 12.5, color: C.text, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.produto?.nome || "—"}</div>
                       <div style={{ fontSize: 11, color: C.mute }}>{p.usuario?.nomeCompleto || "—"}</div>
                     </div>
                   </div>
@@ -768,6 +945,7 @@ function TabelaGeral({ lista, onVer, onAprovar, onRejeitar, onCancelar, acaoId }
                   {dias !== null && <div style={{ fontSize: 10, color: dias > 0 ? C.green : C.red, fontWeight: 600, marginTop: 1 }}>{dias > 0 ? `${dias}d restantes` : "Expirado"}</div>}
                 </td>
                 <td style={td}><Badge estado={p.estado} /></td>
+                <td style={td}>{prodEstado ? <ProdutoBadge estado={prodEstado} /> : <span style={{ color: C.mute, fontSize: 11 }}>—</span>}</td>
                 <td style={td}>
                   <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                     <Btn label="" icon="eye" variant="ghost" size="sm" onClick={() => onVer(p)} style={{ padding: "5px 9px" }} />
@@ -800,15 +978,17 @@ export default function PagePromocoes() {
   const [acaoId,    setAcaoId]    = useState(null);
   const [toast,     setToast]     = useState(null);
 
-  const [buscaInput, setBuscaInput] = useState("");
-  const [busca,      setBusca]      = useState("");
-  const [planoId,    setPlanoId]    = useState("");
+  const [buscaInput,    setBuscaInput]    = useState("");
+  const [busca,         setBusca]         = useState("");
+  const [planoId,       setPlanoId]       = useState("");
+  const [estadoProduto, setEstadoProduto] = useState("");
 
   // Modais
   const [mDetalhe,         setMDetalhe]         = useState(null);
   const [mRejeitar,        setMRejeitar]        = useState(null);
   const [mCancelar,        setMCancelar]        = useState(null);
   const [mAtivarProduto,   setMAtivarProduto]   = useState(null);
+  const [mPausarProduto,   setMPausarProduto]   = useState(null);
   const [mRejeitarProduto, setMRejeitarProduto] = useState(null);
   const [loadingProduto,   setLoadingProduto]   = useState(false);
 
@@ -819,7 +999,6 @@ export default function PagePromocoes() {
     expiradas: "EXPIRADA", canceladas: "CANCELADA", todos: "",
   };
 
-  // Debounce busca
   useEffect(() => {
     const t = setTimeout(() => { setBusca(buscaInput); setPagina(1); }, 450);
     return () => clearTimeout(t);
@@ -834,18 +1013,16 @@ export default function PagePromocoes() {
   const carregar = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.listar({ pagina, estado: ESTADO_POR_TAB[tab], busca, planoId });
+      const r = await api.listar({ pagina, estado: ESTADO_POR_TAB[tab], busca, planoId, estadoProduto });
       const d = r.data ?? r.dados ?? {};
       setPromocoes(d.promocoes ?? []);
       setTotal(d.total ?? 0);
-    setTotalPag(
-  d.totalPaginas ?? (Math.ceil((d.total ?? 0) / 20) || 1)
-);
+      setTotalPag(d.totalPaginas ?? (Math.ceil((d.total ?? 0) / 20) || 1));
       if (d.kpis) setKpis(d.kpis);
     } catch (e) {
       toast$(e.message || "Erro ao carregar", "error");
     } finally { setLoading(false); }
-  }, [pagina, tab, busca, planoId]);
+  }, [pagina, tab, busca, planoId, estadoProduto]);
 
   useEffect(() => { carregarKpis(); }, []);
   useEffect(() => { carregar(); }, [carregar]);
@@ -886,6 +1063,23 @@ export default function PagePromocoes() {
     finally { setAcaoId(null); }
   }
 
+  async function handleAprovarTudo(promoId, produtoId) {
+    setAcaoId(promoId);
+    try {
+      await api.aprovarTudo(promoId, produtoId);
+      toast$("⚡ Promoção e produto aprovados! Produto já visível na loja.");
+      await reload();
+    } catch (e) { toast$(e.message, "error"); }
+    finally { setAcaoId(null); }
+  }
+
+  async function handleReenviar(promoId) {
+    try {
+      await api.reenviarNotificacao(promoId);
+      toast$("📬 Notificação reenviada ao vendedor.");
+    } catch (e) { toast$(e.message, "error"); }
+  }
+
   // ── Ações de produto ──────────────────────────────────────────
   async function handleAtivarProduto(produtoId, observacao) {
     setLoadingProduto(true);
@@ -893,6 +1087,17 @@ export default function PagePromocoes() {
       await api.ativarProduto(produtoId, observacao);
       toast$("✅ Produto ativado com sucesso. Vendedor notificado.");
       setMAtivarProduto(null);
+      await reload();
+    } catch (e) { toast$(e.message, "error"); }
+    finally { setLoadingProduto(false); }
+  }
+
+  async function handlePausarProduto(produtoId, motivo) {
+    setLoadingProduto(true);
+    try {
+      await api.pausarProduto(produtoId, motivo);
+      toast$("⏸ Produto pausado. Não está visível na loja.");
+      setMPausarProduto(null);
       await reload();
     } catch (e) { toast$(e.message, "error"); }
     finally { setLoadingProduto(false); }
@@ -918,10 +1123,11 @@ export default function PagePromocoes() {
   }
 
   function exportarCSV() {
-    const cols = ["ID", "Produto", "Vendedor", "Plano", "Valor", "Método", "Estado", "Criado em", "Pago em"];
+    const cols = ["ID", "Produto", "Vendedor", "Plano", "Valor", "Método", "Est. Promoção", "Est. Produto", "Criado em", "Pago em"];
     const rows = promocoes.map((p) => [
       p.id, p.produto?.nome || "", p.usuario?.nomeCompleto || "",
-      p.planoId, p.valor, p.metodoPagamento, p.estado, fmtD(p.criadoEm), fmtD(p.pagoEm),
+      p.planoId, p.valor, p.metodoPagamento, p.estado, p.produto?.estado || "",
+      fmtD(p.criadoEm), fmtD(p.pagoEm),
     ]);
     const csv = [cols, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
@@ -969,13 +1175,17 @@ export default function PagePromocoes() {
           onRejeitar={(p) => { setMDetalhe(null); setMRejeitar(p); }}
           onCancelar={(p) => { setMDetalhe(null); setMCancelar(p); }}
           onAtivarProduto={(prod) => { setMDetalhe(null); setMAtivarProduto(prod); }}
+          onPausarProduto={(prod) => { setMDetalhe(null); setMPausarProduto(prod); }}
           onRejeitarProduto={(prod) => { setMDetalhe(null); setMRejeitarProduto(prod); }}
+          onAprovarTudo={handleAprovarTudo}
+          onReenviar={handleReenviar}
           acaoId={acaoId}
         />
       )}
       {mRejeitar        && <ModalAcaoPromocao  promo={mRejeitar}        tipo="rejeitar" onClose={() => setMRejeitar(null)}        onConfirm={handleRejeitar}        acaoId={acaoId} />}
       {mCancelar        && <ModalAcaoPromocao  promo={mCancelar}        tipo="cancelar" onClose={() => setMCancelar(null)}        onConfirm={handleCancelar}        acaoId={acaoId} />}
       {mAtivarProduto   && <ModalAtivarProduto   produto={mAtivarProduto}   onClose={() => setMAtivarProduto(null)}   onConfirm={handleAtivarProduto}   loading={loadingProduto} />}
+      {mPausarProduto   && <ModalPausarProduto   produto={mPausarProduto}   onClose={() => setMPausarProduto(null)}   onConfirm={handlePausarProduto}   loading={loadingProduto} />}
       {mRejeitarProduto && <ModalRejeitarProduto produto={mRejeitarProduto} onClose={() => setMRejeitarProduto(null)} onConfirm={handleRejeitarProduto} loading={loadingProduto} />}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -990,10 +1200,10 @@ export default function PagePromocoes() {
             )}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Btn label="Exportar CSV"    icon="dl"      variant="secondary" onClick={exportarCSV} />
-          <Btn label="Expirar vencidas" icon="clock"  variant="amber"     onClick={handleExpirar} />
-          <Btn label="Atualizar"       icon="refresh" variant="secondary" onClick={reload} loading={loading} />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Btn label="Exportar CSV"     icon="dl"      variant="secondary" onClick={exportarCSV} />
+          <Btn label="Expirar vencidas" icon="clock"   variant="amber"     onClick={handleExpirar} />
+          <Btn label="Atualizar"        icon="refresh" variant="secondary" onClick={reload} loading={loading} />
         </div>
       </div>
 
@@ -1010,7 +1220,7 @@ export default function PagePromocoes() {
       <div style={{ padding: "11px 15px", background: C.blueLt, border: `1px solid ${C.blue}30`, borderRadius: 12, marginBottom: 18, display: "flex", gap: 9, alignItems: "center" }}>
         <I n="info" size={15} c={C.blue} />
         <span style={{ fontSize: 12.5, color: C.blue }}>
-          Só promoções <strong>ATIVA</strong> aparecem no TopTendências. <strong>Premium</strong> aparece primeiro, depois <strong>Standard</strong> e Básico.
+          Só promoções <strong>ATIVA</strong> com produto <strong>ATIVO</strong> aparecem no TopTendências. <strong>Premium</strong> aparece primeiro, depois <strong>Standard</strong> e Básico.
         </span>
       </div>
 
@@ -1046,13 +1256,20 @@ export default function PagePromocoes() {
               </div>
             )}
             {!loading && promocoes.map((p) => (
-              <CardPendente key={p.id} promo={p} onAprovar={handleAprovar} onRejeitar={(p) => setMRejeitar(p)} onVer={(p) => setMDetalhe(p)} acaoId={acaoId} />
+              <CardPendente
+                key={p.id} promo={p}
+                onAprovar={handleAprovar}
+                onRejeitar={(p) => setMRejeitar(p)}
+                onVer={(p) => setMDetalhe(p)}
+                onAprovarTudo={handleAprovarTudo}
+                acaoId={acaoId}
+              />
             ))}
           </div>
         ) : (
           <div>
             <div style={{ display: "flex", gap: 9, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: 220, position: "relative" }}>
+              <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
                 <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.mute, display: "flex" }}><I n="search" size={13} /></span>
                 <input
                   value={buscaInput}
@@ -1066,6 +1283,13 @@ export default function PagePromocoes() {
                 <option value="premium">👑 Premium</option>
                 <option value="standard">⭐ Standard</option>
                 <option value="basico">📦 Básico</option>
+              </select>
+              <select style={selSty} value={estadoProduto} onChange={(e) => { setEstadoProduto(e.target.value); setPagina(1); }}>
+                <option value="">Todos os produtos</option>
+                <option value="ATIVO">🟢 Produto ativo</option>
+                <option value="PENDENTE_APROVACAO">⏳ Produto pendente</option>
+                <option value="PAUSADO">⏸ Produto pausado</option>
+                <option value="REJEITADO">🚫 Produto rejeitado</option>
               </select>
               <span style={{ fontSize: 12, color: C.mute, marginLeft: "auto" }}>{loading ? "A carregar..." : `${total} resultado(s)`}</span>
             </div>

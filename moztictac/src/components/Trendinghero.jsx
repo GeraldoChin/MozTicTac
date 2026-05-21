@@ -58,7 +58,7 @@ const SPEED = 0.55;
 function SkeletonCard({ dims }) {
   return (
     <div
-      className="flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 animate-pulse"
+      className="flex-shrink-0  overflow-hidden bg-gray-100 animate-pulse"
       style={{ width: dims.w, height: dims.h }}
     />
   );
@@ -224,7 +224,7 @@ export default function TopTendencias() {
                 onMouseEnter={() => setHoveredId(key)}
                 onMouseLeave={() => setHoveredId(null)}
                 onClick={() => { window.location.href = `/produtos/${produto.id}`; }}
-                className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-300 ease-in-out rounded-xl"
+                className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-300 ease-in-out "
                 style={{ width: isHovered ? dims.wh : dims.w, height: dims.h }}
               >
                 {/* Imagem */}

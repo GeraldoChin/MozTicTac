@@ -23,12 +23,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* <TopBar /> */}
-     <Header
+      <Header
         contagemCarrinho={cartCount}
         contagemWishlist={wishCount}
         valorPesquisa={searchVal}
         aoMudarPesquisa={setSearchVal}
-        aoNavegar={(id) => setActivo(id)}
       />
       <Navbar />
       <HeroBanner onShopNow={addToCart} />

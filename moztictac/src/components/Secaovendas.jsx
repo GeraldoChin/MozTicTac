@@ -31,6 +31,20 @@ async function requisitar(caminho, opcoes = {}) {
   return dados;
 }
 
+//Relampago
+const apiRelampago = {
+  meusRelampagos: () => requisitar("/relampago/meus"),
+  criar: (dados) => requisitar("/relampago", { 
+    method: "POST", 
+    body: JSON.stringify(dados) 
+  }),
+  atualizar: (id, dados) => requisitar(`/relampago/${id}`, { 
+    method: "PUT", 
+    body: JSON.stringify(dados) 
+  }),
+  desativar: (id) => requisitar(`/relampago/${id}`, { method: "DELETE" }),
+};
+
 // ── APIs ──────────────────────────────────────────────────────────
 const apiProdutos = {
   meusProdutos:    (pagina = 1, estado) =>
@@ -91,6 +105,433 @@ function mapearProduto(p) {
     catNome:     p.categoria?.nome ?? "",
     motivoRejeicao: p.motivoRejeicao ?? null,
   };
+}
+
+// Tab Relampago
+function TabRelampago({ produtos }) {
+  const [relampagos, setRelampagos]   = useState([]);
+  const [carregando, setCarregando]   = useState(true);
+  const [erro, setErro]               = useState(null);
+  const [modal, setModal]             = useState(null); // null | "novo" | { item }
+  const [acaoId, setAcaoId]           = useState(null);
+
+  const produtosAtivos = produtos.filter(
+    p => p.estado === "ativo" || p.estado === "activo"
+  );
+
+  const carregar = useCallback(async () => {
+    setCarregando(true);
+    setErro(null);
+    try {
+      const res = await apiRelampago.meusRelampagos();
+      const d   = res.success ? res.data : res.dados ?? {};
+      setRelampagos(d.vendas ?? d ?? []);
+    } catch (e) {
+      setErro(e.message);
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  async function handleDesativar(id) {
+    if (!window.confirm("Tens a certeza que queres cancelar esta venda relâmpago?")) return;
+    setAcaoId(id);
+    try {
+      await apiRelampago.desativar(id);
+      setRelampagos(prev => prev.filter(r => r.id !== id));
+    } catch (e) {
+      alert("Erro: " + e.message);
+    } finally {
+      setAcaoId(null);
+    }
+  }
+
+  const agora = new Date();
+
+  function estadoRelampago(r) {
+    if (!r.ativo)               return { label: "Inativa",  cls: "bg-gray-100 text-gray-500" };
+    if (new Date(r.inicioEm) > agora) return { label: "Futura",   cls: "bg-blue-100 text-blue-700" };
+    if (new Date(r.fimEm)    < agora) return { label: "Expirada", cls: "bg-gray-100 text-gray-500" };
+    return { label: "Activa", cls: "bg-green-100 text-green-700" };
+  }
+
+  function diasRestantes(fimEm) {
+    const diff = new Date(fimEm) - agora;
+    if (diff <= 0) return null;
+    const h = Math.floor(diff / 3600000);
+    if (h < 24) return `${h}h restantes`;
+    return `${Math.ceil(h / 24)}d restantes`;
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-800">Vendas Relâmpago</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Cria ofertas com desconto por tempo limitado para aumentar vendas rápidas
+          </p>
+        </div>
+        <button
+          onClick={() => setModal("novo")}
+          disabled={produtosAtivos.length === 0}
+          className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Ico.Zap /> Nova oferta
+        </button>
+      </div>
+
+      {/* Aviso se sem produtos activos */}
+      {produtosAtivos.length === 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl mb-4 flex gap-2.5 items-start">
+          <span className="text-amber-500 mt-0.5"><Ico.Alert /></span>
+          <div>
+            <p className="text-xs font-semibold text-amber-800">Sem produtos activos</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Precisas de ter pelo menos um produto activo para criar uma venda relâmpago.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Info */}
+      <div className="p-4 bg-white border border-gray-100 rounded-xl mb-4 flex gap-2.5 items-start">
+        <span className="text-blue-500 mt-0.5 flex-shrink-0"><Ico.Info /></span>
+        <div>
+          <p className="text-xs font-semibold text-gray-700">Como funciona?</p>
+          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+            Define um preço com desconto e um período. Enquanto a oferta estiver activa, 
+            os compradores vêem o produto com o badge <strong>⚡ Flash Deal</strong> na página de tendências.
+            Podes limitar o número de unidades disponíveis a esse preço.
+          </p>
+        </div>
+      </div>
+
+      {carregando ? (
+        <div className="flex justify-center py-12"><Spinner /></div>
+      ) : erro ? (
+        <ErroBloco mensagem={erro} onRetry={carregar} />
+      ) : relampagos.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-3">
+            <span className="text-2xl">⚡</span>
+          </div>
+          <p className="text-sm font-semibold text-gray-600 mb-1">Nenhuma venda relâmpago criada</p>
+          <p className="text-xs text-gray-400">Cria a tua primeira oferta relâmpago para aumentar as vendas.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {relampagos.map(r => {
+            const est       = estadoRelampago(r);
+            const restantes = r.fimEm ? diasRestantes(r.fimEm) : null;
+            const desconto  = r.precoOriginal
+              ? Math.round((1 - r.precoRelampago / r.precoOriginal) * 100)
+              : null;
+            const podeDesativar = r.ativo && new Date(r.fimEm) > agora;
+
+            return (
+              <div key={r.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:border-amber-100 transition-all">
+                <div className="flex items-start gap-3">
+                  {/* Imagem */}
+                  <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {r.produto?.imagens?.[0]
+                      ? <img src={r.produto.imagens[0]} alt="" className="w-full h-full object-cover" />
+                      : <span className="text-xl">⚡</span>}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{r.produto?.nome ?? "Produto"}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${est.cls}`}>
+                        {est.label}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-2">
+                      <span className="line-through">{Number(r.precoOriginal).toLocaleString("pt-MZ")} MZN</span>
+                      <span className="text-amber-600 font-bold text-sm">{Number(r.precoRelampago).toLocaleString("pt-MZ")} MZN</span>
+                      {desconto && (
+                        <span className="bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded">
+                          -{desconto}%
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-400">
+                      <span>Início: {fmtData(r.inicioEm)}</span>
+                      <span>Fim: {fmtData(r.fimEm)}</span>
+                      {r.quantidadeLimite != null && (
+                        <span>
+                          Vendidas: {r.quantidadeVendida ?? 0}/{r.quantidadeLimite}
+                        </span>
+                      )}
+                      {restantes && (
+                        <span className="text-amber-500 font-medium">⏱ {restantes}</span>
+                      )}
+                    </div>
+
+                    {/* Barra de progresso de stock */}
+                    {r.quantidadeLimite != null && (
+                      <div className="mt-2">
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-amber-400 rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(100, Math.round(((r.quantidadeVendida ?? 0) / r.quantidadeLimite) * 100))}%`
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {r.quantidadeLimite - (r.quantidadeVendida ?? 0)} restantes de {r.quantidadeLimite}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Acção */}
+                  {podeDesativar && (
+                    <IconBtn
+                      danger
+                      title="Cancelar oferta"
+                      onClick={() => handleDesativar(r.id)}
+                      disabled={acaoId === r.id}
+                    >
+                      {acaoId === r.id ? <Spinner small /> : <Ico.X />}
+                    </IconBtn>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modal criar nova oferta */}
+      {modal && (
+        <ModalCriarRelampago
+          produtos={produtosAtivos}
+          onClose={() => setModal(null)}
+          onSucesso={novaVenda => {
+            setRelampagos(prev => [novaVenda, ...prev]);
+            setModal(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+//Criar Relampago
+function ModalCriarRelampago({ produtos, onClose, onSucesso }) {
+  const [produtoId, setProdutoId]   = useState(produtos[0]?.id ?? "");
+  const [preco, setPreco]           = useState("");
+  const [limite, setLimite]         = useState("");
+  const [inicioEm, setInicioEm]     = useState("");
+  const [fimEm, setFimEm]           = useState("");
+  const [enviando, setEnviando]     = useState(false);
+  const [erroMsg, setErroMsg]       = useState("");
+
+  const produtoSel  = produtos.find(p => p.id === produtoId);
+  const precoOrig   = produtoSel?.preco ?? 0;
+  const desconto    = preco && precoOrig
+    ? Math.round((1 - Number(preco) / precoOrig) * 100)
+    : 0;
+
+  async function handleCriar() {
+    setErroMsg("");
+    if (!produtoId)    { setErroMsg("Seleciona um produto."); return; }
+    if (!preco || Number(preco) <= 0) { setErroMsg("Preço relâmpago inválido."); return; }
+    if (Number(preco) >= precoOrig)   { setErroMsg("O preço relâmpago deve ser inferior ao preço original."); return; }
+    if (!inicioEm || !fimEm)          { setErroMsg("Define as datas de início e fim."); return; }
+    if (new Date(fimEm) <= new Date(inicioEm)) { setErroMsg("A data de fim deve ser posterior ao início."); return; }
+
+    setEnviando(true);
+    try {
+      const res = await apiRelampago.criar({
+        produtoId,
+        precoRelampago:   Number(preco),
+        quantidadeLimite: limite ? Number(limite) : undefined,
+        inicioEm:         new Date(inicioEm).toISOString(),
+        fimEm:            new Date(fimEm).toISOString(),
+      });
+      onSucesso(res.success ? res.data : res.dados);
+    } catch (e) {
+      setErroMsg(e.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  // Sugestão de datas (hoje + 24h)
+  function preencherHoje() {
+    const agora  = new Date();
+    const amanha = new Date(agora.getTime() + 24 * 3600000);
+    setInicioEm(agora.toISOString().slice(0, 16));
+    setFimEm(amanha.toISOString().slice(0, 16));
+  }
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-screen overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Nova venda relâmpago</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Oferta com desconto por tempo limitado</p>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 bg-transparent border-0 cursor-pointer p-1">
+              <Ico.X />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {/* Produto */}
+            <div>
+              <label className="text-xs font-medium text-gray-500 block mb-1">Produto *</label>
+              <select
+                value={produtoId}
+                onChange={e => { setProdutoId(e.target.value); setPreco(""); }}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400 bg-white"
+              >
+                {produtos.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome} — {Number(p.preco).toLocaleString("pt-MZ")} MZN
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Preço relâmpago */}
+            <div>
+              <label className="text-xs font-medium text-gray-500 block mb-1">
+                Preço relâmpago (MZN) * <span className="text-gray-300">· original: {Number(precoOrig).toLocaleString("pt-MZ")} MZN</span>
+              </label>
+              <input
+                type="number"
+                value={preco}
+                onChange={e => setPreco(e.target.value)}
+                placeholder="ex: 350"
+                min="1"
+                max={precoOrig - 1}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+              />
+              {desconto > 0 && (
+                <p className="text-xs mt-1">
+                  <span className="text-red-500 font-bold">-{desconto}% desconto</span>
+                  <span className="text-gray-400 ml-2">· poupança de {(precoOrig - Number(preco)).toLocaleString("pt-MZ")} MZN</span>
+                </p>
+              )}
+            </div>
+
+            {/* Quantidade limite */}
+            <div>
+              <label className="text-xs font-medium text-gray-500 block mb-1">
+                Quantidade limite <span className="text-gray-300">(opcional — deixa vazio para ilimitado)</span>
+              </label>
+              <input
+                type="number"
+                value={limite}
+                onChange={e => setLimite(e.target.value)}
+                placeholder="ex: 10"
+                min="1"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            {/* Datas */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-gray-500">Período *</label>
+                <button
+                  onClick={preencherHoje}
+                  className="text-xs text-amber-600 hover:text-amber-700 bg-transparent border-0 cursor-pointer"
+                >
+                  Preencher agora → +24h
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <p className="text-xs text-gray-400 mb-1">Início</p>
+                  <input
+                    type="datetime-local"
+                    value={inicioEm}
+                    onChange={e => setInicioEm(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-400 mb-1">Fim</p>
+                  <input
+                    type="datetime-local"
+                    value={fimEm}
+                    onChange={e => setFimEm(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Resumo */}
+            {preco && inicioEm && fimEm && desconto > 0 && (
+              <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs space-y-1">
+                <p className="font-semibold text-amber-800">Resumo da oferta</p>
+                <div className="flex justify-between text-amber-700">
+                  <span>Produto</span>
+                  <span className="font-medium">{produtoSel?.nome}</span>
+                </div>
+                <div className="flex justify-between text-amber-700">
+                  <span>Preço original</span>
+                  <span className="line-through">{Number(precoOrig).toLocaleString("pt-MZ")} MZN</span>
+                </div>
+                <div className="flex justify-between text-amber-700">
+                  <span>Preço relâmpago</span>
+                  <span className="font-bold text-amber-900">{Number(preco).toLocaleString("pt-MZ")} MZN</span>
+                </div>
+                <div className="flex justify-between text-amber-700">
+                  <span>Desconto</span>
+                  <span className="font-bold text-red-600">{desconto}%</span>
+                </div>
+                {limite && (
+                  <div className="flex justify-between text-amber-700">
+                    <span>Unidades disponíveis</span>
+                    <span>{limite}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {erroMsg && (
+              <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
+                <p className="text-xs text-red-700">{erroMsg}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 mt-5">
+            <button
+              onClick={onClose}
+              disabled={enviando}
+              className="flex-1 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 bg-transparent cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleCriar}
+              disabled={enviando}
+              className="flex-1 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium border-0 cursor-pointer disabled:opacity-60 transition-colors"
+            >
+              {enviando ? "A criar..." : "⚡ Criar oferta"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Constantes ────────────────────────────────────────────────────
@@ -1626,13 +2067,13 @@ function ModalPublicar({ item, onClose, onSalvar }) {
 
 // ── COMPONENTE PRINCIPAL ──────────────────────────────────────────
 const TABS = [
-  { id: "produtos",  label: "Produtos",     icon: Ico.Home  },
-  { id: "pedidos",   label: "Pedidos",      icon: Ico.Bag   },
-  { id: "afiliados", label: "Afiliados",    icon: Ico.Users },
-  { id: "promos",    label: "Promoções",    icon: Ico.Star  },
-  { id: "stats",     label: "Estatísticas", icon: Ico.Bar   },
+  { id: "produtos",   label: "Produtos",     icon: Ico.Home  },
+  { id: "pedidos",    label: "Pedidos",      icon: Ico.Bag   },
+  { id: "afiliados",  label: "Afiliados",    icon: Ico.Users },
+  { id: "promos",     label: "Promoções",    icon: Ico.Star  },
+  { id: "relampago",  label: "Relâmpago",    icon: Ico.Zap   },
+  { id: "stats",      label: "Estatísticas", icon: Ico.Bar   },
 ];
-
 export function SecaoVendas() {
   const [tab, setTab]                         = useState("produtos");
   const [produtos, setProdutos]               = useState([]);
@@ -1836,6 +2277,7 @@ export function SecaoVendas() {
       {tab === "afiliados" && <TabAfiliados produtos={produtos} setProdutos={setProdutos} />}
       {tab === "promos"    && <TabPromocoes produtos={produtos} />}
       {tab === "stats"     && <TabStats produtos={produtos} statsVendas={statsVendas} resumo={resumo} />}
+      {tab === "relampago" && <TabRelampago produtos={produtos} />}
 
       {/* Modal publicar / editar */}
       {modal && (

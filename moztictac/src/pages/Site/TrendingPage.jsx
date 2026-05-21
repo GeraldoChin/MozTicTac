@@ -1,38 +1,136 @@
-import { useState, useMemo } from "react";
-import { Header } from "../../components/Header";
-import TopTendencias2 from "../../components/Trendhero2";
-import { VERDE } from "../../components/contaConstantes";
-import { MENUS } from "../../components/SidebarConta"; // só os dados, sem renderizar o sidebar
+// ─────────────────────────────────────────────
+// MOZTICTAC — TrendingPage conectada ao backend
+// Endpoints usados:
+//   GET /api/v1/publico/produtos?tab=...&pagina=...&categoriaId=...&busca=...
+//   GET /api/v1/publico/categorias
+//   GET /api/v1/promocoes/ativas   (produtos promovidos / trending pago)
+//   POST /api/v1/desejos/:id       (autenticado)
+//   DELETE /api/v1/desejos/:id     (autenticado)
+// ─────────────────────────────────────────────
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Header }       from "../../components/Header";
+import TopTendencias2   from "../../components/Trendhero2";
 import { ChevronRight } from "lucide-react";
 
+// ── Config ────────────────────────────────────────────────────────
+const BASE_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+  "http://localhost:3000/api/v1";
 
-const GREEN = "#00b96b";
+const GREEN      = "#00b96b";
 const GREEN_DARK = "#009a5a";
-const GREEN_LIGHT = "#e6f9f0";
+const GREEN_LIGHT= "#e6f9f0";
 
-export const ALL_PRODUCTS = [
-  { id: 1,  name: "Relógio Premium Swiss Style",    price: 4200,  orig: 5800,  rating: 4.8, reviews: 124, city: "Maputo",  province: "Maputo",  cat: "Acessórios",   img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80", badge: "Anúncio", isNew: true,  delivery: true,  affiliate: true,  affPct: 10, type: "produto" },
-  { id: 2,  name: "Perfume Importado Chanel Nº5",   price: 1850,  orig: 2400,  rating: 4.6, reviews: 86,  city: "Beira",   province: "Sofala",  cat: "Acessórios",   img: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80", badge: "Anúncio", isNew: false, delivery: true,  affiliate: true,  affPct: 15, type: "produto" },
-  { id: 3,  name: "Ténis Nike Air Max 2024",         price: 3200,  orig: 4500,  rating: 4.7, reviews: 54,  city: "Nampula", province: "Nampula", cat: "Sapatos",      img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80", badge: null,      isNew: true,  delivery: true,  affiliate: false, affPct: 0,  type: "produto" },
-  { id: 4,  name: "Capulana Bordada Artesanal",      price: 450,   orig: 650,   rating: 4.9, reviews: 201, city: "Maputo",  province: "Maputo",  cat: "Roupa",        img: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=400&q=80", badge: null,      isNew: false, delivery: false, affiliate: true,  affPct: 12, type: "produto" },
-  { id: 5,  name: "Samsung Galaxy A55 5G",           price: 8900,  orig: 11000, rating: 4.5, reviews: 38,  city: "Matola",  province: "Maputo",  cat: "Celulares",    img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80", badge: "Anúncio", isNew: true,  delivery: true,  affiliate: true,  affPct: 8,  type: "produto" },
-  { id: 6,  name: "Serviço de Cabeleireiro",         price: 850,   orig: null,  rating: 4.8, reviews: 312, city: "Maputo",  province: "Maputo",  cat: "Serviços",     img: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80", badge: "Serviço", isNew: false, delivery: false, affiliate: false, affPct: 0,  type: "servico" },
-  { id: 7,  name: "Auscultadores Sony XM5",          price: 6200,  orig: 8500,  rating: 4.9, reviews: 178, city: "Maputo",  province: "Maputo",  cat: "Electrónicos", img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", badge: null,      isNew: true,  delivery: true,  affiliate: true,  affPct: 10, type: "produto" },
-  { id: 8,  name: "Mochila Impermeável 30L",         price: 1200,  orig: 1600,  rating: 4.4, reviews: 67,  city: "Beira",   province: "Sofala",  cat: "Acessórios",   img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80", badge: null,      isNew: false, delivery: true,  affiliate: false, affPct: 0,  type: "produto" },
-  { id: 9,  name: "Caju Torrado Embalado 1kg",       price: 3200,  orig: 4000,  rating: 4.8, reviews: 302, city: "Nacala",  province: "Nampula", cat: "Alimentos",    img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80", badge: null,      isNew: false, delivery: true,  affiliate: true,  affPct: 20, type: "produto" },
-  { id: 10, name: "Sofá 3 Lugares Verde",            price: 28000, orig: 35000, rating: 4.3, reviews: 19,  city: "Maputo",  province: "Maputo",  cat: "Outros",       img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80", badge: "Usado",   isNew: false, delivery: false, affiliate: false, affPct: 0,  type: "produto" },
-  { id: 11, name: "Vestido Chitenge Tradicional",    price: 1850,  orig: 2400,  rating: 4.8, reviews: 124, city: "Maputo",  province: "Maputo",  cat: "Roupa",        img: "https://images.unsplash.com/photo-1594938298603-c8148c4b4832?w=400&q=80", badge: null,      isNew: true,  delivery: true,  affiliate: true,  affPct: 12, type: "produto" },
-  { id: 12, name: "Anel de Ouro 18K Artesanal",      price: 12800, orig: 15000, rating: 4.7, reviews: 44,  city: "Maputo",  province: "Maputo",  cat: "Acessórios",   img: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400&q=80", badge: null,      isNew: true,  delivery: false, affiliate: false, affPct: 0,  type: "produto" },
-];
+// ── Fetch helpers ─────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const token = localStorage.getItem("token");
+  const res   = await fetch(`${BASE_URL}${path}`, {
+    ...opts,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(opts.headers ?? {}),
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.mensagem ?? data.message ?? `Erro ${res.status}`);
+  return data;
+}
 
-const TABS = ["Todos", "Novos", "Mais Vendidos", "Melhor Avaliados"];
-const CATS = ["Todos", "Roupa", "Sapatos", "Acessórios", "Celulares", "Electrónicos", "Cabelos", "Alimentos", "Serviços", "Outros"];
+// Mapeamento tab UI → param backend (publicoControlador.listarProdutosPublicos)
+// Antes — usava /publico/produtos
+const TAB_SORT_MAP = {
+  "Todos":            "trending",
+  "Mais Visitados":   "cliques",
+  "Mais Vendidos":    "vendas",
+  "Melhor Avaliados": "rating",
+  "Novos":            "novos",
+};
 
-/* ── Stars ── */
+const TABS = ["Todos", "Mais Visitados", "Mais Vendidos", "Melhor Avaliados", "Novos"];
+// ── Normalizar produto vindo do backend ───────────────────────────
+function normalizarProduto(p) {
+  return {
+    id:       p.id,
+    name:     p.nome      ?? p.name      ?? "Produto",
+    price:    Number(p.preco ?? p.price ?? 0),
+    orig:     p.precoOriginal ?? p.originalPrice ?? null,
+    rating:   Number(p.mediaAvaliacoes ?? p.rating ?? 0),
+    reviews:  p.totalAvaliacoes ?? p.reviews ?? 0,
+    city:     p.vendedor?.cidade ?? p.city ?? "",
+    province: p.vendedor?.provincia ?? p.province ?? "",
+    cat:      p.categoria?.nome ?? p.category ?? "",
+    catId:    p.categoria?.id   ?? p.categoriaId ?? "",
+    img:      p.imagens?.[0]    ?? p.img ?? "",
+    badge:    p.destaque ? "Anúncio" : (p.tipo ?? "").toLowerCase() === "servico" ? "Serviço" : null,
+    isNew:    p.estadoItem === "NOVO" || p.isNew || false,
+    delivery: p.entregaDisponivel ?? p.delivery ?? false,
+    affiliate:p.aceitaAfiliados  ?? p.affiliate ?? false,
+    affPct:   Number(p.percentualAfiliado ?? p.affPct ?? 0),
+    type:     (p.tipo ?? "produto").toLowerCase() === "servico" ? "servico" : "produto",
+    vendas:   p.totalVendas ?? 0,
+  };
+}
+
+// ── Hooks de dados ────────────────────────────────────────────────
+
+// Categorias — GET /publico/categorias
+function useCategorias() {
+  const [cats, setCats] = useState([{ id: "", nome: "Todos" }]);
+  useEffect(() => {
+    apiFetch("/publico/categorias")
+      .then(r => {
+        const lista = r.success ? r.data : r.dados ?? [];
+        setCats([{ id: "", nome: "Todos" }, ...lista]);
+      })
+      .catch(() => {});
+  }, []);
+  return cats;
+}
+
+// Produtos — GET /publico/produtos
+function useProdutos({ tab, pagina, categoriaId, busca, sort }) {
+  const [produtos,     setProdutos]     = useState([]);
+  const [total,        setTotal]        = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [loading,      setLoading]      = useState(true);
+  const [erro,         setErro]         = useState(null);
+
+  const carregar = useCallback(async () => {
+    setLoading(true);
+    setErro(null);
+    try {
+      // sort do select sobrepõe o sort da tab
+      const sortParam = sort || TAB_SORT_MAP[tab] || "trending";
+      const params = new URLSearchParams({
+        sort:   sortParam,
+        pagina: String(pagina),
+        limite: "20",
+      });
+      if (categoriaId) params.set("categoriaId", categoriaId);
+      if (busca)       params.set("busca", busca);
+
+      const res = await apiFetch(`/publico/trending?${params}`);
+      const d   = res.success ? res.data : res.dados ?? {};
+
+      setProdutos((d.produtos ?? []).map(normalizarProduto));
+      setTotal(d.total ?? 0);
+      setTotalPaginas(d.totalPaginas ?? 1);
+    } catch (e) {
+      setErro(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [tab, pagina, categoriaId, busca, sort]);
+
+  useEffect(() => { carregar(); }, [carregar]);
+  return { produtos, total, totalPaginas, loading, erro, recarregar: carregar };
+}
+// ── Componentes visuais ───────────────────────────────────────────
 function Stars({ rating, size = 11 }) {
   return (
     <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
+      {[1, 2, 3, 4, 5].map(i => (
         <svg key={i} width={size} height={size} viewBox="0 0 24 24">
           <polygon
             points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
@@ -46,115 +144,124 @@ function Stars({ rating, size = 11 }) {
   );
 }
 
-/* ── Badge ── */
-function Badge({ label }) {
+function BadgePill({ label }) {
   const styles = {
     Anúncio: { bg: "#dbeafe", color: "#1d4ed8" },
-    Serviço:  { bg: "#f3e8ff", color: "#7c3aed" },
-    Usado:    { bg: "#f3f4f6", color: "#4b5563" },
+    Serviço: { bg: "#f3e8ff", color: "#7c3aed" },
+    Usado:   { bg: "#f3f4f6", color: "#4b5563" },
   };
   const s = styles[label] || { bg: "#f3f4f6", color: "#4b5563" };
   return (
-    <span
-      className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide"
-      style={{ background: s.bg, color: s.color }}
-    >
+    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide"
+      style={{ background: s.bg, color: s.color }}>
       {label}
     </span>
   );
 }
 
-/* ── Cart icon ── */
-function CartIcon({ size = 14 }) {
+function Spinner() {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-    </svg>
+    <div className="flex justify-center items-center py-20">
+      <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
+    </div>
   );
 }
 
-/* ── Heart icon ── */
-function HeartIcon({ filled = false }) {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill={filled ? "#ef4444" : "none"} stroke={filled ? "#ef4444" : "#9ca3af"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  );
-}
-
-/* ── Pin icon ── */
-function PinIcon() {
-  return (
-    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
-
-/* ── Product Card ── */
+// ── ProductCard ───────────────────────────────────────────────────
 function ProductCard({ p, onAddToCart, wishlist, onToggleWish }) {
-  const disc = p.orig ? Math.round((1 - p.price / p.orig) * 100) : null;
+  const [adicionado, setAdicionado] = useState(false);
+  const disc   = p.orig ? Math.round((1 - p.price / p.orig) * 100) : null;
   const wished = wishlist.has(p.id);
 
-  return (
-    <div className="bg-white border border-gray-100  overflow-hidden cursor-pointer group transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative">
-      {/* Image */}
-      <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: "1" }}>
-        <img
-          src={p.img}
-          alt={p.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+  function handleAddCart(e) {
+    e.stopPropagation();
+    onAddToCart?.(p);
+    setAdicionado(true);
+    setTimeout(() => setAdicionado(false), 1500);
+  }
 
-        {/* Badges top-left */}
+  return (
+    <div
+      onClick={() => window.location.href = `/produto/${p.id}`}
+      className="bg-white border border-gray-100 overflow-hidden cursor-pointer group transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative rounded-xl"
+    >
+      {/* Imagem */}
+      <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: "1" }}>
+        {p.img ? (
+          <img src={p.img} alt={p.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+        )}
+
+        {/* Badges */}
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
-          {p.badge && <Badge label={p.badge} />}
+          {p.badge && <BadgePill label={p.badge} />}
           {p.isNew && (
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide"
               style={{ background: GREEN_LIGHT, color: "#15803d" }}>
               Novo
             </span>
           )}
-          {disc && disc >= 20 && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide bg-amber-50 text-amber-600">
+          {disc && disc >= 15 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase bg-amber-50 text-amber-600">
               -{disc}%
             </span>
           )}
         </div>
 
-        {/* Wishlist btn top-right */}
+        {/* Wishlist */}
         <button
-          onClick={(e) => { e.stopPropagation(); onToggleWish(p.id); }}
-          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-sm border-none cursor-pointer"
+          onClick={e => { e.stopPropagation(); onToggleWish(p.id); }}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border-none cursor-pointer"
         >
-          <HeartIcon filled={wished} />
+          <svg width="13" height="13" viewBox="0 0 24 24"
+            fill={wished ? "#ef4444" : "none"}
+            stroke={wished ? "#ef4444" : "#9ca3af"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
         </button>
 
         {/* Add to cart overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            onClick={(e) => { e.stopPropagation(); onAddToCart?.(p); }}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-white text-[11px] font-bold border-none cursor-pointer transition-colors duration-150"
-            style={{ background: GREEN }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = GREEN_DARK)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = GREEN)}
+            onClick={handleAddCart}
+            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-white text-[11px] font-bold border-none cursor-pointer transition-colors"
+            style={{ background: adicionado ? "#16a34a" : GREEN }}
           >
-            <CartIcon size={11} /> Adicionar ao Carrinho
+            {adicionado ? "✓ Adicionado!" : (
+              <>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                Adicionar ao Carrinho
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {/* Body */}
       <div className="p-3">
-        <p className="text-[10px] font-600 text-gray-400 uppercase tracking-wide mb-0.5">{p.cat}</p>
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{p.cat}</p>
         <p className="text-[13px] font-bold text-gray-900 leading-snug line-clamp-2 mb-1.5 min-h-[34px]">{p.name}</p>
 
-        <div className="flex items-center gap-1.5 mb-2">
-          <Stars rating={p.rating} />
-          <span className="text-[11px] font-bold text-gray-800">{p.rating}</span>
-          <span className="text-[10px] text-gray-400">({p.reviews})</span>
-        </div>
+        {p.rating > 0 && (
+          <div className="flex items-center gap-1.5 mb-2">
+            <Stars rating={p.rating} />
+            <span className="text-[11px] font-bold text-gray-800">{p.rating.toFixed(1)}</span>
+            <span className="text-[10px] text-gray-400">({p.reviews})</span>
+          </div>
+        )}
 
         <div className="flex items-end justify-between gap-2">
           <div>
@@ -176,92 +283,157 @@ function ProductCard({ p, onAddToCart, wishlist, onToggleWish }) {
           )}
         </div>
 
-        <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1.5">
-          <PinIcon /> {p.city}, {p.province}
-        </p>
+        {p.city && (
+          <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1.5">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            {p.city}{p.province ? `, ${p.province}` : ""}
+          </p>
+        )}
+
+        {p.affiliate && p.affPct > 0 && (
+          <p className="text-[10px] font-bold mt-1 px-1.5 py-0.5 rounded-full inline-block bg-blue-50 text-blue-600">
+            +{p.affPct}% afiliado
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-/* ── Main Page ── */
+// ── Paginação ─────────────────────────────────────────────────────
+function Paginacao({ pagina, totalPaginas, onChange }) {
+  if (totalPaginas <= 1) return null;
+  const pages = Array.from({ length: Math.min(totalPaginas, 5) }, (_, i) => i + 1);
+  return (
+    <div className="flex items-center justify-center gap-2 mt-8">
+      <button onClick={() => onChange(pagina - 1)} disabled={pagina <= 1}
+        className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold cursor-pointer bg-white text-gray-500 disabled:opacity-40 hover:border-green-400">
+        ‹
+      </button>
+      {pages.map(pg => (
+        <button key={pg} onClick={() => onChange(pg)}
+          className="w-8 h-8 rounded-lg border text-xs font-bold cursor-pointer"
+          style={pg === pagina
+            ? { background: GREEN, color: "#fff", border: `1px solid ${GREEN}` }
+            : { background: "#fff", color: "#4b5563", border: "1px solid #e5e7eb" }}>
+          {pg}
+        </button>
+      ))}
+      {totalPaginas > 5 && pagina < totalPaginas - 2 && (
+        <>
+          <span className="text-gray-400 text-xs">…</span>
+          <button onClick={() => onChange(totalPaginas)}
+            className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold cursor-pointer bg-white text-gray-500 hover:border-green-400">
+            {totalPaginas}
+          </button>
+        </>
+      )}
+      <button onClick={() => onChange(pagina + 1)} disabled={pagina >= totalPaginas}
+        className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold cursor-pointer bg-white text-gray-500 disabled:opacity-40 hover:border-green-400">
+        ›
+      </button>
+    </div>
+  );
+}
+
+// ── Página principal ──────────────────────────────────────────────
 export default function TrendingPage({ onAddToCart }) {
-  const [activeTab, setActiveTab] = useState("Todos");
-  const [activeCat, setActiveCat] = useState("Todos");
-  const [sort, setSort]           = useState("");
-  const [wishlist, setWishlist]   = useState(new Set());
+  const [activeTab,   setActiveTab]   = useState("Todos");
+  const [activeCatId, setActiveCatId] = useState("");   // ID da categoria (uuid)
+  const [sort,        setSort]        = useState("");
+  const [pagina,      setPagina]      = useState(1);
+  const [busca,       setBusca]       = useState("");
+  const [buscaInput,  setBuscaInput]  = useState("");
+  const [wishlist,    setWishlist]    = useState(new Set());
+  const [wishLoading, setWishLoading] = useState(new Set());
 
-  const toggleWish = (id) => {
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+  const categorias = useCategorias();
 
-  const products = useMemo(() => {
-    let list = [...ALL_PRODUCTS];
+  // Debounce busca
+  useEffect(() => {
+    const t = setTimeout(() => { setBusca(buscaInput); setPagina(1); }, 400);
+    return () => clearTimeout(t);
+  }, [buscaInput]);
 
-    if (activeCat !== "Todos") list = list.filter((p) => p.cat === activeCat);
-    if (activeTab === "Novos")            list = list.filter((p) => p.isNew);
-    if (activeTab === "Mais Vendidos")    list = [...list].sort((a, b) => b.reviews - a.reviews);
-    if (activeTab === "Melhor Avaliados") list = [...list].sort((a, b) => b.rating - a.rating);
-    if (sort === "price-asc")  list = [...list].sort((a, b) => a.price - b.price);
-    if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
-    if (sort === "rating")     list = [...list].sort((a, b) => b.rating - a.rating);
+  const { produtos, total, totalPaginas, loading, erro, recarregar } = useProdutos({
+    tab: activeTab, pagina, categoriaId: activeCatId, busca, sort,
+  });
 
-    return list;
-  }, [activeTab, activeCat, sort]);
+  function mudarTab(tab) { setActiveTab(tab); setPagina(1); }
+  function mudarCat(id)  { setActiveCatId(id); setPagina(1); }
+
+  // Toggle wishlist — POST/DELETE /desejos/:id
+  async function toggleWish(id) {
+    if (wishLoading.has(id)) return;
+    const token = localStorage.getItem("token");
+    if (!token) { window.location.href = "/login"; return; }
+
+    setWishLoading(prev => new Set(prev).add(id));
+    const jaEsta = wishlist.has(id);
+    try {
+      await apiFetch(`/desejos/${id}`, { method: jaEsta ? "DELETE" : "POST" });
+      setWishlist(prev => {
+        const next = new Set(prev);
+        jaEsta ? next.delete(id) : next.add(id);
+        return next;
+      });
+    } catch (e) {
+      console.error("Wishlist:", e.message);
+    } finally {
+      setWishLoading(prev => { const n = new Set(prev); n.delete(id); return n; });
+    }
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "#f9fafb", fontFamily: "Manrope, sans-serif" }}>
+      <Header />
 
-<Header/>
-   <div className="bg-white border-b border-gray-200 px-4 py-3">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-500">
-          <button className="hover:text-green-600 cursor-pointer transition-colors">
-            Início
-          </button>
+          <a href="/" className="hover:text-green-600 cursor-pointer transition-colors">Início</a>
           <ChevronRight size={14} className="text-gray-400" />
-          <span className="font-semibold text-gray-900">Minha Conta</span>
-          <ChevronRight size={14} className="text-gray-400" />
-          {/* <span style={{ color: VERDE, fontWeight: 600 }}>
-            {MENUS.find((m) => m.id === activo)?.rotulo}
-          </span> */}
+          <span className="font-semibold text-gray-900">Tendências</span>
         </div>
       </div>
-      {/* ── HERO ── */}
-<TopTendencias2/>
 
-      {/* ── CATEGORIES STRIP ── */}
+      {/* Hero carrossel (TopTendencias2 já usa /promocoes/ativas internamente) */}
+      <TopTendencias2 />
+
+      {/* Barra de categorias — vem do backend via useCategorias */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 overflow-x-auto scrollbar-none" style={{ height: 52, scrollbarWidth: "none" }}>
-          {CATS.map((cat) => (
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 overflow-x-auto"
+          style={{ height: 52, scrollbarWidth: "none" }}>
+          {categorias.map(cat => (
             <button
-              key={cat}
-              onClick={() => setActiveCat(cat)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border-none cursor-pointer transition-all duration-150 flex-shrink-0"
-              style={activeCat === cat
+              key={cat.id}
+              onClick={() => mudarCat(cat.id)}
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border-none cursor-pointer transition-all flex-shrink-0"
+              style={activeCatId === cat.id
                 ? { background: GREEN, color: "#fff" }
                 : { background: "#f3f4f6", color: "#4b5563" }}
             >
-              {cat}
+              {cat.icone && <span className="mr-1">{cat.icone}</span>}
+              {cat.nome}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ── MAIN ── */}
+      {/* Main */}
       <div className="max-w-7xl mx-auto px-4 py-7">
 
-        {/* Promo banners */}
+        {/* Banners promo */}
         <div className="grid grid-cols-3 gap-3 mb-7">
           {[
-            { bg: "linear-gradient(135deg,#1a1a2e,#2d1b4e)", label: "Óculos escuros", title: "45–80% de desconto", sub: "Apenas esta semana" },
-            { bg: "linear-gradient(135deg,#b91c1c,#ef4444)", label: "Calçados",        title: "Até 75% de desconto", sub: "Mais de 200 modelos" },
-            { bg: "linear-gradient(135deg,#14532d,#16a34a)", label: "Acessórios",      title: "Mínimo 45% de desconto", sub: "Selecção premium" },
-          ].map((b) => (
-            <div key={b.label} className="rounded-2xl p-5 cursor-pointer transition-transform duration-200 hover:-translate-y-0.5"
+            { bg: "linear-gradient(135deg,#1a1a2e,#2d1b4e)", label: "Óculos escuros", title: "45–80% de desconto",    sub: "Apenas esta semana"  },
+            { bg: "linear-gradient(135deg,#b91c1c,#ef4444)", label: "Calçados",        title: "Até 75% de desconto",   sub: "Mais de 200 modelos" },
+            { bg: "linear-gradient(135deg,#14532d,#16a34a)", label: "Acessórios",      title: "Mínimo 45% de desconto",sub: "Selecção premium"    },
+          ].map(b => (
+            <div key={b.label}
+              className="rounded-2xl p-5 cursor-pointer transition-transform hover:-translate-y-0.5"
               style={{ background: b.bg }}>
               <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>{b.label}</p>
               <p className="text-base font-black text-white leading-tight mb-1">{b.title}</p>
@@ -271,83 +443,115 @@ export default function TrendingPage({ onAddToCart }) {
           ))}
         </div>
 
-        {/* Affiliate strip */}
+        {/* Faixa afiliados */}
         <div className="flex items-center gap-4 rounded-2xl p-4 mb-7"
           style={{ background: "linear-gradient(135deg,#fff7ed,#fef3c7)", border: "1px solid #fed7aa" }}>
           <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: "#f97316" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
             </svg>
           </div>
           <div className="flex-1">
             <p className="text-[13px] font-black" style={{ color: "#92400e" }}>Programa de Afiliados MozTicTac</p>
-            <p className="text-[11px]" style={{ color: "#b45309" }}>Partilha produtos e ganha até 20% de comissão em cada venda. Já são +3 200 afiliados activos.</p>
+            <p className="text-[11px]" style={{ color: "#b45309" }}>Partilha produtos e ganha até 20% de comissão em cada venda.</p>
           </div>
-          <button className="px-4 py-2 rounded-full text-[11px] font-black text-white border-none cursor-pointer flex-shrink-0"
+          <a href="/conta?tab=afiliados"
+            className="px-4 py-2 rounded-full text-[11px] font-black text-white border-none cursor-pointer flex-shrink-0"
             style={{ background: "#f97316" }}>
             Juntar-me →
-          </button>
+          </a>
         </div>
 
-        {/* Section header */}
-        <div className="flex items-center justify-between mb-5">
+        {/* Header da secção + filtros */}
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 className="text-lg font-black text-gray-900">Em Alta Agora 🔥</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{products.length} produto{products.length !== 1 ? "s" : ""} em tendência</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {loading ? "A carregar..." : `${total} produto${total !== 1 ? "s" : ""} em tendência`}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Barra de pesquisa */}
+            <div className="relative">
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                value={buscaInput}
+                onChange={e => setBuscaInput(e.target.value)}
+                placeholder="Pesquisar..."
+                className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-green-400 bg-white"
+              />
+            </div>
+
             {/* Tabs */}
-            <div className="flex bg-white border border-gray-200  p-1 gap-0.5">
-              {TABS.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className="px-3.5 py-1.5 text-[11px] font-bold rounded-lg border-none cursor-pointer transition-all duration-150"
+            <div className="flex bg-white border border-gray-200 p-1 gap-0.5 rounded-xl">
+              {TABS.map(tab => (
+                <button key={tab} onClick={() => mudarTab(tab)}
+                  className="px-3.5 py-1.5 text-[11px] font-bold rounded-lg border-none cursor-pointer transition-all"
                   style={activeTab === tab
                     ? { background: GREEN, color: "#fff" }
-                    : { background: "transparent", color: "#6b7280" }}
-                >
+                    : { background: "transparent", color: "#6b7280" }}>
                   {tab}
                 </button>
               ))}
             </div>
 
-            {/* Sort */}
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200  px-3 py-2 cursor-pointer outline-none"
-            >
+            {/* Ordenar */}
+            <select value={sort} onChange={e => { setSort(e.target.value); setPagina(1); }}
+              className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200 px-3 py-2 cursor-pointer outline-none rounded-lg">
               <option value="">Ordenar</option>
               <option value="price-asc">Preço ↑</option>
               <option value="price-desc">Preço ↓</option>
               <option value="rating">Avaliação</option>
             </select>
+
+            {/* Botão recarregar */}
+            <button onClick={recarregar} disabled={loading}
+              className="p-2 border border-gray-200 rounded-lg bg-white text-gray-500 hover:border-green-400 cursor-pointer disabled:opacity-50">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className={loading ? "animate-spin" : ""}>
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              </svg>
+            </button>
           </div>
         </div>
 
-        {/* Grid */}
-        {products.length === 0 ? (
+        {/* Grid de produtos */}
+        {loading ? (
+          <Spinner />
+        ) : erro ? (
+          <div className="flex flex-col items-center py-20 gap-3 text-center">
+            <p className="text-red-500 font-bold text-sm">⚠️ {erro}</p>
+            <button onClick={recarregar}
+              className="px-5 py-2 rounded-full text-sm font-bold text-white border-none cursor-pointer"
+              style={{ background: GREEN }}>
+              Tentar novamente
+            </button>
+          </div>
+        ) : produtos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
             </div>
             <p className="text-sm font-bold text-gray-600">Nenhum produto encontrado</p>
-            <p className="text-xs text-gray-400 mt-1">Tente outra categoria</p>
-            <button className="mt-4 px-5 py-2 rounded-full text-sm font-bold text-white border-none cursor-pointer"
-              style={{ background: GREEN }}
-              onClick={() => { setActiveCat("Todos"); setActiveTab("Todos"); setSort(""); }}>
+            <p className="text-xs text-gray-400 mt-1">Tente outra categoria ou pesquisa</p>
+            <button
+              onClick={() => { setActiveCatId(""); setActiveTab("Todos"); setBuscaInput(""); setSort(""); setPagina(1); }}
+              className="mt-4 px-5 py-2 rounded-full text-sm font-bold text-white border-none cursor-pointer"
+              style={{ background: GREEN }}>
               Limpar filtros
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-4">
-            {products.map((p) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {produtos.map(p => (
               <ProductCard
                 key={p.id}
                 p={p}
@@ -359,18 +563,11 @@ export default function TrendingPage({ onAddToCart }) {
           </div>
         )}
 
-        {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 mt-8">
-          {["‹", "1", "2", "3", "›"].map((pg, i) => (
-            <button key={i}
-              className="w-8 h-8 rounded-lg border text-xs font-bold cursor-pointer transition-all duration-150 flex items-center justify-center"
-              style={pg === "1"
-                ? { background: GREEN, color: "#fff", border: `1px solid ${GREEN}` }
-                : { background: "#fff", color: "#4b5563", border: "1px solid #e5e7eb" }}>
-              {pg}
-            </button>
-          ))}
-        </div>
+        <Paginacao
+          pagina={pagina}
+          totalPaginas={totalPaginas}
+          onChange={pg => { setPagina(pg); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+        />
       </div>
     </div>
   );

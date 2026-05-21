@@ -3,8 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   User, Heart, ShoppingCart, Bell, MessageCircle,
   Wallet, Search, Store, Share2, History, Lock,
-  LogOut, ShoppingBag, ChevronRight, Star, TrendingUp,
-  Menu, X, ArrowLeft,
+  LogOut, ShoppingBag, ChevronRight, Menu, X,
 } from "lucide-react";
 
 const VERDE        = "#00b96b";
@@ -50,21 +49,24 @@ const MENUS_DROPDOWN = [
 ];
 
 /* ── Dropdown conta (desktop) ── */
-function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
+function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair, onMouseEnter, onMouseLeave }) {
   return (
-    <div style={{
-      position: "absolute", top: "calc(100% + 8px)", right: -8,
-      width: 200, borderRadius: 12, background: "#fff",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)",
-      zIndex: 999,
-      opacity: visivel ? 1 : 0,
-      transform: visivel ? "translateY(0)" : "translateY(-6px)",
-      pointerEvents: visivel ? "all" : "none",
-      transition: "opacity 0.15s ease, transform 0.15s ease",
-      overflow: "hidden",
-      fontFamily: "Manrope, sans-serif",
-    }}>
-
+    <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{
+        position: "absolute", top: "calc(100% + 8px)", right: -8,
+        width: 220, borderRadius: 12, background: "#fff",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)",
+        zIndex: 999,
+        opacity: visivel ? 1 : 0,
+        transform: visivel ? "translateY(0)" : "translateY(-6px)",
+        pointerEvents: visivel ? "all" : "none",
+        transition: "opacity 0.15s ease, transform 0.15s ease",
+        overflow: "hidden",
+        fontFamily: "Manrope, sans-serif",
+      }}
+    >
       {/* Nome */}
       <div style={{ padding: "12px 16px 10px", borderBottom: "1px solid #f3f4f6" }}>
         <p style={{ fontSize: 13, fontWeight: 800, color: "#111827", margin: 0 }}>
@@ -75,59 +77,76 @@ function DropdownConta({ visivel, utilizador, aoSelecionar, aoSair }) {
         </p>
       </div>
 
-      {/* Items */}
-      <div style={{ padding: "4px 0" }}>
-        {MENUS_DROPDOWN.flatMap(g => g.itens).map(({ id, Icone: Ic, rotulo, cor, badge }) => (
-          <button key={id} onClick={() => aoSelecionar(id)}
-            style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 10,
-              padding: "8px 16px", background: "transparent", border: "none",
-              cursor: "pointer", textAlign: "left", transition: "background .1s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "#f9fafb"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-            <Ic size={14} color="#6b7280" style={{ flexShrink: 0 }} />
-            <span style={{ flex: 1, fontSize: 13, color: "#374151", fontWeight: 500 }}>
-              {rotulo}
-            </span>
-            {badge && (
-              <span style={{
-                fontSize: 10, fontWeight: 800, padding: "1px 7px", borderRadius: 99,
-                background: `${VERDE}15`, color: VERDE,
-              }}>
-                {badge}
+      {/* Grupos de itens */}
+      {MENUS_DROPDOWN.map((grupo, gi) => (
+        <div key={grupo.grupo}>
+          <p style={{
+            padding: "8px 16px 2px",
+            fontSize: 9, fontWeight: 800, color: "#9ca3af",
+            textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            {grupo.grupo}
+          </p>
+          {grupo.itens.map(({ id, Icone: Ic, rotulo, cor, badge }) => (
+            <button
+              key={id}
+              onClick={() => aoSelecionar(id)}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 10,
+                padding: "8px 16px", background: "transparent", border: "none",
+                cursor: "pointer", textAlign: "left", transition: "background .1s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "#f9fafb"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <Ic size={14} color="#6b7280" style={{ flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 13, color: "#374151", fontWeight: 500 }}>
+                {rotulo}
               </span>
-            )}
-          </button>
-        ))}
-      </div>
+              {badge && (
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: "1px 7px", borderRadius: 99,
+                  background: `${VERDE}15`, color: VERDE,
+                }}>
+                  {badge}
+                </span>
+              )}
+            </button>
+          ))}
+          {gi < MENUS_DROPDOWN.length - 1 && (
+            <div style={{ height: 1, background: "#f3f4f6", margin: "4px 0" }} />
+          )}
+        </div>
+      ))}
 
       {/* Logout */}
       <div style={{ borderTop: "1px solid #f3f4f6", padding: "4px 0 4px" }}>
-        <button onClick={aoSair}
+        <button
+          onClick={aoSair}
           style={{
             width: "100%", display: "flex", alignItems: "center", gap: 10,
             padding: "8px 16px", background: "transparent", border: "none",
             cursor: "pointer", textAlign: "left", transition: "background .1s",
           }}
           onMouseEnter={e => e.currentTarget.style.background = "#fff1f1"}
-          onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+        >
           <LogOut size={14} color="#ef4444" style={{ flexShrink: 0 }} />
           <span style={{ fontSize: 13, fontWeight: 600, color: "#ef4444" }}>
             Sair da Conta
           </span>
         </button>
       </div>
-
     </div>
   );
 }
+
 /* ── BotaoAccao ── */
-function BotaoAccao({ icone, rotulo, aoClicar, contagem = 0, corBadge, className = "" }) {
+function BotaoAccao({ icone, rotulo, aoClicar, contagem = 0, corBadge }) {
   return (
     <button
       onClick={aoClicar}
-      className={`relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 bg-transparent border-none cursor-pointer px-1.5 sm:px-2 py-1 rounded ${className}`}
+      className="relative flex flex-col items-center text-xs text-gray-600 hover:text-green-600 transition gap-0.5 bg-transparent border-none cursor-pointer px-1.5 sm:px-2 py-1 rounded"
     >
       {icone}
       <span className="hidden lg:inline text-[10px]">{rotulo}</span>
@@ -222,8 +241,8 @@ function DrawerMobile({ open, onClose, utilizador, aoSelecionar, aoSair, aoClica
         <div className="px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #f1f5f9" }}>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: "Saldo",     valor: "4.2k",           cor: VERDE },
-              { label: "Vendas",    valor: utilizador.vendas, cor: "#3b82f6" },
+              { label: "Saldo",     valor: "4.2k",                    cor: VERDE },
+              { label: "Vendas",    valor: utilizador.vendas,          cor: "#3b82f6" },
               { label: "Avaliação", valor: `${utilizador.avaliacao}★`, cor: "#f59e0b" },
             ].map(({ label, valor, cor }) => (
               <div key={label} className="text-center py-2 rounded-xl" style={{ background: "#f8fafc" }}>
@@ -259,7 +278,9 @@ function DrawerMobile({ open, onClose, utilizador, aoSelecionar, aoSair, aoClica
                   <ChevronRight size={13} className="text-gray-300 flex-shrink-0" />
                 </button>
               ))}
-              {gi < MENUS_DROPDOWN.length - 1 && <div className="mx-4 mt-2" style={{ height: "1px", background: "#f1f5f9" }} />}
+              {gi < MENUS_DROPDOWN.length - 1 && (
+                <div className="mx-4 mt-2" style={{ height: "1px", background: "#f1f5f9" }} />
+              )}
             </div>
           ))}
         </div>
@@ -294,8 +315,6 @@ export function Header({
   aoClicarWishlist,
   aoClicarNotificacoes,
   aoClicarChat,
-  aoClicarConta,
-  aoClicarCarteira,
   utilizadorAutenticado = false,
   utilizador = utilizadorMock,
   aoNavegar,
@@ -306,16 +325,27 @@ export function Header({
   const [pesquisaMobile, setPesquisaMobile] = useState(false);
   const timerRef = useRef(null);
 
+  /* ── Helpers hover com delay para não fechar ao mover mouse ── */
   const abrirConta  = () => { clearTimeout(timerRef.current); setContaAberta(true); };
-  const fecharConta = () => { timerRef.current = setTimeout(() => setContaAberta(false), 200); };
+  const fecharConta = () => { timerRef.current = setTimeout(() => setContaAberta(false), 300); };
 
+  /* ── Navegar para secção da conta ── */
   const aoSelecionar = (id) => {
     setContaAberta(false);
-    if (aoNavegar) { aoNavegar(id); }
-    else { navigate("/minha-conta", { state: { seccao: id } }); }
+    clearTimeout(timerRef.current);
+    if (aoNavegar) {
+      aoNavegar(id);
+    } else {
+      navigate("/minha-conta", { state: { seccao: id } });
+    }
   };
 
-  const aoSair = () => { setContaAberta(false); navigate("/"); };
+  /* ── Logout ── */
+  const aoSair = () => {
+    setContaAberta(false);
+    clearTimeout(timerRef.current);
+    navigate("/");
+  };
 
   return (
     <>
@@ -324,7 +354,7 @@ export function Header({
           <div className="flex items-center gap-2 sm:gap-4 h-14 sm:h-16">
 
             {/* LOGO */}
-            <Link to="/" className="text-lg sm:text-[22px] font-black text-gray-900 tracking-tight shrink-0 select-none">
+            <Link to="/" className="text-lg sm:text-[22px] font-black text-gray-900 tracking-tight shrink-0 select-none no-underline">
               MozTicTac<span style={{ color: VERDE }}>.</span>
             </Link>
 
@@ -363,31 +393,89 @@ export function Header({
 
             {/* AÇÕES — desktop */}
             <div className="hidden md:flex items-center gap-0.5 ml-auto">
-              {/* Conta + dropdown */}
-              <div style={{ position: "relative" }} onMouseEnter={abrirConta} onMouseLeave={fecharConta}>
+
+              {/* Conta + Dropdown */}
+              <div
+                style={{ position: "relative" }}
+                onMouseEnter={abrirConta}
+                onMouseLeave={fecharConta}
+              >
                 <button
                   onClick={() => aoSelecionar("perfil")}
                   className="relative flex flex-col items-center text-xs gap-0.5 px-2 py-1 rounded-lg cursor-pointer border-none transition-all duration-200"
-                  style={{ color: contaAberta ? VERDE : "#4b5563", background: contaAberta ? VERDE_DIM : "transparent" }}
+                  style={{
+                    color:      contaAberta ? VERDE : "#4b5563",
+                    background: contaAberta ? VERDE_DIM : "transparent",
+                  }}
                 >
-                  <User size={20} strokeWidth={1.5} style={{ color: contaAberta ? VERDE : "currentColor", transition: "color 0.15s" }} />
+                  <User
+                    size={20}
+                    strokeWidth={1.5}
+                    style={{ color: contaAberta ? VERDE : "currentColor", transition: "color 0.15s" }}
+                  />
                   <span className="hidden lg:inline font-semibold" style={{ fontSize: 10 }}>Conta</span>
                 </button>
-                <DropdownConta visivel={contaAberta} utilizador={utilizador} aoSelecionar={aoSelecionar} aoSair={aoSair} />
+
+                <DropdownConta
+                  visivel={contaAberta}
+                  utilizador={utilizador}
+                  aoSelecionar={aoSelecionar}
+                  aoSair={aoSair}
+                  onMouseEnter={abrirConta}
+                  onMouseLeave={fecharConta}
+                />
               </div>
 
               {utilizadorAutenticado && (
-                <BotaoAccao icone={<Wallet size={20} strokeWidth={1.5} />} rotulo="Carteira" aoClicar={() => aoSelecionar("carteira")} />
+                <BotaoAccao
+                  icone={<Wallet size={20} strokeWidth={1.5} />}
+                  rotulo="Carteira"
+                  aoClicar={() => aoSelecionar("carteira")}
+                />
               )}
-              <BotaoAccao icone={<Heart size={20} strokeWidth={1.5} />} rotulo="Desejos" aoClicar={() => navigate("/desejos")} contagem={contagemWishlist} corBadge={VERDE} />
-              <BotaoAccao icone={<MessageCircle size={20} strokeWidth={1.5} />} rotulo="Chat" aoClicar={() => navigate("/chat")} contagem={contagemMensagens} corBadge={VERDE} />
-              <BotaoAccao icone={<Bell size={20} strokeWidth={1.5} />} rotulo="Avisos" aoClicar={() => aoSelecionar("notificacoes")} contagem={contagemNotificacoes} corBadge="#e53e3e" />
-              <BotaoAccao icone={<ShoppingCart size={20} strokeWidth={1.5} />} rotulo="Carrinho" aoClicar={() => navigate("/carrinho")} contagem={contagemCarrinho} corBadge={VERDE} />
+
+              <BotaoAccao
+                icone={<Heart size={20} strokeWidth={1.5} />}
+                rotulo="Desejos"
+                aoClicar={() => navigate("/desejos")}
+                contagem={contagemWishlist}
+                corBadge={VERDE}
+              />
+
+              <BotaoAccao
+                icone={<MessageCircle size={20} strokeWidth={1.5} />}
+                rotulo="Chat"
+                aoClicar={() => navigate("/chat")}
+                contagem={contagemMensagens}
+                corBadge={VERDE}
+              />
+
+              <BotaoAccao
+                icone={<Bell size={20} strokeWidth={1.5} />}
+                rotulo="Avisos"
+                aoClicar={() => aoSelecionar("notificacoes")}
+                contagem={contagemNotificacoes}
+                corBadge="#e53e3e"
+              />
+
+              <BotaoAccao
+                icone={<ShoppingCart size={20} strokeWidth={1.5} />}
+                rotulo="Carrinho"
+                aoClicar={() => navigate("/carrinho")}
+                contagem={contagemCarrinho}
+                corBadge={VERDE}
+              />
             </div>
 
             {/* AÇÕES — mobile (carrinho + menu) */}
             <div className="md:hidden flex items-center gap-1 ml-auto">
-              <BotaoAccao icone={<ShoppingCart size={20} strokeWidth={1.5} />} rotulo="" aoClicar={() => navigate("/carrinho")} contagem={contagemCarrinho} corBadge={VERDE} />
+              <BotaoAccao
+                icone={<ShoppingCart size={20} strokeWidth={1.5} />}
+                rotulo=""
+                aoClicar={() => navigate("/carrinho")}
+                contagem={contagemCarrinho}
+                corBadge={VERDE}
+              />
               <button
                 onClick={() => setDrawerAberto(true)}
                 className="flex items-center justify-center w-9 h-9 rounded-xl text-gray-600 hover:text-green-600 hover:bg-green-50 transition border-none bg-transparent cursor-pointer relative"
@@ -413,7 +501,12 @@ export function Header({
                   placeholder="Pesquisar produtos..."
                   value={valorPesquisa}
                   onChange={(e) => aoMudarPesquisa?.(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { aoClicarPesquisa?.(); setPesquisaMobile(false); } }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      aoClicarPesquisa?.();
+                      setPesquisaMobile(false);
+                    }
+                  }}
                   className="flex-1 px-3 py-2.5 text-sm outline-none text-gray-700 placeholder-gray-400"
                   autoFocus={pesquisaMobile}
                 />
