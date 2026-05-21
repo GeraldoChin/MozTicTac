@@ -15,8 +15,10 @@ import { Newsletter } from "../../components/Newsletter";
 import Rodape from "../../components/Rodape";
 import TopTendencias from "../../components/Trendinghero";
 import PromoBannersSlider from "../../components/PromoBannerSlider";
+import { useContagens } from "../../hooks/useContagens";
 
 export default function Home() {
+  const { contagemCarrinho, contagemWishlist, contagemNotificacoes, contagemMensagens } = useContagens();
   const { cartCount, wishCount, addToCart, addToWish } = useCart();
   const [searchVal, setSearchVal] = useState("");
 
@@ -26,6 +28,12 @@ export default function Home() {
       <Header
         contagemCarrinho={cartCount}
         contagemWishlist={wishCount}
+        valorPesquisa={searchVal}
+        aoMudarPesquisa={setSearchVal}
+        contagemCarrinho={contagemCarrinho}
+        contagemWishlist={contagemWishlist}
+        contagemNotificacoes={contagemNotificacoes}
+        contagemMensagens={contagemMensagens}
         valorPesquisa={searchVal}
         aoMudarPesquisa={setSearchVal}
       />

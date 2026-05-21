@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Header } from "../../components/Header";
+import { useContagens } from "../../hooks/useContagens";
 
 // ─── Dados completos ───────────────────────────────────────────────────────────
 const CATEGORIES = ["Todos", "Tecnologia", "Negócios", "Finanças", "Marketing", "Tutoriais"];
@@ -76,7 +78,7 @@ Três meses depois de entrar na plataforma, um influencer de moda de Maputo part
     readTime: "5 min",
     author: { name: "Fátima Dique", initials: "FD" },
     img: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80",
-    body: `Uma das funcionalidades mais importantes — e menos faladas — do MozTicTac é o sistema de split automático de pagamentos. Quando um comprador paga, o dinheiro não vai primeiro para uma conta central e depois é redistribuído. O processo acontece de forma atómica, em milissegundos.
+    body: `Uma das funcionalidades mais importantes — e menos faladas — do MozTicTac é o sistema de split automático de pagamentos.
 
 ## O que é o split automático?
 
@@ -86,15 +88,13 @@ Imagine que um comprador paga 1 100 MZN por um produto. O sistema divide automat
 - **Plataforma**: 89 MZN (taxa de serviço)
 - **Afiliado**: 11 MZN (comissão de referência)
 
-Tudo isto acontece numa única transacção ACID — ou tudo é processado, ou nada é. Não existe risco de o dinheiro ficar "perdido" algures no processo.
-
 ## Segurança e rastreabilidade
 
-Cada split tem um ID único, um timestamp preciso ao milissegundo e o IP de origem registado. Isto garante rastreabilidade total para fins de auditoria e conformidade com a Autoridade Tributária de Moçambique.
+Cada split tem um ID único, um timestamp preciso ao milissegundo e o IP de origem registado.
 
 ## Quando recebo o meu dinheiro?
 
-O saldo fica disponível na sua carteira digital assim que a transacção é confirmada (geralmente em menos de 30 segundos para M-Pesa e E-Mola). O levantamento pode ser solicitado a qualquer momento, com processamento de 1 a 3 dias úteis.`,
+O saldo fica disponível na sua carteira digital assim que a transacção é confirmada (geralmente em menos de 30 segundos para M-Pesa e E-Mola).`,
   },
   {
     id: 4,
@@ -105,143 +105,95 @@ O saldo fica disponível na sua carteira digital assim que a transacção é con
     readTime: "4 min",
     author: { name: "Pedro Mabunda", initials: "PM" },
     img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=700&q=80",
-    body: `O programa de afiliados do MozTicTac é uma das formas mais acessíveis de gerar rendimento online em Moçambique — sem precisar de ter um produto, uma loja ou capital inicial.
-
-## Como funciona
-
-Depois de criar uma conta gratuita no MozTicTac, pode candidatar-se ao programa de afiliados. Após aprovação (normalmente em 24 horas), terá acesso ao painel de afiliados onde pode gerar links personalizados para qualquer produto da plataforma.
-
-Quando alguém compra através do seu link, recebe uma comissão automática. Simples assim.
+    body: `O programa de afiliados do MozTicTac é uma das formas mais acessíveis de gerar rendimento online em Moçambique.
 
 ## Níveis de comissão
 
-O programa tem três níveis, baseados no volume de vendas geradas:
-
 - **Bronze** (início): 5% a 10% de comissão
 - **Prata** (após 5 000 MZN em vendas): 11% a 20%
-- **Ouro** (após 20 000 MZN em vendas): 21% a 30%
-
-## Estratégias que funcionam
-
-Os afiliados mais bem-sucedidos partilham produtos que realmente usam e recomendam. Autenticidade converte muito mais do que publicidade genérica. Use as redes sociais, grupos de WhatsApp e o seu círculo de confiança para começar.
-
-Crie conteúdo útil sobre os produtos — recensões honestas, comparações, tutoriais de uso. Este tipo de conteúdo tem uma vida útil muito maior do que um simples post promocional.`,
+- **Ouro** (após 20 000 MZN em vendas): 21% a 30%`,
   },
   {
     id: 5,
     cat: "Tutoriais",
     title: "Guia completo: configure a sua loja em menos de 30 minutos",
-    excerpt: "Passo a passo detalhado para criar uma loja profissional no MozTicTac, desde o registo até à primeira venda, com dicas de fotografia de produto.",
+    excerpt: "Passo a passo detalhado para criar uma loja profissional no MozTicTac, desde o registo até à primeira venda.",
     date: "8 Abr 2025",
     readTime: "10 min",
     author: { name: "Luísa Tembe", initials: "LT" },
     img: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=700&q=80",
-    body: `Criar uma loja no MozTicTac é mais simples do que parece. Neste guia passo a passo, vamos desde o registo até publicar o seu primeiro produto, com dicas práticas de fotografia e descrição que realmente vendem.
+    body: `Criar uma loja no MozTicTac é mais simples do que parece.
 
 ## Passo 1 — Criar a sua conta (2 minutos)
 
-Aceda ao MozTicTac e clique em "Criar conta". Preencha o seu nome, email e número de telefone. Receberá um código OTP por SMS para confirmar a sua identidade. Pronto — conta criada.
+Aceda ao MozTicTac e clique em "Criar conta".
 
 ## Passo 2 — Configurar o perfil da loja (5 minutos)
 
-Após o login, vá a "A minha loja" e preencha o nome da loja, uma descrição curta, foto de perfil ou logótipo e os métodos de pagamento aceites (M-Pesa, E-Mola, Banco).
+Após o login, vá a "A minha loja" e preencha o nome da loja.
 
 ## Passo 3 — Adicionar o primeiro produto (10 minutos)
 
-Clique em "Adicionar produto" e preencha todos os campos. A parte mais importante são as fotografias — use luz natural, fundo neutro e tire pelo menos 4 fotos de ângulos diferentes.
-
-**Dica de ouro**: o título do produto deve incluir palavras que os compradores pesquisariam. Em vez de "Saco bonito", escreva "Mala de couro genuíno artesanal — bege — tamanho médio".
-
-## Passo 4 — Definir preços e stock (5 minutos)
-
-Pesquise produtos semelhantes na plataforma para ter uma referência de preço. Não comece com o preço mais baixo — isso desvaloriza o seu trabalho.
-
-## Passo 5 — Publicar e promover (8 minutos)
-
-Antes de publicar, reveja tudo. Depois, partilhe o link da sua loja nas suas redes sociais e considere o programa de afiliados para ganhar mais visibilidade rapidamente.`,
+Clique em "Adicionar produto" e preencha todos os campos.`,
   },
   {
     id: 6,
     cat: "Tecnologia",
     title: "M-Pesa, E-Mola e Banco: integramos tudo para que não perca nenhuma venda",
-    excerpt: "A nossa infraestrutura de pagamentos suporta todos os principais métodos de pagamento em Moçambique. Veja como configurar e aceitar pagamentos.",
+    excerpt: "A nossa infraestrutura de pagamentos suporta todos os principais métodos de pagamento em Moçambique.",
     date: "5 Abr 2025",
     readTime: "5 min",
     author: { name: "Rogério Sitoe", initials: "RS" },
     img: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=700&q=80",
-    body: `Em Moçambique, o pagamento digital é fragmentado: alguns clientes preferem M-Pesa, outros E-Mola, outros ainda transferência bancária. Cada gateway recusado é uma venda perdida. Por isso, o MozTicTac integra todos os principais métodos numa única experiência fluida.
+    body: `Em Moçambique, o pagamento digital é fragmentado. Por isso, o MozTicTac integra todos os principais métodos numa única experiência fluida.
 
 ## Os gateways disponíveis
 
-**M-Pesa** — O mais usado em Moçambique. A integração é directa: o comprador recebe um push no telefone e aprova o pagamento em segundos. Taxa de sucesso: 97,3%.
+**M-Pesa** — O mais usado em Moçambique. Taxa de sucesso: 97,3%.
 
-**E-Mola** — Segundo mais popular, especialmente nas províncias do norte. Funciona de forma idêntica ao M-Pesa. Taxa de sucesso: 95,8%.
+**E-Mola** — Segundo mais popular. Taxa de sucesso: 95,8%.
 
-**mKesh** — Disponível para utilizadores do Millennium BIM. Integrado recentemente na plataforma.
+**mKesh** — Disponível para utilizadores do Millennium BIM.
 
-**Transferência bancária** — Para vendas de maior volume, suportamos transferências para contas BCI, BIM, BancABC e Standard Bank.
-
-## Como configurar na sua loja
-
-Aceda às definições da sua loja e clique em "Métodos de pagamento". Active os gateways que pretende aceitar e introduza o número de telemóvel ou IBAN associado. O MozTicTac trata do resto — incluindo reconciliação automática e notificações de pagamento.
-
-## Segurança dos pagamentos
-
-Todos os pagamentos passam por encriptação AES-256 e são tokenizados — os seus dados bancários nunca são armazenados nos nossos servidores. Cumprimos as normas do Banco de Moçambique para pagamentos electrónicos.`,
+**Transferência bancária** — Para vendas de maior volume.`,
   },
   {
     id: 7,
     cat: "Negócios",
     title: "Precificação estratégica: como definir o preço certo para os seus produtos",
-    excerpt: "Preço baixo não significa mais vendas. Descubra como usar dados de mercado e psicologia de preços para aumentar as suas margens de lucro.",
+    excerpt: "Preço baixo não significa mais vendas. Descubra como usar dados de mercado e psicologia de preços para aumentar as suas margens.",
     date: "2 Abr 2025",
     readTime: "7 min",
     author: { name: "Ana Lopes", initials: "AL" },
     img: "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=700&q=80",
-    body: `Um dos erros mais comuns dos novos vendedores no MozTicTac é competir por preço. A lógica parece fazer sentido: preço mais baixo, mais vendas. Na prática, o que acontece é o oposto — preços demasiado baixos geram desconfiança e destroem as margens.
+    body: `Um dos erros mais comuns dos novos vendedores no MozTicTac é competir por preço.
 
 ## Comece pelos custos reais
 
-Antes de definir um preço, calcule o custo total do produto: matéria-prima, tempo de produção, embalagem, transporte e a taxa da plataforma (10%). Esse é o seu custo base. O preço de venda deve ser pelo menos 40% acima disso para ser sustentável.
-
-## Pesquise a concorrência
-
-Use a barra de pesquisa do MozTicTac para encontrar produtos similares. Não copie o preço — use-o como referência. Se o seu produto tem melhor qualidade, fotografias mais profissionais ou uma história de marca mais forte, pode cobrar mais.
+Antes de definir um preço, calcule o custo total do produto. O preço de venda deve ser pelo menos 40% acima disso para ser sustentável.
 
 ## A psicologia dos preços
 
-Preços terminados em 9 (como 99 MZN em vez de 100 MZN) têm taxas de conversão 15% mais altas em média. Ofereça sempre três opções de produto: básico, intermédio e premium. A maioria das pessoas escolhe a opção do meio.
-
-## Reveja os preços regularmente
-
-O mercado muda. Reveja os seus preços a cada três meses e ajuste com base nas suas taxas de conversão. O painel de vendas do MozTicTac mostra exactamente quantas pessoas viram cada produto mas não compraram — um sinal claro de que o preço pode estar alto demais.`,
+Preços terminados em 9 (como 99 MZN em vez de 100 MZN) têm taxas de conversão 15% mais altas em média.`,
   },
   {
     id: 8,
     cat: "Finanças",
     title: "IVA, IRPS e conformidade fiscal: o que todo vendedor moçambicano precisa saber",
-    excerpt: "Navegar pela legislação fiscal pode ser complexo. Preparamos um guia prático e actualizado sobre as obrigações dos vendedores digitais em Moçambique.",
+    excerpt: "Navegar pela legislação fiscal pode ser complexo. Preparamos um guia prático sobre as obrigações dos vendedores digitais em Moçambique.",
     date: "28 Mar 2025",
     readTime: "9 min",
     author: { name: "Fátima Dique", initials: "FD" },
     img: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=700&q=80",
-    body: `O comércio digital em Moçambique está a crescer rapidamente, e com isso vêm responsabilidades fiscais que muitos vendedores desconhecem. Este guia não substitui aconselhamento jurídico profissional, mas dá-lhe uma visão clara das suas obrigações mais comuns.
+    body: `O comércio digital em Moçambique está a crescer rapidamente, e com isso vêm responsabilidades fiscais.
 
 ## IVA — Imposto sobre o Valor Acrescentado
 
-Em Moçambique, o IVA é de 17% e aplica-se à maioria das vendas de produtos e serviços. Se o seu volume anual de vendas for superior a 2 500 000 MZN, é obrigado a registar-se como sujeito passivo de IVA e a emitir facturas com IVA incluído.
-
-O MozTicTac calcula e retém automaticamente o IVA nas transacções elegíveis, facilitando o cumprimento desta obrigação.
+Em Moçambique, o IVA é de 17% e aplica-se à maioria das vendas.
 
 ## IRPS — Imposto sobre o Rendimento das Pessoas Singulares
 
-Os rendimentos obtidos através de actividades comerciais online estão sujeitos a IRPS. A taxa varia conforme o escalão de rendimento anual, começando em 10% para rendimentos entre 42 001 e 168 000 MZN.
-
-## Como o MozTicTac ajuda
-
-O nosso sistema gera automaticamente relatórios fiscais mensais e anuais que pode exportar em formato PDF ou Excel. Aceda ao painel de Gestão Financeira e clique em "Relatórios Fiscais" para gerar o seu relatório actualizado a qualquer momento.
-
-**Importante**: Mantenha sempre os registos das suas transacções por um mínimo de 5 anos, conforme exigido pela legislação moçambicana.`,
+Os rendimentos obtidos através de actividades comerciais online estão sujeitos a IRPS.`,
   },
 ];
 
@@ -252,7 +204,6 @@ const TRENDING = [
   { num: "04", title: "Estratégias de precificação que funcionam em Moçambique", views: "5.8k" },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function catColor(cat) {
   const m = {
     Tecnologia: "bg-blue-100 text-blue-700",
@@ -264,7 +215,6 @@ function catColor(cat) {
   return m[cat] || "bg-gray-100 text-gray-600";
 }
 
-// Renderiza markdown simples: ## headings, **bold**, listas com -, parágrafos
 function RenderBody({ body }) {
   const blocks = body.split("\n\n").filter(Boolean);
   return (
@@ -315,7 +265,6 @@ function RenderBody({ body }) {
   );
 }
 
-// ─── Componentes base ─────────────────────────────────────────────────────────
 function Avatar({ initials, cls = "w-7 h-7 text-xs" }) {
   return (
     <div className={`${cls} rounded-full bg-green-700 flex items-center justify-center font-bold text-white shrink-0`}>
@@ -332,18 +281,15 @@ function ReadBadge({ time }) {
   );
 }
 
-// ─── CARD vertical ────────────────────────────────────────────────────────────
 function PostCard({ post, onClick }) {
   return (
     <article
       onClick={() => onClick(post)}
-      className="group cursor-pointer flex flex-col bg-white  border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+      className="group cursor-pointer flex flex-col bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       <div className="aspect-video overflow-hidden relative">
-        <img
-          src={post.img} alt={post.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+        <img src={post.img} alt={post.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         {post.tag && (
           <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-green-600 text-white shadow">
             {post.tag}
@@ -374,7 +320,6 @@ function PostCard({ post, onClick }) {
   );
 }
 
-// ─── CARD horizontal ──────────────────────────────────────────────────────────
 function PostCardHorizontal({ post, onClick }) {
   return (
     <article
@@ -398,12 +343,11 @@ function PostCardHorizontal({ post, onClick }) {
   );
 }
 
-// ─── HERO banner ─────────────────────────────────────────────────────────────
 function FeaturedHero({ post, onClick }) {
   return (
     <article
       onClick={() => onClick(post)}
-      className="group relative  overflow-hidden cursor-pointer shadow-xl"
+      className="group relative overflow-hidden cursor-pointer shadow-xl"
       style={{ height: 420 }}
     >
       <img src={post.img} alt={post.title}
@@ -432,15 +376,22 @@ function FeaturedHero({ post, onClick }) {
   );
 }
 
-// ─── LEITOR DE POST ───────────────────────────────────────────────────────────
-function PostReader({ post, onBack, onOpenPost }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [post.id]);
+// ─── POST READER — recebe contagens como props ────────────────────────────────
+function PostReader({ post, onBack, onOpenPost, contagens }) {
   const related = BLOG_POSTS.filter(p => p.id !== post.id && p.cat === post.cat).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Barra topo */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+      <Header
+        contagemCarrinho={contagens.contagemCarrinho}
+        contagemWishlist={contagens.contagemWishlist}
+        contagemNotificacoes={contagens.contagemNotificacoes}
+        contagemMensagens={contagens.contagemMensagens}
+        valorPesquisa=""
+        aoMudarPesquisa={() => {}}
+      />
+
+      <div className="sticky top-16 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center gap-4">
           <button
             onClick={onBack}
@@ -456,41 +407,29 @@ function PostReader({ post, onBack, onOpenPost }) {
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-12">
-        {/* Cabeçalho */}
-        <header className="mb-10">
-          <h1 className="text-3xl sm:text-[36px] font-black text-gray-900 leading-tight mb-5"
+        <div className="mb-8">
+          <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${catColor(post.cat)}`}>
+            {post.cat}
+          </span>
+          <h1 className="text-3xl font-black text-gray-900 leading-snug mt-4 mb-4"
             style={{ fontFamily: "'Georgia', serif" }}>
             {post.title}
           </h1>
-          <p className="text-[17px] text-gray-500 leading-relaxed mb-7 border-l-4 border-green-400 pl-5 italic">
-            {post.excerpt}
-          </p>
-          <div className="flex items-center gap-4 py-4 border-y border-gray-100 flex-wrap">
-            <Avatar initials={post.author.initials} cls="w-11 h-11 text-sm" />
-            <div>
-              <p className="text-sm font-bold text-gray-900">{post.author.name}</p>
-              <p className="text-xs text-gray-400">{post.date} · {post.readTime} de leitura</p>
-            </div>
-            <div className="ml-auto flex gap-2 flex-wrap">
-              <button className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:border-green-500 hover:text-green-700 transition-colors">
-                Partilhar
-              </button>
-              <button className="text-xs font-semibold px-4 py-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition-colors">
-                Subscrever
-              </button>
-            </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Avatar initials={post.author.initials} cls="w-9 h-9 text-sm" />
+            <span className="text-sm font-semibold text-gray-700">{post.author.name}</span>
+            <span className="text-gray-300">·</span>
+            <span className="text-xs text-gray-400">{post.date}</span>
+            <ReadBadge time={post.readTime} />
           </div>
-        </header>
+        </div>
 
-        {/* Imagem principal */}
-        <div className=" overflow-hidden mb-10 shadow-lg" style={{ aspectRatio: "16/9" }}>
+        <div className="overflow-hidden mb-10 shadow-lg" style={{ aspectRatio: "16/9" }}>
           <img src={post.img} alt={post.title} className="w-full h-full object-cover" />
         </div>
 
-        {/* Corpo do artigo */}
         <RenderBody body={post.body} />
 
-        {/* Tags */}
         <div className="mt-12 pt-8 border-t border-gray-100">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Tópicos</p>
           <div className="flex gap-2 flex-wrap">
@@ -502,19 +441,17 @@ function PostReader({ post, onBack, onOpenPost }) {
           </div>
         </div>
 
-        {/* Caixa do autor */}
-        <div className="mt-10 p-6 bg-green-50  border border-green-100 flex gap-5 items-start">
+        <div className="mt-10 p-6 bg-green-50 border border-green-100 flex gap-5 items-start">
           <Avatar initials={post.author.initials} cls="w-14 h-14 text-lg" />
           <div>
             <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-1">Escrito por</p>
             <p className="text-base font-black text-gray-900 mb-1">{post.author.name}</p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Especialista em comércio digital e membro da equipa editorial do MozTicTac. Apaixonado por ajudar empreendedores moçambicanos a crescer online.
+              Especialista em comércio digital e membro da equipa editorial do MozTicTac.
             </p>
           </div>
         </div>
 
-        {/* Artigos relacionados */}
         {related.length > 0 && (
           <div className="mt-14">
             <div className="flex items-center gap-3 mb-6">
@@ -523,11 +460,8 @@ function PostReader({ post, onBack, onOpenPost }) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {related.map(p => (
-                <article
-                  key={p.id}
-                  onClick={() => onOpenPost(p)}
-                  className="group cursor-pointer bg-white border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
-                >
+                <article key={p.id} onClick={() => onOpenPost(p)}
+                  className="group cursor-pointer bg-white border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
                   <div className="overflow-hidden" style={{ aspectRatio: "16/9" }}>
                     <img src={p.img} alt={p.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />
@@ -545,7 +479,6 @@ function PostReader({ post, onBack, onOpenPost }) {
         )}
       </div>
 
-      {/* CTA */}
       <div className="mt-10 bg-gradient-to-br from-green-900 to-green-700 py-14 px-6 text-center">
         <p className="text-xs font-bold text-green-400 uppercase tracking-widest mb-3">Comece hoje</p>
         <h3 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Georgia', serif" }}>
@@ -574,40 +507,30 @@ function Sidebar({ onSelectPost }) {
 
   return (
     <aside className="flex flex-col gap-6">
-      {/* Newsletter */}
-      <div className=" p-6 bg-gradient-to-br from-green-900 to-green-700 text-white">
+      <div className="p-6 bg-gradient-to-br from-green-900 to-green-700 text-white">
         <p className="text-[10px] font-bold uppercase tracking-widest text-green-400 mb-2">Newsletter</p>
         <h3 className="text-[17px] font-black leading-snug mb-2" style={{ fontFamily: "'Georgia', serif" }}>
           Receba os melhores artigos na sua caixa de entrada
         </h3>
-        <p className="text-xs text-white/65 leading-relaxed mb-4">
-          Semanalmente. Sem spam. Só conteúdo útil.
-        </p>
+        <p className="text-xs text-white/65 leading-relaxed mb-4">Semanalmente. Sem spam. Só conteúdo útil.</p>
         {subscribed ? (
           <div className="bg-green-400/20 p-4 text-center">
             <p className="text-sm font-bold text-green-300">✓ Subscrito com sucesso!</p>
           </div>
         ) : (
           <div className="space-y-2">
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="O seu email..."
-              className="w-full px-4 py-2.5 text-sm font-medium bg-white/15 text-white placeholder-white/50 outline-none border border-white/20 focus:border-white/50 transition-colors"
-            />
-            <button
-              onClick={() => email && setSubscribed(true)}
-              className="w-full py-2.5 bg-green-500 hover:bg-green-400 text-white font-bold text-sm transition-colors"
-            >
+              className="w-full px-4 py-2.5 text-sm font-medium bg-white/15 text-white placeholder-white/50 outline-none border border-white/20 focus:border-white/50 transition-colors" />
+            <button onClick={() => email && setSubscribed(true)}
+              className="w-full py-2.5 bg-green-500 hover:bg-green-400 text-white font-bold text-sm transition-colors">
               Subscrever →
             </button>
           </div>
         )}
       </div>
 
-      {/* Em tendência */}
-      <div className=" bg-white border border-gray-100 p-5 shadow-sm">
+      <div className="bg-white border border-gray-100 p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-4 rounded-full bg-green-600" />
           <p className="text-[11px] font-bold uppercase tracking-widest text-gray-800">Em tendência</p>
@@ -617,17 +540,14 @@ function Sidebar({ onSelectPost }) {
             <span className="text-2xl font-black text-gray-100 leading-none shrink-0 w-7"
               style={{ fontFamily: "'Georgia', serif" }}>{t.num}</span>
             <div>
-              <p className="text-[13px] font-bold text-gray-800 leading-snug group-hover:text-green-700 transition-colors">
-                {t.title}
-              </p>
+              <p className="text-[13px] font-bold text-gray-800 leading-snug group-hover:text-green-700 transition-colors">{t.title}</p>
               <p className="text-[11px] text-gray-400 mt-1">{t.views} visualizações</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Tópicos */}
-      <div className=" bg-white border border-gray-100 p-5 shadow-sm">
+      <div className="bg-white border border-gray-100 p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-4 rounded-full bg-green-600" />
           <p className="text-[11px] font-bold uppercase tracking-widest text-gray-800">Tópicos populares</p>
@@ -642,8 +562,7 @@ function Sidebar({ onSelectPost }) {
         </div>
       </div>
 
-      {/* Recentes */}
-      <div className=" bg-white border border-gray-100 p-5 shadow-sm">
+      <div className="bg-white border border-gray-100 p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-4 rounded-full bg-green-600" />
           <p className="text-[11px] font-bold uppercase tracking-widest text-gray-800">Recentes</p>
@@ -656,11 +575,10 @@ function Sidebar({ onSelectPost }) {
   );
 }
 
-// ─── PÁGINA BLOG (listagem) ───────────────────────────────────────────────────
-function BlogListPage({ onOpenPost }) {
+// ─── BLOG LIST PAGE — recebe contagens como props ─────────────────────────────
+function BlogListPage({ onOpenPost, contagens }) {
   const [catAtiva, setCatAtiva] = useState("Todos");
   const [busca, setBusca] = useState("");
-  const [buscaAberta, setBuscaAberta] = useState(false);
   const [pagina, setPagina] = useState(1);
   const POR_PAG = 4;
 
@@ -682,53 +600,16 @@ function BlogListPage({ onOpenPost }) {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* HEADER */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center">
-              <span className="text-white font-black text-base">M</span>
-            </div>
-            <span className="text-[15px] font-black text-gray-900 tracking-tight">
-              Moz<span className="text-green-600">TicTac</span>
-              <span className="text-xs font-bold text-gray-400 ml-1.5">Blog</span>
-            </span>
-          </div>
-
-          <nav className="flex items-center gap-1">
-            {buscaAberta ? (
-              <div className="flex items-center gap-2">
-                <input
-                  autoFocus
-                  value={busca}
-                  onChange={e => { setBusca(e.target.value); setPagina(1); }}
-                  placeholder="Pesquisar artigos..."
-                  className="w-64 px-4 py-2 rounded-full border-2 border-green-500 text-sm font-medium text-gray-900 outline-none"
-                />
-                <button
-                  onClick={() => { setBuscaAberta(false); setBusca(""); }}
-                  className="text-gray-400 hover:text-gray-700 text-lg"
-                >✕</button>
-              </div>
-            ) : (
-              <>
-                {["Início", "Categorias", "Autores", "Sobre"].map((item, i) => (
-                  <a key={i} href="#"
-                    className="text-sm font-semibold text-gray-500 hover:text-green-700 px-3 py-2 rounded-lg transition-colors">
-                    {item}
-                  </a>
-                ))}
-                <button
-                  onClick={() => setBuscaAberta(true)}
-                  className="ml-2 flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
-                >
-                  🔍 Pesquisar
-                </button>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      {/* HEADER com contagens correctas */}
+      <Header
+        contagemCarrinho={contagens.contagemCarrinho}
+        contagemWishlist={contagens.contagemWishlist}
+        contagemNotificacoes={contagens.contagemNotificacoes}
+        contagemMensagens={contagens.contagemMensagens}
+        valorPesquisa={busca}
+        aoMudarPesquisa={setBusca}
+        aoClicarPesquisa={() => setPagina(1)}
+      />
 
       {/* HERO */}
       <div className="bg-gradient-to-b from-green-50/60 to-gray-50 border-b border-gray-100 pt-10 pb-0">
@@ -737,18 +618,14 @@ function BlogListPage({ onOpenPost }) {
             <div className="h-px w-8 bg-green-600" />
             <p className="text-[11px] font-black text-green-700 uppercase tracking-widest">Blog Oficial MozTicTac</p>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
             <div className="lg:col-span-2">
               {heroPost && <FeaturedHero post={heroPost} onClick={onOpenPost} />}
             </div>
-
             <div className="flex flex-col gap-4">
               {secondFeatured && (
-                <article
-                  onClick={() => onOpenPost(secondFeatured)}
-                  className="group cursor-pointer bg-white  border border-gray-100 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex-1"
-                >
+                <article onClick={() => onOpenPost(secondFeatured)}
+                  className="group cursor-pointer bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex-1">
                   <div className="overflow-hidden" style={{ aspectRatio: "16/9" }}>
                     <img src={secondFeatured.img} alt={secondFeatured.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -770,7 +647,6 @@ function BlogListPage({ onOpenPost }) {
                   </div>
                 </article>
               )}
-
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { val: "48",  label: "Artigos" },
@@ -793,15 +669,12 @@ function BlogListPage({ onOpenPost }) {
       <div className="bg-white border-b border-gray-100 sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-5 py-3 flex items-center gap-2 overflow-x-auto">
           {CATEGORIES.map((cat, i) => (
-            <button
-              key={i}
-              onClick={() => { setCatAtiva(cat); setPagina(1); }}
+            <button key={i} onClick={() => { setCatAtiva(cat); setPagina(1); }}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border transition-all duration-150 ${
                 catAtiva === cat
                   ? "bg-green-600 text-white border-green-600 shadow-sm"
                   : "bg-transparent text-gray-500 border-gray-200 hover:border-green-400 hover:text-green-700"
-              }`}
-            >
+              }`}>
               {cat}
             </button>
           ))}
@@ -829,14 +702,12 @@ function BlogListPage({ onOpenPost }) {
             </div>
           ) : (
             <>
-              {/* Grid 2×2 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 {paginados.slice(0, 4).map(post => (
                   <PostCard key={post.id} post={post} onClick={onOpenPost} />
                 ))}
               </div>
 
-              {/* Lista compacta (restantes da página 1) */}
               {pagina === 1 && extras.length > 0 && (
                 <>
                   <div className="flex items-center gap-4 my-8">
@@ -844,7 +715,7 @@ function BlogListPage({ onOpenPost }) {
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Mais artigos</span>
                     <div className="flex-1 h-px bg-gray-100" />
                   </div>
-                  <div className="bg-white  border border-gray-100 px-5 py-1 shadow-sm mb-8">
+                  <div className="bg-white border border-gray-100 px-5 py-1 shadow-sm mb-8">
                     {extras.map(post => (
                       <PostCardHorizontal key={post.id} post={post} onClick={onOpenPost} />
                     ))}
@@ -852,34 +723,22 @@ function BlogListPage({ onOpenPost }) {
                 </>
               )}
 
-              {/* Paginação */}
               {totalPags > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-8">
-                  <button
-                    onClick={() => setPagina(p => Math.max(1, p - 1))}
-                    disabled={pagina === 1}
-                    className="px-4 h-9 rounded-lg border border-gray-200 text-sm font-bold text-gray-500 disabled:opacity-40 hover:border-green-500 hover:text-green-700 transition-colors"
-                  >
+                  <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1}
+                    className="px-4 h-9 rounded-lg border border-gray-200 text-sm font-bold text-gray-500 disabled:opacity-40 hover:border-green-500 hover:text-green-700 transition-colors">
                     ← Anterior
                   </button>
                   {Array.from({ length: totalPags }, (_, i) => i + 1).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setPagina(p)}
+                    <button key={p} onClick={() => setPagina(p)}
                       className={`w-9 h-9 rounded-lg text-sm font-bold transition-colors ${
-                        p === pagina
-                          ? "bg-green-600 text-white"
-                          : "border border-gray-200 text-gray-500 hover:border-green-500 hover:text-green-700"
-                      }`}
-                    >
+                        p === pagina ? "bg-green-600 text-white" : "border border-gray-200 text-gray-500 hover:border-green-500 hover:text-green-700"
+                      }`}>
                       {p}
                     </button>
                   ))}
-                  <button
-                    onClick={() => setPagina(p => Math.min(totalPags, p + 1))}
-                    disabled={pagina === totalPags}
-                    className="px-4 h-9 rounded-lg border border-gray-200 text-sm font-bold text-gray-500 disabled:opacity-40 hover:border-green-500 hover:text-green-700 transition-colors"
-                  >
+                  <button onClick={() => setPagina(p => Math.min(totalPags, p + 1))} disabled={pagina === totalPags}
+                    className="px-4 h-9 rounded-lg border border-gray-200 text-sm font-bold text-gray-500 disabled:opacity-40 hover:border-green-500 hover:text-green-700 transition-colors">
                     Próxima →
                   </button>
                 </div>
@@ -891,7 +750,6 @@ function BlogListPage({ onOpenPost }) {
         <Sidebar onSelectPost={onOpenPost} />
       </div>
 
-      {/* CTA */}
       <div className="bg-gradient-to-br from-green-900 via-green-800 to-green-700 py-16 px-6 text-center">
         <p className="text-[11px] font-black text-green-400 uppercase tracking-widest mb-3">Comece hoje</p>
         <h2 className="text-3xl font-black text-white mb-4" style={{ fontFamily: "'Georgia', serif" }}>
@@ -922,9 +780,12 @@ function BlogListPage({ onOpenPost }) {
   );
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
+// ─── ROOT — único lugar onde useContagens é chamado ───────────────────────────
 export default function BlogPage() {
   const [postAberto, setPostAberto] = useState(null);
+
+  // Hook chamado AQUI, dentro do componente raiz
+  const contagens = useContagens();
 
   const abrirPost = (post) => {
     setPostAberto(post);
@@ -942,9 +803,10 @@ export default function BlogPage() {
         post={postAberto}
         onBack={voltarLista}
         onOpenPost={abrirPost}
+        contagens={contagens}
       />
     );
   }
 
-  return <BlogListPage onOpenPost={abrirPost} />;
+  return <BlogListPage onOpenPost={abrirPost} contagens={contagens} />;
 }
