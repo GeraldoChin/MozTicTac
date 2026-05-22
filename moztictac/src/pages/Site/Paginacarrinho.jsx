@@ -38,7 +38,7 @@ const PROVINCIAS = [
 const BASE_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:3000/api/v1";
 
 async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem("tokenAcesso");
+  const token = localStorage.getItem("token");
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
@@ -320,13 +320,13 @@ function ModalEndereco({ open, endereco, onChange, onClose }) {
   const [step, setStep] = useState("idle");
   const [erro, setErro] = useState("");
 
-  useEffect(() => { setForm({ ...endereco }); }, [endereco]);
+useEffect(() => { setForm({ ...endereco }); }, [JSON.stringify(endereco)]);
 
   async function handleSave() {
     setStep("loading");
     setErro("");
     try {
-      await apiFetch("/utilizadores/perfil", {
+      await apiFetch("/usuarios/perfil", {
         method: "PUT",
         body: JSON.stringify({ provincia: form.provincia, cidade: form.cidade, bairro: form.bairro }),
       });
@@ -738,7 +738,7 @@ export default function PaginaCarrinho() {
 
       // Carregar endereço do perfil
       try {
-        const { dados } = await apiFetch("/utilizadores/perfil");
+        const { dados } = await apiFetch("/usuarios/perfil");
         setEndereco({
           provincia:  dados.provincia  ?? "",
           cidade:     dados.cidade     ?? "",

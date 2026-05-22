@@ -2134,27 +2134,27 @@ export function SecaoVendas() {
       setCarregandoMais(false);
     }
   }
-
-  async function handleSalvar(dadosModal) {
-    const { id, imagens, ...resto } = dadosModal;
-    if (id) {
-      const res        = await apiProdutos.atualizarProduto(id, resto);
-      const atualizado = mapearProduto(res.dados ?? res.data);
-      setProdutos(prev => prev.map(p => p.id === id ? atualizado : p));
-    } else {
-      const form = new FormData();
-      Object.entries(resto).forEach(([k, v]) => {
-        if (v === null || v === undefined) return;
-        if (Array.isArray(v)) v.forEach(item => form.append(k, String(item)));
-        else if (typeof v === "boolean") form.append(k, v ? "true" : "false");
-        else form.append(k, String(v));
-      });
-      if (imagens) Array.from(imagens).forEach(f => form.append("imagens", f));
-      const res  = await apiProdutos.criarProduto(form);
-      const novo = mapearProduto(res.dados ?? res.data);
-      setProdutos(prev => [novo, ...prev]);
-    }
+async function handleSalvar(dadosModal) {
+  const { id, imagens, ...resto } = dadosModal;
+  if (id) {
+    const res        = await apiProdutos.atualizarProduto(id, resto);
+    const atualizado = mapearProduto(res.dados ?? res.data);
+    setProdutos(prev => prev.map(p => p.id === id ? atualizado : p));
+  } else {
+    const form = new FormData();
+    Object.entries(resto).forEach(([k, v]) => {
+      if (v === null || v === undefined) return;
+      if (Array.isArray(v)) v.forEach(item => form.append(k, String(item)));
+      else if (typeof v === "boolean") form.append(k, v ? "true" : "false");
+      else if (typeof v === "number") form.append(k, String(v)); // continua string no FormData
+      else form.append(k, String(v));
+    });
+    if (imagens) Array.from(imagens).forEach(f => form.append("imagens", f));
+    const res  = await apiProdutos.criarProduto(form);
+    const novo = mapearProduto(res.dados ?? res.data);
+    setProdutos(prev => [novo, ...prev]);
   }
+}
 
   const nomeUtilizador  = resumo?.nome ?? "—";
   const emailUtilizador = resumo?.email ?? "";

@@ -1,16 +1,10 @@
 // src/components/TopTendencias.jsx
-// ─────────────────────────────────────────────────────────────────
-// Mostra APENAS produtos com promoção ATIVA e aprovada pelo admin.
-// Ordena por plano: premium → standard → básico.
-// Fallback visual por categoria quando produto não tem imagem.
-// ─────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from "react";
 
 const BASE_URL =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
   "http://localhost:3000/api/v1";
 
-// ── Fallbacks de imagem por categoria ────────────────────────────
 const CAT_FALLBACK = {
   "Roupa":       "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
   "Moda":        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
@@ -38,49 +32,47 @@ function getImagem(item) {
   return DEFAULT_FALLBACK;
 }
 
-// Etiqueta e cor por plano
 const PLANO_META = {
-  premium:  { label: "PREMIUM",  pulse: true,  badgeBg: "#f97316" }, // laranja
-  standard: { label: "EM ALTA",  pulse: false, badgeBg: "#16a34a" }, // verde
-  basico:   { label: "DESTAQUE", pulse: false, badgeBg: "#3b82f6" }, // azul
+  premium:  { label: "PREMIUM",  pulse: true,  badgeBg: "#f97316" },
+  standard: { label: "EM ALTA",  pulse: false, badgeBg: "#16a34a" },
+  basico:   { label: "DESTAQUE", pulse: false, badgeBg: "#3b82f6" },
 };
 
-// ── Dimensões ─────────────────────────────────────────────────────
 const getCardDims = () => {
   if (typeof window === "undefined") return { w: 180, wh: 210, h: 300 };
   if (window.innerWidth < 640)  return { w: 140, wh: 160, h: 240 };
   if (window.innerWidth < 1024) return { w: 170, wh: 200, h: 280 };
   return { w: 200, wh: 232, h: 320 };
 };
+
 const GAP   = 3;
 const SPEED = 0.55;
 
 function SkeletonCard({ dims }) {
   return (
     <div
-      className="flex-shrink-0  overflow-hidden bg-gray-100 animate-pulse"
+      className="flex-shrink-0 overflow-hidden bg-gray-100 animate-pulse"
       style={{ width: dims.w, height: dims.h }}
     />
   );
 }
 
 export default function TopTendencias() {
-  const [items, setItems]             = useState([]); // array de { promocaoId, planoId, produto, diasRestantes, ... }
-  const [carregando, setCarregando]   = useState(true);
-  const [erro, setErro]               = useState(null);
-  const [hoveredId, setHoveredId]     = useState(null);
-  const [dims, setDims]               = useState(getCardDims);
+  const [items, setItems]           = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro]             = useState(null);
+  const [hoveredId, setHoveredId]   = useState(null);
+  const [dims, setDims]             = useState(getCardDims);
 
-  const trackRef  = useRef(null);
-  const pausedRef = useRef(false);
-  const rafRef    = useRef(null);
+  const trackRef   = useRef(null);
+  const pausedRef  = useRef(false);
+  const rafRef     = useRef(null);
+  const posicaoRef = useRef(0); // ← posição controlada por ref, não estado
 
-  // ── Buscar promoções activas ──────────────────────────────────
   const buscar = useCallback(async () => {
     setCarregando(true);
     setErro(null);
     try {
-      // Nova rota: devolve apenas produtos com promoção ATIVA aprovada
       const res  = await fetch(`${BASE_URL}/promocoes/ativas`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || `Erro ${res.status}`);
@@ -94,45 +86,64 @@ export default function TopTendencias() {
 
   useEffect(() => { buscar(); }, [buscar]);
 
-  // ── Resize ────────────────────────────────────────────────────
   useEffect(() => {
     const onResize = () => setDims(getCardDims());
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ── Auto-scroll ───────────────────────────────────────────────
+  // ── Auto-scroll corrigido ─────────────────────────────────────
   useEffect(() => {
     if (items.length === 0) return;
     const track = trackRef.current;
     if (!track) return;
 
+    cancelAnimationFrame(rafRef.current);
+
     const loopWidth = items.length * (dims.w + GAP);
-    track.scrollLeft = loopWidth;
+
+    // Inicializa no meio (segundo bloco)
+    posicaoRef.current = loopWidth;
+    track.scrollLeft   = loopWidth;
 
     const tick = () => {
       if (!pausedRef.current) {
-        track.scrollLeft += SPEED;
-        if (track.scrollLeft >= loopWidth * 2) track.scrollLeft -= loopWidth;
-        if (track.scrollLeft <= 0)             track.scrollLeft += loopWidth;
+        posicaoRef.current += SPEED;
+
+        // Quando chega ao fim do segundo bloco, volta ao início do segundo bloco
+        if (posicaoRef.current >= loopWidth * 2) {
+          posicaoRef.current = loopWidth;
+        }
+
+        track.scrollLeft = posicaoRef.current;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
+
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [items, dims]);
 
-  const manualScroll = (dir) =>
-    trackRef.current?.scrollBy({ left: dir * (dims.w + GAP) * 3, behavior: "smooth" });
+  // Manual scroll — actualiza também a posicaoRef para não quebrar o loop
+  const manualScroll = (dir) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const loopWidth = items.length * (dims.w + GAP);
+    const delta = dir * (dims.w + GAP) * 3;
+    posicaoRef.current += delta;
 
-  // Triplicar para loop infinito suave
+    // Mantém dentro dos limites do loop
+    if (posicaoRef.current >= loopWidth * 2) posicaoRef.current = loopWidth;
+    if (posicaoRef.current < loopWidth)      posicaoRef.current = loopWidth;
+
+    track.scrollLeft = posicaoRef.current;
+  };
+
   const loop = items.length > 0 ? [...items, ...items, ...items] : [];
 
   const ChevronLeft  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>;
   const ChevronRight = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>;
 
-  // Sem promoções activas — componente não renderiza nada
-  // (para não mostrar secção vazia ao utilizador)
   if (!carregando && !erro && items.length === 0) return null;
 
   return (
@@ -191,12 +202,10 @@ export default function TopTendencias() {
           className="tt-track flex overflow-x-auto py-3 px-4"
           style={{ scrollbarWidth: "none", gap: GAP }}
         >
-          {/* Skeletons */}
           {carregando && Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} dims={dims} />
           ))}
 
-          {/* Erro sem dados */}
           {!carregando && erro && items.length === 0 && (
             <div className="flex items-center justify-center w-full py-8 px-4 text-center">
               <div>
@@ -209,13 +218,12 @@ export default function TopTendencias() {
             </div>
           )}
 
-          {/* Cards com dados reais */}
           {!carregando && loop.map((item, idx) => {
-            const key       = `${item.promocaoId}-${idx}`;
-            const isHovered = hoveredId === key;
-            const produto   = item.produto;
-            const imagem    = getImagem(item);
-            const meta      = PLANO_META[item.planoId] ?? PLANO_META.basico;
+            const key           = `${item.promocaoId}-${idx}`;
+            const isHovered     = hoveredId === key;
+            const produto       = item.produto;
+            const imagem        = getImagem(item);
+            const meta          = PLANO_META[item.planoId] ?? PLANO_META.basico;
             const diasRestantes = item.diasRestantes ?? 0;
 
             return (
@@ -224,10 +232,9 @@ export default function TopTendencias() {
                 onMouseEnter={() => setHoveredId(key)}
                 onMouseLeave={() => setHoveredId(null)}
                 onClick={() => { window.location.href = `/produtos/${produto.id}`; }}
-                className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-300 ease-in-out "
+                className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-300 ease-in-out"
                 style={{ width: isHovered ? dims.wh : dims.w, height: dims.h }}
               >
-                {/* Imagem */}
                 <img
                   src={imagem}
                   alt={produto.nome}
@@ -237,7 +244,6 @@ export default function TopTendencias() {
                   onError={e => { e.currentTarget.src = DEFAULT_FALLBACK; }}
                 />
 
-                {/* Gradiente */}
                 <div
                   className="absolute inset-0 transition-opacity duration-300"
                   style={{
@@ -246,13 +252,11 @@ export default function TopTendencias() {
                   }}
                 />
 
-                {/* Tinge verde no hover */}
                 {isHovered && (
                   <div className="absolute inset-0 pointer-events-none"
                     style={{ background: "rgba(0,160,70,0.07)" }} />
                 )}
 
-                {/* Badge de plano */}
                 <div
                   className={`absolute top-2 right-2 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase ${meta.pulse ? "pulse-hot" : ""}`}
                   style={{ background: meta.badgeBg }}
@@ -260,14 +264,12 @@ export default function TopTendencias() {
                   {meta.label}
                 </div>
 
-                {/* Dias restantes — canto esquerdo */}
                 {diasRestantes > 0 && diasRestantes <= 3 && (
                   <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
                     {diasRestantes}d restante{diasRestantes !== 1 ? "s" : ""}
                   </div>
                 )}
 
-                {/* Conteúdo inferior */}
                 <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-2">
                   <div className="inline-flex items-center gap-1 bg-green-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 backdrop-blur-sm">
                     🔥 {produto.vendas > 0 ? `${produto.vendas} vendas` : "Novidade"}
@@ -295,7 +297,6 @@ export default function TopTendencias() {
         </div>
       </div>
 
-      {/* Ver todos — mobile */}
       <div className="sm:hidden flex justify-center pb-3">
         <a href="/produtos" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
           Ver todos →

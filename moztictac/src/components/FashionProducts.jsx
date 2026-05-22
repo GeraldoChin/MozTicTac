@@ -208,7 +208,7 @@ function ProductCardInterno({ p }) {
   return (
     <div
       onClick={() => navigate(`/produto/${p.id}`)}
-      className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group rounded-xl"
+      className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group "
     >
       {/* Imagem */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -483,7 +483,7 @@ export function FashionProducts() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5">
+            <div className="flex bg-white border border-gray-200  p-1 gap-0.5">
               {TABS.map(tab => (
                 <button key={tab} onClick={() => mudarTab(tab)}
                   className={[
@@ -498,7 +498,7 @@ export function FashionProducts() {
 
             <button onClick={() => setFiltersOpen(v => !v)}
               className={[
-                "flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 cursor-pointer",
+                "flex items-center gap-1.5 px-3.5 py-2  border text-xs font-semibold transition-all duration-200 cursor-pointer",
                 filtersOpen
                   ? "border-green-500 text-green-600 bg-green-50"
                   : "border-gray-200 text-gray-500 bg-white hover:border-gray-300",
@@ -522,20 +522,20 @@ export function FashionProducts() {
               value={buscaInput}
               onChange={e => setBuscaInput(e.target.value)}
               placeholder="Pesquisar produtos..."
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-400 bg-white transition-colors"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200  text-sm focus:outline-none focus:border-green-400 bg-white transition-colors"
             />
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap">
             <button onClick={() => mudarCategoria("")}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all
+              className={`px-3 py-1.5  border text-xs font-semibold cursor-pointer transition-all
                 ${!categoriaId ? "text-white border-transparent" : "border-gray-200 text-gray-500 bg-white hover:border-green-400"}`}
               style={!categoriaId ? { background: GREEN } : {}}>
               Todas
             </button>
             {categorias.map(c => (
               <button key={c.id} onClick={() => mudarCategoria(c.id)}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all
+                className={`px-3 py-1.5  border text-xs font-semibold cursor-pointer transition-all
                   ${categoriaId === c.id ? "text-white border-transparent" : "border-gray-200 text-gray-500 bg-white hover:border-green-400"}`}
                 style={categoriaId === c.id ? { background: GREEN } : {}}>
                 {c.icone && <span className="mr-1">{c.icone}</span>}
@@ -550,7 +550,7 @@ export function FashionProducts() {
 
           {/* ══ Sidebar filtros ══ */}
           {filtersOpen && (
-            <aside className="w-56 flex-shrink-0 bg-white border border-gray-100 shadow-sm p-5 sticky top-4 rounded-xl">
+            <aside className="w-56 flex-shrink-0 bg-white border border-gray-100 shadow-sm p-5 sticky top-4 ">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-bold text-gray-800" style={{ fontFamily: "Manrope, sans-serif" }}>Filtros</span>
                 {hasActiveFilters && (
