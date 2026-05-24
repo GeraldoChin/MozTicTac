@@ -11,10 +11,32 @@ let socket = null;
 
 export function getSocket() {
   if (!socket) {
+    // FIX: token passado na criação para evitar ligação sem autenticação
+    const token = localStorage.getItem("token");
     socket = io(BASE_URL, {
       withCredentials: true,
       autoConnect: false,
       transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      auth: { token },
+    });
+
+    // Re-autenticar automaticamente se o token mudar
+    socket.on("connect_error", (err) => {
+      if (err.message === "Token inválido" || err.message === "Token não fornecido") {
+        const newToken = localStorage.getItem("token");
+        if (newToken) {
+          socket.auth = { token: newToken };
+          setTimeout(() => socket.connect(), 1000);
+        }
+      }
+    });
+
+    // Entrar nas salas sempre que (re)conectar
+    socket.on("connect", () => {
+      socket.emit("entrar-conversas");
     });
   }
   return socket;
@@ -22,12 +44,25 @@ export function getSocket() {
 
 export function connectSocket(token) {
   const s = getSocket();
+
+  // Actualizar token se fornecido
   if (token) s.auth = { token };
-  if (!s.connected) s.connect();
+
+  if (s.connected) {
+    // Já conectado — garantir que está nas salas
+    s.emit("entrar-conversas");
+  } else {
+    s.connect();
+    // O evento "connect" no getSocket já trata do entrar-conversas
+  }
   return s;
 }
 
 export function disconnectSocket() {
+  // Não desconectar — singleton global; só no logout
+}
+
+export function forceDisconnectSocket() {
   socket?.disconnect();
   socket = null;
 }
@@ -55,16 +90,10 @@ async function apiFetch(path, opts = {}) {
 // API REST
 // ─────────────────────────────────────────────
 
-/**
- * Iniciar ou obter conversa com um destinatário.
- * Backend devolve: { sucesso, dados: conversa }
- * A conversa pode não ter outroParticipante — é enriquecida aqui.
- */
 export async function iniciarConversa(destinatarioId, infoVendedor = {}) {
   const data = await apiFetch(`${API_PREFIX}/chat/iniciar/${destinatarioId}`, { method: "POST" });
   const conv = data.dados ?? data.data;
 
-  // Garantir que outroParticipante existe (o backend pode não devolvê-lo na criação)
   if (!conv.outroParticipante) {
     conv.outroParticipante = {
       id:           destinatarioId,
@@ -76,19 +105,11 @@ export async function iniciarConversa(destinatarioId, infoVendedor = {}) {
   return conv;
 }
 
-/**
- * Listar todas as conversas do utilizador autenticado.
- * Backend devolve: { sucesso, dados: conversa[] }
- */
 export async function listarConversas() {
   const data = await apiFetch(`${API_PREFIX}/chat`);
   return data.dados ?? data.data ?? [];
 }
 
-/**
- * Obter mensagens paginadas de uma conversa.
- * Backend devolve: { sucesso, dados: { total, pagina, mensagens } }
- */
 export async function obterMensagens(conversaId, pagina = 1) {
   const data = await apiFetch(`${API_PREFIX}/chat/${conversaId}/mensagens?pagina=${pagina}`);
   return data.dados ?? data.data ?? { total: 0, pagina: 1, mensagens: [] };
@@ -99,19 +120,41 @@ export async function obterMensagens(conversaId, pagina = 1) {
 // ─────────────────────────────────────────────
 
 export function entrarConversa(conversaId) {
-  getSocket().emit("entrar_conversa", { conversaId });
+  // As salas são geridas automaticamente via "entrar-conversas" no connect
+  // Mas emitimos novamente para garantir que esta conversa específica está activa
+  const s = getSocket();
+  if (s.connected) {
+    s.emit("entrar-conversas");
+  }
 }
 
 export function sairConversa(conversaId) {
-  getSocket().emit("sair_conversa", { conversaId });
+  // O backend não tem este evento
 }
 
+// FIX: garantir que o socket está conectado antes de enviar
 export function enviarMensagem({ conversaId, conteudo }) {
-  getSocket().emit("enviar_mensagem", { conversaId, conteudo });
+  const s = getSocket();
+
+  if (!s.connected) {
+    // Socket desconectado — reconectar e enviar após ligação
+    const token = localStorage.getItem("token");
+    if (token) s.auth = { token };
+    s.connect();
+    s.once("connect", () => {
+      s.emit("entrar-conversas");
+      s.emit("chat:mensagem", { conversaId, conteudo });
+    });
+  } else {
+    s.emit("chat:mensagem", { conversaId, conteudo });
+  }
 }
 
 export function marcarLidas(conversaId) {
-  getSocket().emit("marcar_lidas", { conversaId });
+  const s = getSocket();
+  if (s.connected) {
+    s.emit("chat:lida", { conversaId });
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -119,13 +162,13 @@ export function marcarLidas(conversaId) {
 // ─────────────────────────────────────────────
 
 export function onNovaMensagem(cb) {
-  getSocket().on("nova_mensagem", cb);
-  return () => getSocket().off("nova_mensagem", cb);
+  getSocket().on("chat:mensagem", cb);
+  return () => getSocket().off("chat:mensagem", cb);
 }
 
 export function onMensagensLidas(cb) {
-  getSocket().on("mensagens_lidas", cb);
-  return () => getSocket().off("mensagens_lidas", cb);
+  getSocket().on("chat:lida", cb);
+  return () => getSocket().off("chat:lida", cb);
 }
 
 export function onPresenca(cb) {

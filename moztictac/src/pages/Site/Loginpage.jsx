@@ -399,8 +399,15 @@ export default function LoginPage() {
         const res = await apiAuth.login(email, password);
         const token      = res.dados?.token || res.dados?.tokenAcesso;
         const utilizador = res.dados?.utilizador || res.dados?.usuario;
-        if (token)      localStorage.setItem("token", token);
-        if (utilizador) localStorage.setItem("utilizador", JSON.stringify(utilizador));
+     // DEPOIS
+if (token) {
+  localStorage.setItem("token", token);
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.usuarioId) localStorage.setItem("usuarioId", payload.usuarioId);
+  } catch {}
+}
+if (utilizador) localStorage.setItem("utilizador", JSON.stringify(utilizador));
         setSucesso("Login bem-sucedido! A redirecionar...");
         setTimeout(() => { window.location.href = "/"; }, 1000);
       } else {

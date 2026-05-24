@@ -46,12 +46,12 @@ const getCardDims = () => {
 };
 
 const GAP   = 3;
-const SPEED = 0.55;
+const SPEED = 0.55; // px per frame
 
 function SkeletonCard({ dims }) {
   return (
     <div
-      className="flex-shrink-0 overflow-hidden bg-gray-100 animate-pulse"
+      className="flex-shrink-0 overflow-hidden bg-gray-100 animate-pulse rounded"
       style={{ width: dims.w, height: dims.h }}
     />
   );
@@ -64,10 +64,11 @@ export default function TopTendencias() {
   const [hoveredId, setHoveredId]   = useState(null);
   const [dims, setDims]             = useState(getCardDims);
 
-  const trackRef   = useRef(null);
-  const pausedRef  = useRef(false);
-  const rafRef     = useRef(null);
-  const posicaoRef = useRef(0); // ← posição controlada por ref, não estado
+  // The translate value (negative = scroll left)
+  const posRef    = useRef(0);
+  const pausedRef = useRef(false);
+  const rafRef    = useRef(null);
+  const trackRef  = useRef(null);
 
   const buscar = useCallback(async () => {
     setCarregando(true);
@@ -92,7 +93,7 @@ export default function TopTendencias() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ── Auto-scroll corrigido ─────────────────────────────────────
+  // ── Infinite scroll via transform ──────────────────────────────
   useEffect(() => {
     if (items.length === 0) return;
     const track = trackRef.current;
@@ -100,22 +101,25 @@ export default function TopTendencias() {
 
     cancelAnimationFrame(rafRef.current);
 
-    const loopWidth = items.length * (dims.w + GAP);
+    // Width of ONE full set of cards
+    const setWidth = items.length * (dims.w + GAP);
 
-    // Inicializa no meio (segundo bloco)
-    posicaoRef.current = loopWidth;
-    track.scrollLeft   = loopWidth;
+    // Start at position 0 (first copy visible)
+    posRef.current = 0;
+    track.style.transform = `translateX(0px)`;
 
     const tick = () => {
       if (!pausedRef.current) {
-        posicaoRef.current += SPEED;
+        posRef.current -= SPEED;
 
-        // Quando chega ao fim do segundo bloco, volta ao início do segundo bloco
-        if (posicaoRef.current >= loopWidth * 2) {
-          posicaoRef.current = loopWidth;
+        // When we've scrolled one full set, jump back silently
+        if (posRef.current <= -setWidth) {
+          posRef.current += setWidth;
         }
+        // Safety: never go positive
+        if (posRef.current > 0) posRef.current = 0;
 
-        track.scrollLeft = posicaoRef.current;
+        track.style.transform = `translateX(${posRef.current}px)`;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -124,37 +128,47 @@ export default function TopTendencias() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [items, dims]);
 
-  // Manual scroll — actualiza também a posicaoRef para não quebrar o loop
-  const manualScroll = (dir) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const loopWidth = items.length * (dims.w + GAP);
+  // ── Manual scroll buttons ──────────────────────────────────────
+  const manualScroll = useCallback((dir) => {
+    if (items.length === 0) return;
+    const setWidth = items.length * (dims.w + GAP);
     const delta = dir * (dims.w + GAP) * 3;
-    posicaoRef.current += delta;
 
-    // Mantém dentro dos limites do loop
-    if (posicaoRef.current >= loopWidth * 2) posicaoRef.current = loopWidth;
-    if (posicaoRef.current < loopWidth)      posicaoRef.current = loopWidth;
+    posRef.current += delta; // dir=-1 → scroll left; dir=+1 → scroll right
 
-    track.scrollLeft = posicaoRef.current;
-  };
+    // Keep within [-setWidth, 0]
+    if (posRef.current <= -setWidth) posRef.current += setWidth;
+    if (posRef.current > 0) posRef.current -= setWidth;
 
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translateX(${posRef.current}px)`;
+    }
+  }, [items, dims]);
+
+  // 3 copies for seamless loop
   const loop = items.length > 0 ? [...items, ...items, ...items] : [];
 
-  const ChevronLeft  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>;
-  const ChevronRight = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>;
+  const ChevronLeft  = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  );
+  const ChevronRight = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  );
 
   if (!carregando && !erro && items.length === 0) return null;
 
   return (
     <div className="bg-white select-none border-b border-gray-100 max-w-[1450px] mx-auto">
       <style>{`
-        .tt-track::-webkit-scrollbar { display: none; }
         @keyframes pulse-hot { 0%,100%{opacity:1} 50%{opacity:.35} }
         .pulse-hot { animation: pulse-hot 1.8s ease-in-out infinite; }
       `}</style>
 
-      {/* Cabeçalho */}
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-gray-100">
         <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 animate-pulse" />
         <span className="text-sm sm:text-[15px] font-black text-gray-900 tracking-tight">
@@ -177,124 +191,148 @@ export default function TopTendencias() {
               ↻ Tentar
             </button>
           )}
-          <button onClick={() => manualScroll(-1)} disabled={carregando || items.length === 0}
-            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all disabled:opacity-40 bg-transparent cursor-pointer" aria-label="Anterior">
+          <button
+            onClick={() => manualScroll(-1)}
+            disabled={carregando || items.length === 0}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all disabled:opacity-40 bg-transparent cursor-pointer"
+            aria-label="Anterior"
+          >
             <ChevronLeft />
           </button>
-          <button onClick={() => manualScroll(1)} disabled={carregando || items.length === 0}
-            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all disabled:opacity-40 bg-transparent cursor-pointer" aria-label="Próximo">
+          <button
+            onClick={() => manualScroll(1)}
+            disabled={carregando || items.length === 0}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all disabled:opacity-40 bg-transparent cursor-pointer"
+            aria-label="Próximo"
+          >
             <ChevronRight />
           </button>
-          <a href="/produtos" className="hidden sm:inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-green-600 hover:text-green-700 transition-colors whitespace-nowrap ml-1">
+          <a
+            href="/produtos"
+            className="hidden sm:inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-green-600 hover:text-green-700 transition-colors whitespace-nowrap ml-1"
+          >
             Ver todos →
           </a>
         </div>
       </div>
 
-      {/* Slider */}
+      {/* Slider — overflow:hidden + inner track moved by transform */}
       <div
-        className="relative"
-        onMouseEnter={() => (pausedRef.current = true)}
-        onMouseLeave={() => (pausedRef.current = false)}
+        className="relative overflow-hidden"
+        onMouseEnter={() => { pausedRef.current = true;  }}
+        onMouseLeave={() => { pausedRef.current = false; }}
       >
-        <div
-          ref={trackRef}
-          className="tt-track flex overflow-x-auto py-3 px-4"
-          style={{ scrollbarWidth: "none", gap: GAP }}
-        >
-          {carregando && Array.from({ length: 8 }).map((_, i) => (
-            <SkeletonCard key={i} dims={dims} />
-          ))}
+        {/* Loading skeletons */}
+        {carregando && (
+          <div className="flex py-3 px-4" style={{ gap: GAP }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} dims={dims} />
+            ))}
+          </div>
+        )}
 
-          {!carregando && erro && items.length === 0 && (
-            <div className="flex items-center justify-center w-full py-8 px-4 text-center">
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Não foi possível carregar os destaques</p>
-                <button onClick={buscar}
-                  className="text-xs text-green-600 border border-green-200 rounded-lg px-3 py-1.5 bg-transparent cursor-pointer hover:bg-green-50">
-                  ↻ Tentar novamente
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!carregando && loop.map((item, idx) => {
-            const key           = `${item.promocaoId}-${idx}`;
-            const isHovered     = hoveredId === key;
-            const produto       = item.produto;
-            const imagem        = getImagem(item);
-            const meta          = PLANO_META[item.planoId] ?? PLANO_META.basico;
-            const diasRestantes = item.diasRestantes ?? 0;
-
-            return (
-              <div
-                key={key}
-                onMouseEnter={() => setHoveredId(key)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => { window.location.href = `/produtos/${produto.id}`; }}
-                className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-300 ease-in-out"
-                style={{ width: isHovered ? dims.wh : dims.w, height: dims.h }}
+        {/* Error state */}
+        {!carregando && erro && items.length === 0 && (
+          <div className="flex items-center justify-center w-full py-8 px-4 text-center">
+            <div>
+              <p className="text-sm text-gray-400 mb-2">Não foi possível carregar os destaques</p>
+              <button
+                onClick={buscar}
+                className="text-xs text-green-600 border border-green-200 rounded-lg px-3 py-1.5 bg-transparent cursor-pointer hover:bg-green-50"
               >
-                <img
-                  src={imagem}
-                  alt={produto.nome}
-                  className="w-full h-full object-cover object-top block transition-transform duration-500 ease-in-out"
-                  style={{ transform: isHovered ? "scale(1.07)" : "scale(1)" }}
-                  draggable={false}
-                  onError={e => { e.currentTarget.src = DEFAULT_FALLBACK; }}
-                />
+                ↻ Tentar novamente
+              </button>
+            </div>
+          </div>
+        )}
 
+        {/* Cards track — position controlled entirely by transform */}
+        {!carregando && items.length > 0 && (
+          <div
+            ref={trackRef}
+            className="flex py-3 px-4 will-change-transform"
+            style={{ gap: GAP, width: "max-content" }}
+          >
+            {loop.map((item, idx) => {
+              const key           = `${item.promocaoId}-${idx}`;
+              const isHovered     = hoveredId === key;
+              const produto       = item.produto;
+              const imagem        = getImagem(item);
+              const meta          = PLANO_META[item.planoId] ?? PLANO_META.basico;
+              const diasRestantes = item.diasRestantes ?? 0;
+
+              return (
                 <div
-                  className="absolute inset-0 transition-opacity duration-300"
-                  style={{
-                    background: "linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.78) 100%)",
-                    opacity: isHovered ? 1 : 0.84,
-                  }}
-                />
-
-                {isHovered && (
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: "rgba(0,160,70,0.07)" }} />
-                )}
-
-                <div
-                  className={`absolute top-2 right-2 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase ${meta.pulse ? "pulse-hot" : ""}`}
-                  style={{ background: meta.badgeBg }}
+                  key={key}
+                  onMouseEnter={() => setHoveredId(key)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onClick={() => { window.location.href = `/produtos/${produto.id}`; }}
+                  className="relative flex-shrink-0 overflow-hidden cursor-pointer transition-[width] duration-300 ease-in-out rounded"
+                  style={{ width: isHovered ? dims.wh : dims.w, height: dims.h }}
                 >
-                  {meta.label}
-                </div>
+                  <img
+                    src={imagem}
+                    alt={produto.nome}
+                    className="w-full h-full object-cover object-top block transition-transform duration-500 ease-in-out"
+                    style={{ transform: isHovered ? "scale(1.07)" : "scale(1)" }}
+                    draggable={false}
+                    onError={e => { e.currentTarget.src = DEFAULT_FALLBACK; }}
+                  />
 
-                {diasRestantes > 0 && diasRestantes <= 3 && (
-                  <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                    {diasRestantes}d restante{diasRestantes !== 1 ? "s" : ""}
-                  </div>
-                )}
+                  <div
+                    className="absolute inset-0 transition-opacity duration-300"
+                    style={{
+                      background: "linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.78) 100%)",
+                      opacity: isHovered ? 1 : 0.84,
+                    }}
+                  />
 
-                <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-2">
-                  <div className="inline-flex items-center gap-1 bg-green-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 backdrop-blur-sm">
-                    🔥 {produto.vendas > 0 ? `${produto.vendas} vendas` : "Novidade"}
-                  </div>
-                  <p className="text-white font-extrabold text-[12px] sm:text-[13px] leading-snug m-0 drop-shadow line-clamp-2">
-                    {produto.nome}
-                  </p>
-                  <p className="text-green-300 text-[11px] font-bold mt-0.5 drop-shadow">
-                    {Number(produto.preco).toLocaleString("pt-MZ")} MZN
-                  </p>
-                  {produto.categoria && (
-                    <p className="text-white/60 text-[10px] mt-0.5">{produto.categoria.nome}</p>
-                  )}
                   {isHovered && (
-                    <div className="mt-2">
-                      <span className="inline-block bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
-                        Ver produto →
-                      </span>
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ background: "rgba(0,160,70,0.07)" }}
+                    />
+                  )}
+
+                  <div
+                    className={`absolute top-2 right-2 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase ${meta.pulse ? "pulse-hot" : ""}`}
+                    style={{ background: meta.badgeBg }}
+                  >
+                    {meta.label}
+                  </div>
+
+                  {diasRestantes > 0 && diasRestantes <= 3 && (
+                    <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                      {diasRestantes}d restante{diasRestantes !== 1 ? "s" : ""}
                     </div>
                   )}
+
+                  <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-2">
+                    <div className="inline-flex items-center gap-1 bg-green-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 backdrop-blur-sm">
+                      🔥 {produto.vendas > 0 ? `${produto.vendas} vendas` : "Novidade"}
+                    </div>
+                    <p className="text-white font-extrabold text-[12px] sm:text-[13px] leading-snug m-0 drop-shadow line-clamp-2">
+                      {produto.nome}
+                    </p>
+                    <p className="text-green-300 text-[11px] font-bold mt-0.5 drop-shadow">
+                      {Number(produto.preco).toLocaleString("pt-MZ")} MZN
+                    </p>
+                    {produto.categoria && (
+                      <p className="text-white/60 text-[10px] mt-0.5">{produto.categoria.nome}</p>
+                    )}
+                    {isHovered && (
+                      <div className="mt-2">
+                        <span className="inline-block bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                          Ver produto →
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="sm:hidden flex justify-center pb-3">

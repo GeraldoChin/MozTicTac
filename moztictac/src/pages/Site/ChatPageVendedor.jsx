@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 // MOZTICTAC — ChatVendedor
 // ─────────────────────────────────────────────
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   connectSocket,
@@ -84,7 +84,6 @@ function stringParaCor(str = "") {
   return cores[Math.abs(h) % cores.length];
 }
 
-// FIX: suporta nomeCompleto e nome
 function normalizarMensagem(m, meuId) {
   return {
     id:      m.id,
@@ -116,7 +115,8 @@ function normalizarConversa(c, meuId) {
     lastMsg:     ultimaMsg?.conteudo ?? "",
     lastTime:    formatarData(ultimaMsg?.criadoEm ?? c.ultimaMensagemEm),
     unread:      c.naoLidas ?? 0,
-    outroId:     outro.id,
+    // FIX #4: fallback explícito para null em vez de undefined
+    outroId:     outro.id ?? null,
     msgs:        [],
   };
 }
@@ -201,8 +201,11 @@ function ErroToast({ msg, onDismiss }) {
 export default function ChatVendedor() {
   const navigate = useNavigate();
 
-  // FIX: tentar vários nomes de chave para o id do utilizador
-  const meuId = localStorage.getItem("usuarioId") ?? localStorage.getItem("userId") ?? "";
+  // FIX #3: useMemo garante valor estável e não-vazio no mount
+  const meuId = useMemo(
+    () => localStorage.getItem("usuarioId") ?? localStorage.getItem("userId") ?? "",
+    []
+  );
 
   const [convs,            setConvs]            = useState([]);
   const [activeId,         setActiveId]         = useState(null);
@@ -239,7 +242,7 @@ export default function ChatVendedor() {
 
   useEffect(() => { carregarConversas(); }, [carregarConversas]);
 
-  // FIX: abrir primeira conversa automaticamente após carregar
+  // Abrir primeira conversa automaticamente após carregar
   useEffect(() => {
     if (!carregando && convs.length > 0 && !activeId) {
       open(convs[0].id);
@@ -256,6 +259,15 @@ export default function ChatVendedor() {
       const norm = normalizarMensagem(msg, meuId);
       setConvs(prev => prev.map(c => {
         if (c.id !== msg.conversaId) return c;
+        // Substituir mensagem temporária se existir
+        const tmpIdx = c.msgs.findIndex(
+          m => m.id.startsWith("tmp-") && m.text === norm.text && m.from === norm.from
+        );
+        if (tmpIdx !== -1) {
+          const novasMsgs = [...c.msgs];
+          novasMsgs[tmpIdx] = norm;
+          return { ...c, msgs: novasMsgs };
+        }
         const jáExiste = c.msgs.some(m => m.id === norm.id);
         if (jáExiste) return c;
         const isActiva = activeIdRef.current === msg.conversaId;
@@ -281,7 +293,8 @@ export default function ChatVendedor() {
     });
 
     const offPres = onPresenca(({ utilizadorId, online }) => {
-      setConvs(prev => prev.map(c => c.outroId === utilizadorId ? { ...c, online } : c));
+      // FIX #4: comparação segura com null check
+      setConvs(prev => prev.map(c => c.outroId != null && c.outroId === utilizadorId ? { ...c, online } : c));
     });
 
     const offErro = onErroSocket(({ mensagem }) => setErro(mensagem));
@@ -301,21 +314,21 @@ export default function ChatVendedor() {
     if (activeIdRef.current && activeIdRef.current !== id) {
       sairConversa(activeIdRef.current);
     }
+    // FIX #1: atualizar ref imediatamente
+    activeIdRef.current = id;
+
     entrarConversa(id);
     setConvs(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
     marcarLidas(id);
 
-    const convActual = convs.find(c => c.id === id);
-    if (convActual?.msgs?.length > 0) return;
-
     try {
       setCarregandoMsgs(true);
       const dados = await obterMensagens(id);
-      // FIX: dados já é { total, pagina, mensagens }
+      // dados = { total, pagina, mensagens }
       const msgs = (dados.mensagens ?? []).map(m => normalizarMensagem(m, meuId));
       setConvs(prev => prev.map(c => c.id === id ? { ...c, msgs } : c));
     } catch (e) {
-      console.error("Erro ao carregar mensagens:", e.message);
+      console.error("Erro ao carregar mensagens:", e);
       setErro("Não foi possível carregar as mensagens.");
     } finally {
       setCarregandoMsgs(false);
@@ -328,6 +341,7 @@ export default function ChatVendedor() {
   }, [activeId, active?.msgs?.length]);
 
   // ── 5. Enviar mensagem ────────────────────────────────────────
+  // FIX #2: sem callback — onNovaMensagem substitui a mensagem temporária
   function send() {
     const text = inputText.trim();
     if (!text || !activeId) return;

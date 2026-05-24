@@ -45,7 +45,7 @@ export function useContagens() {
       const [resDesejos, resNotif, resMsgs] = await Promise.all([
         req("/desejos"),
         req("/usuarios/notificacoes"),
-        req("/chat/conversas"),
+        req("/chat"),
       ]);
 
       // Desejos
