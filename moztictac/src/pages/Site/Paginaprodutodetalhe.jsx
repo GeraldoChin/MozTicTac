@@ -883,7 +883,28 @@ export default function PaginaProdutoDetalhe() {
     ? planoSel.preco + extrasSel.reduce((s, e) => s + e.preco, 0)
     : 0;
 
-  function gerarLink() { setLink(`moztictac.mz/p/${id}?ref=ANA82KP9XBTU`); }
+  const [gerandoLink, setGerandoLink] = useState(false);
+const [erroLink,    setErroLink]    = useState(null);
+
+async function gerarLink() {
+  const token = localStorage.getItem("token");
+  if (!token) { navigate("/login"); return; }
+
+  setGerandoLink(true);
+  setErroLink(null);
+  try {
+    const res    = await reqAuth(`/afiliados/${id}/link`, { method: "POST" });
+    const dados  = res.sucesso ? res.dados : res.data ?? {};
+    const codigo = dados.codigoAfiliado ?? dados.codigo;
+
+    if (!codigo) throw new Error("Resposta inválida do servidor.");
+    setLink(`${window.location.origin}/r/${codigo}`);
+  } catch (e) {
+    setErroLink(e.message);
+  } finally {
+    setGerandoLink(false);
+  }
+}
   function copiar()    { navigator.clipboard?.writeText(link); setCopiado(true); setTimeout(() => setCopiado(false), 2000); }
 
   function addCart() {
@@ -1200,15 +1221,16 @@ export default function PaginaProdutoDetalhe() {
                   : <><ShoppingCart size={16} /> {p.isServico ? "Encomendar" : "Adicionar ao Carrinho"}</>
                 }
               </button>
-
-              {p.aceitaAfiliados && (
-                <button onClick={gerarLink}
-                  className="flex items-center gap-2 px-4 py-3.5 rounded-2xl font-black text-white text-sm cursor-pointer border-none transition-all active:scale-95"
-                  style={{ background: "#f97316" }}>
-                  <Share2 size={14} />
-                  <span className="hidden sm:inline">Afiliar</span> ({p.percentualAfiliado}%)
-                </button>
-              )}
+{p.aceitaAfiliados && (
+  <button onClick={gerarLink} disabled={gerandoLink}
+    className="flex items-center gap-2 px-4 py-3.5 rounded-2xl font-black text-white text-sm cursor-pointer border-none transition-all active:scale-95 disabled:opacity-60"
+    style={{ background: "#f97316" }}>
+    {gerandoLink
+      ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      : <Share2 size={14} />}
+    <span className="hidden sm:inline">Afiliar</span> ({p.percentualAfiliado}%)
+  </button>
+)}
 
               <button onClick={toggleWishlist} disabled={salvandoWish}
                 className="w-12 h-12 flex items-center justify-center rounded-2xl border-2 transition-all cursor-pointer shrink-0"
@@ -1220,7 +1242,7 @@ export default function PaginaProdutoDetalhe() {
               </button>
             </div>
 
-            {/* Link afiliado */}
+          {/* Link afiliado */}
             {link && (
               <div className="p-4 rounded-2xl border border-orange-100 bg-orange-50/60">
                 <p className="text-xs font-black text-orange-500 mb-2 uppercase tracking-wide">Link de Afiliado</p>
@@ -1234,6 +1256,9 @@ export default function PaginaProdutoDetalhe() {
               </div>
             )}
 
+            {erroLink && (
+              <p className="text-xs text-red-500 -mt-2">{erroLink}</p>
+            )}
             {/* Escrow */}
             <div className="flex items-start sm:items-center gap-2.5 p-3.5 rounded-2xl border border-green-100" style={{ background: GL }}>
               <Shield size={15} style={{ color: G }} className="shrink-0 mt-0.5 sm:mt-0" />

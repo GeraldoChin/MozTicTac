@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-// ─── Design tokens (mesmos do admin) ─────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
   green:      "#16a34a",
   greenLight: "#22c55e",
@@ -23,56 +23,31 @@ const C = {
   purpleDim:  "#f5f3ff",
 };
 
-// ─── Dados mock ───────────────────────────────────────────────────────────────
-const TRANSACOES_MOCK = [
-  { id:"TXN-00821", tipo:"Venda",        valor:3400,  de:"João Matos",    para:"Ana Lopes",      data:"18 Abr 14:32", estado:"concluido", gateway:"M-Pesa",  split:{ vendedor:3060, plataforma:272, afiliado:68 } },
-  { id:"TXN-00820", tipo:"Comissão",     valor:340,   de:"Sistema",       para:"João Matos",     data:"18 Abr 14:32", estado:"concluido", gateway:"Sistema", split:null },
-  { id:"TXN-00819", tipo:"Levantamento", valor:5000,  de:"Carlos Nhaca",  para:"M-Pesa",         data:"18 Abr 13:40", estado:"pendente",  gateway:"M-Pesa",  split:null },
-  { id:"TXN-00818", tipo:"Reembolso",    valor:1900,  de:"Plataforma",    para:"Maria Simone",   data:"17 Abr 18:10", estado:"concluido", gateway:"E-Mola",  split:null },
-  { id:"TXN-00817", tipo:"Suspeito",     valor:28000, de:"spam_afilX",    para:"?",              data:"17 Abr 02:14", estado:"bloqueado", gateway:"M-Pesa",  split:null },
-  { id:"TXN-00816", tipo:"Venda",        valor:8200,  de:"Fátima Dique",  para:"Pedro Mabunda",  data:"17 Abr 09:22", estado:"concluido", gateway:"Banco",   split:{ vendedor:7380, plataforma:656, afiliado:164 } },
-  { id:"TXN-00815", tipo:"Venda",        valor:1200,  de:"Luísa Tembe",   para:"Carlos Nhaca",   data:"16 Abr 17:55", estado:"concluido", gateway:"E-Mola",  split:{ vendedor:1080, plataforma:96,  afiliado:24  } },
-  { id:"TXN-00814", tipo:"Levantamento", valor:12000, de:"João Matos",    para:"Banco BCI",      data:"16 Abr 11:00", estado:"aprovado",  gateway:"Banco",   split:null },
-  { id:"TXN-00813", tipo:"Reembolso",    valor:600,   de:"Plataforma",    para:"Rogério Sitoe",  data:"15 Abr 14:30", estado:"concluido", gateway:"M-Pesa",  split:null },
-  { id:"TXN-00812", tipo:"Comissão",     valor:820,   de:"Sistema",       para:"Ana Lopes",      data:"15 Abr 10:00", estado:"concluido", gateway:"Sistema", split:null },
-];
+// ─── HTTP helper ──────────────────────────────────────────────────────────────
+const BASE = import.meta?.env?.VITE_API_URL ?? "http://localhost:3000/api/v1";
 
-const SAQUES_MOCK = [
-  { id:"SQ-0041", nome:"Carlos Nhaca",  valor:5000,  taxa:100,  liquido:4900,  metodo:"M-Pesa",  solicitado:"18 Abr 13:40", estado:"pendente",  risco:18 },
-  { id:"SQ-0040", nome:"João Matos",    valor:12000, taxa:240,  liquido:11760, metodo:"Banco",   solicitado:"16 Abr 11:00", estado:"aprovado",  risco:8  },
-  { id:"SQ-0039", nome:"Ana Lopes",     valor:4500,  taxa:90,   liquido:4410,  metodo:"E-Mola",  solicitado:"15 Abr 09:10", estado:"pago",      risco:12 },
-  { id:"SQ-0038", nome:"spam_afilX",    valor:28000, taxa:560,  liquido:27440, metodo:"M-Pesa",  solicitado:"17 Abr 01:50", estado:"rejeitado", risco:98 },
-  { id:"SQ-0037", nome:"Fátima Dique",  valor:2000,  taxa:40,   liquido:1960,  metodo:"Banco",   solicitado:"14 Abr 16:20", estado:"pago",      risco:22 },
-  { id:"SQ-0036", nome:"Pedro Mabunda", valor:800,   taxa:16,   liquido:784,   metodo:"M-Pesa",  solicitado:"13 Abr 12:00", estado:"pago",      risco:31 },
-];
+async function api(path, opts = {}) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${BASE}${path}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...opts,
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.mensagem || json.message || `Erro ${res.status}`);
+  return json;
+}
 
-const CARTEIRAS_MOCK = [
-  { id:"W001", nome:"João Matos",    tipo:"Afiliado", disponivel:6800,  pendente:2400, bloqueado:0,    metodo:"M-Pesa",  estado:"ativo",    ultimaMov:"18 Abr" },
-  { id:"W002", nome:"Ana Lopes",     tipo:"Afiliado", disponivel:4200,  pendente:1800, bloqueado:0,    metodo:"E-Mola",  estado:"ativo",    ultimaMov:"18 Abr" },
-  { id:"W003", nome:"Carlos Nhaca",  tipo:"Vendedor", disponivel:18400, pendente:3200, bloqueado:0,    metodo:"M-Pesa",  estado:"ativo",    ultimaMov:"18 Abr" },
-  { id:"W004", nome:"spam_afilX",    tipo:"Afiliado", disponivel:0,     pendente:0,    bloqueado:28000,metodo:"M-Pesa",  estado:"bloqueado",ultimaMov:"17 Abr" },
-  { id:"W005", nome:"Fátima Dique",  tipo:"Vendedor", disponivel:9100,  pendente:700,  bloqueado:0,    metodo:"Banco",   estado:"ativo",    ultimaMov:"17 Abr" },
-  { id:"W006", nome:"Pedro Mabunda", tipo:"Afiliado", disponivel:1300,  pendente:400,  bloqueado:0,    metodo:"M-Pesa",  estado:"ativo",    ultimaMov:"16 Abr" },
-  { id:"W007", nome:"Plataforma",    tipo:"Sistema",  disponivel:380000,pendente:0,    bloqueado:0,    metodo:"Sistema", estado:"ativo",    ultimaMov:"18 Abr" },
-];
+// ─── Formatadores ─────────────────────────────────────────────────────────────
+const fmtN  = (n) => Number(n || 0).toLocaleString("pt-MZ");
+const fmtK  = (n) => { const v = Number(n || 0); return v >= 1000000 ? (v/1000000).toFixed(1)+"M" : v >= 1000 ? (v/1000).toFixed(0)+"k" : String(v); };
+const fmtDt = (d) => d ? new Date(d).toLocaleString("pt-MZ", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "—";
 
-const ALERTAS_MOCK = [
-  { tipo:"fraude",    msg:"spam_afilX tentou saque de 28 000 MZN com score de risco 98",           hora:"17 Abr 02:14", acao:"Bloqueado automaticamente" },
-  { tipo:"alto",      msg:"Saque de 12 000 MZN de João Matos aguarda aprovação manual",            hora:"16 Abr 11:00", acao:"Pendente" },
-  { tipo:"reembolso", msg:"Pico de reembolsos: 4 reembolsos nas últimas 6h (acima do normal)",     hora:"17 Abr 17:00", acao:"Monitorizar" },
-  { tipo:"saldo",     msg:"Saldo da plataforma caiu 8% em relação ao mês anterior",                hora:"18 Abr 08:00", acao:"Relatório gerado" },
-];
-
-const RECEITA_DIARIA = [
-  { dia:"9 Abr", valor:42 },{ dia:"10 Abr", valor:38 },{ dia:"11 Abr", valor:55 },
-  { dia:"12 Abr", valor:61 },{ dia:"13 Abr", valor:48 },{ dia:"14 Abr", valor:70 },
-  { dia:"15 Abr", valor:88 },{ dia:"16 Abr", valor:65 },{ dia:"17 Abr", valor:92 },
-  { dia:"18 Abr", valor:110 },
-];
-
-// ─── Reutilizáveis ────────────────────────────────────────────────────────────
+// ─── Componentes base ─────────────────────────────────────────────────────────
 function Icon({ name, size = 16, color = "currentColor" }) {
-  const s = { width: size, height: size, stroke: color, fill: "none", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", flexShrink: 0 };
+  const s = { width:size, height:size, stroke:color, fill:"none", strokeWidth:1.8, strokeLinecap:"round", strokeLinejoin:"round", flexShrink:0 };
   const icons = {
     "dollar":         <svg style={s} viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
     "credit-card":    <svg style={s} viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>,
@@ -100,7 +75,6 @@ function Icon({ name, size = 16, color = "currentColor" }) {
     "percent":        <svg style={s} viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>,
     "inbox":          <svg style={s} viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>,
     "arrow-right":    <svg style={s} viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
-    "toggle-right":   <svg style={s} viewBox="0 0 24 24"><rect x="1" y="5" width="22" height="14" rx="7"/><circle cx="16" cy="12" r="3"/></svg>,
     "info":           <svg style={s} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
     "edit":           <svg style={s} viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
     "split":          <svg style={s} viewBox="0 0 24 24"><path d="M16 3h5v5M8 3H3v5M12 22v-8.3a4 4 0 00-1.172-2.872L3 3M21 3l-7.828 8.828A4 4 0 0012 14.5V22"/></svg>,
@@ -110,59 +84,64 @@ function Icon({ name, size = 16, color = "currentColor" }) {
 
 function Badge({ label, type = "default" }) {
   const map = {
-    success:  { bg: C.greenDim, color: C.green },
-    warning:  { bg: C.amberDim, color: C.amber },
-    danger:   { bg: C.redDim,   color: C.red },
-    info:     { bg: C.blueDim,  color: C.blue },
-    purple:   { bg: C.purpleDim,color: C.purple },
-    default:  { bg: "#f1f5f9",  color: C.textSub },
+    success: { bg: C.greenDim, color: C.green },
+    warning: { bg: C.amberDim, color: C.amber },
+    danger:  { bg: C.redDim,   color: C.red   },
+    info:    { bg: C.blueDim,  color: C.blue  },
+    purple:  { bg: C.purpleDim,color: C.purple},
+    default: { bg: "#f1f5f9",  color: C.textSub },
   };
   const s = map[type] || map.default;
   return (
-    <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 99, background: s.bg, color: s.color, display: "inline-block", whiteSpace: "nowrap" }}>
+    <span style={{ fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:99, background:s.bg, color:s.color, display:"inline-block", whiteSpace:"nowrap" }}>
       {label}
     </span>
   );
 }
 
-function StatCard({ label, value, sub, icon, color = C.green, trend }) {
+function StatCard({ label, value, sub, icon, color = C.green, trend, loading }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 10, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ width: 38, height: 38, borderRadius: 10, background: color + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"18px 20px", display:"flex", flexDirection:"column", gap:10, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+        <div style={{ width:38, height:38, borderRadius:10, background:color+"18", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <Icon name={icon} size={17} color={color} />
         </div>
-        {trend !== undefined && (
-          <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 99, background: trend > 0 ? C.greenDim : C.redDim, color: trend > 0 ? C.green : C.red }}>
-            {trend > 0 ? "+" : ""}{trend}%
+        {trend !== undefined && !loading && (
+          <span style={{ fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:99, background:trend>0?C.greenDim:C.redDim, color:trend>0?C.green:C.red }}>
+            {trend>0?"+":""}{trend}%
           </span>
         )}
       </div>
       <div>
-        <p style={{ fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: "-0.03em", lineHeight: 1 }}>{value}</p>
-        <p style={{ fontSize: 12, color: C.textSub, marginTop: 3, fontWeight: 500 }}>{label}</p>
-        {sub && <p style={{ fontSize: 11, color: C.textMute, marginTop: 1 }}>{sub}</p>}
+        {loading
+          ? <div style={{ height:28, width:80, background:C.border, borderRadius:6, animation:"pulse 1.5s infinite" }} />
+          : <p style={{ fontSize:22, fontWeight:800, color:C.text, letterSpacing:"-0.03em", lineHeight:1 }}>{value}</p>
+        }
+        <p style={{ fontSize:12, color:C.textSub, marginTop:3, fontWeight:500 }}>{label}</p>
+        {sub && <p style={{ fontSize:11, color:C.textMute, marginTop:1 }}>{sub}</p>}
       </div>
     </div>
   );
 }
 
-function Btn({ label, icon, onClick, variant = "primary", size = "md", disabled = false }) {
+function Btn({ label, icon, onClick, variant = "primary", size = "md", disabled = false, loading = false }) {
   const styles = {
-    primary:   { bg: C.green,      color: "#fff",    border: "none" },
-    secondary: { bg: "transparent",color: C.textSub, border: `1.5px solid ${C.border}` },
-    danger:    { bg: C.red,        color: "#fff",    border: "none" },
-    ghost:     { bg: C.greenMuted, color: C.green,   border: "none" },
-    amber:     { bg: C.amberDim,   color: C.amber,   border: "none" },
-    blue:      { bg: C.blueDim,    color: C.blue,    border: "none" },
+    primary:   { bg:C.green,       color:"#fff",    border:"none" },
+    secondary: { bg:"transparent", color:C.textSub, border:`1.5px solid ${C.border}` },
+    danger:    { bg:C.red,         color:"#fff",    border:"none" },
+    ghost:     { bg:C.greenMuted,  color:C.green,   border:"none" },
+    amber:     { bg:C.amberDim,    color:C.amber,   border:"none" },
+    blue:      { bg:C.blueDim,     color:C.blue,    border:"none" },
   };
   const pad = size === "sm" ? "6px 12px" : "9px 18px";
   const fs  = size === "sm" ? 12 : 13;
   const s = styles[variant];
+  const dis = disabled || loading;
   return (
-    <button onClick={onClick} disabled={disabled}
-      style={{ display:"inline-flex", alignItems:"center", gap:6, padding:pad, fontSize:fs, fontWeight:700, background:disabled?"#f1f5f9":s.bg, color:disabled?C.textMute:s.color, border:s.border||"none", borderRadius:8, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.6:1, whiteSpace:"nowrap", fontFamily:"inherit" }}>
-      {icon && <Icon name={icon} size={13} color={disabled ? C.textMute : s.color} />}
+    <button onClick={onClick} disabled={dis}
+      style={{ display:"inline-flex", alignItems:"center", gap:6, padding:pad, fontSize:fs, fontWeight:700, background:dis?"#f1f5f9":s.bg, color:dis?C.textMute:s.color, border:s.border||"none", borderRadius:8, cursor:dis?"not-allowed":"pointer", opacity:dis?0.6:1, whiteSpace:"nowrap", fontFamily:"inherit" }}>
+      {icon && !loading && <Icon name={icon} size={13} color={dis?C.textMute:s.color} />}
+      {loading && <span style={{ width:12, height:12, border:"2px solid currentColor", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.6s linear infinite" }} />}
       {label}
     </button>
   );
@@ -173,7 +152,7 @@ function Toggle({ label, active = false, onChange }) {
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
       <span style={{ fontSize:13, color:C.textSub, fontWeight:500 }}>{label}</span>
-      <div onClick={() => { setOn(!on); onChange && onChange(!on); }}
+      <div onClick={() => { setOn(!on); onChange?.(!on); }}
         style={{ width:38, height:22, borderRadius:99, cursor:"pointer", background:on?C.green:C.border, position:"relative", transition:"background 0.2s", flexShrink:0 }}>
         <div style={{ position:"absolute", top:3, left:on?19:3, width:16, height:16, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.18)", transition:"left 0.2s" }} />
       </div>
@@ -194,22 +173,29 @@ function Modal({ open, onClose, children, width = 520 }) {
   );
 }
 
-// ─── Mini bar chart ───────────────────────────────────────────────────────────
+function ErroBloco({ mensagem, onRetry }) {
+  return (
+    <div style={{ padding:24, textAlign:"center", color:C.red }}>
+      <p style={{ fontSize:13, marginBottom:8 }}>{mensagem}</p>
+      {onRetry && <Btn label="Tentar novamente" icon="refresh-cw" variant="secondary" size="sm" onClick={onRetry} />}
+    </div>
+  );
+}
+
 function MiniBar({ data, color = C.green, height = 80 }) {
   const max = Math.max(...data.map(d => d.valor), 1);
   return (
     <div style={{ display:"flex", alignItems:"flex-end", gap:4, height }}>
       {data.map((d, i) => (
-        <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+        <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
           <div title={`${d.dia}: ${d.valor}k MZN`}
-            style={{ width:"100%", height:`${Math.max(6, (d.valor/max)*100)}%`, background:i===data.length-1?color:color+"55", borderRadius:"3px 3px 0 0", transition:"height 0.3s" }} />
+            style={{ width:"100%", height:`${Math.max(6,(d.valor/max)*100)}%`, background:i===data.length-1?color:color+"55", borderRadius:"3px 3px 0 0", transition:"height 0.3s" }} />
         </div>
       ))}
     </div>
   );
 }
 
-// ─── Split visual ─────────────────────────────────────────────────────────────
 function SplitBar({ split, total }) {
   if (!split) return null;
   const vPct = Math.round((split.vendedor / total) * 100);
@@ -217,71 +203,121 @@ function SplitBar({ split, total }) {
   const aPct = Math.round((split.afiliado / total) * 100);
   return (
     <div style={{ display:"flex", gap:2, height:6, borderRadius:99, overflow:"hidden", width:"100%" }}>
-      <div title={`Vendedor: ${split.vendedor.toLocaleString("pt-MZ")} MZN`} style={{ width:`${vPct}%`, background:C.blue, borderRadius:"99px 0 0 99px" }} />
-      <div title={`Plataforma: ${split.plataforma.toLocaleString("pt-MZ")} MZN`} style={{ width:`${pPct}%`, background:C.green }} />
-      <div title={`Afiliado: ${split.afiliado.toLocaleString("pt-MZ")} MZN`} style={{ width:`${aPct}%`, background:C.amber, borderRadius:"0 99px 99px 0" }} />
+      <div title={`Vendedor: ${fmtN(split.vendedor)} MZN`} style={{ width:`${vPct}%`, background:C.blue, borderRadius:"99px 0 0 99px" }} />
+      <div title={`Plataforma: ${fmtN(split.plataforma)} MZN`} style={{ width:`${pPct}%`, background:C.green }} />
+      <div title={`Afiliado: ${fmtN(split.afiliado)} MZN`} style={{ width:`${aPct}%`, background:C.amber, borderRadius:"0 99px 99px 0" }} />
     </div>
   );
 }
 
+// ─── Hook genérico de fetch ───────────────────────────────────────────────────
+function useFetch(path, activo = true) {
+  const [dados, setDados]         = useState(null);
+  const [carregando, setCarreg]   = useState(true);
+  const [erro, setErro]           = useState(null);
+
+  const carregar = useCallback(async () => {
+    if (!activo) return;
+    setCarreg(true); setErro(null);
+    try {
+      const res = await api(path);
+      setDados(res.success ? res.data : res.sucesso ? res.dados : res.data ?? res.dados ?? res);
+    } catch (e) {
+      setErro(e.message);
+    } finally {
+      setCarreg(false);
+    }
+  }, [path, activo]);
+
+  useEffect(() => { carregar(); }, [carregar]);
+  return { dados, carregando, erro, recarregar: carregar };
+}
+
 // ─── SUBTABS ──────────────────────────────────────────────────────────────────
 const SUBTABS = [
-  { id:"visao",      label:"Visão Geral",    icon:"bar-chart" },
-  { id:"transacoes", label:"Transações",     icon:"activity" },
-  { id:"saques",     label:"Saques",         icon:"inbox",    badge: true },
-  { id:"carteiras",  label:"Carteiras",      icon:"wallet" },
-  { id:"relatorios", label:"Relatórios",     icon:"file-text" },
-  { id:"config",     label:"Configuração",   icon:"settings" },
-  { id:"fraude",     label:"Fraude",         icon:"shield",   badgeDanger: true },
+  { id:"visao",      label:"Visão Geral",  icon:"bar-chart" },
+  { id:"transacoes", label:"Transações",   icon:"activity"  },
+  { id:"saques",     label:"Saques",       icon:"inbox",     badge:true },
+  { id:"carteiras",  label:"Carteiras",    icon:"wallet"    },
+  { id:"relatorios", label:"Relatórios",   icon:"file-text" },
+  { id:"config",     label:"Configuração", icon:"settings"  },
+  { id:"fraude",     label:"Fraude",       icon:"shield",    badgeDanger:true },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUB 1 — VISÃO GERAL
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubVisaoGeral({ onNav }) {
-  const receitaHoje = 110000;
-  const receitaMes  = 2400000;
-  const saldoPlat   = 380000;
-  const pendenteSaques = SAQUES_MOCK.filter(s => s.estado === "pendente" || s.estado === "aprovado").length;
+  const { dados: kpis,     carregando: ck, erro: ek, recarregar: rk } = useFetch("/admin/dashboard/kpis");
+  const { dados: alertas,  carregando: ca, erro: ea                  } = useFetch("/admin/financeiro/alertas");
+  const { dados: saques,   carregando: cs                             } = useFetch("/admin/saques-pendentes");
+  const { dados: receita,  carregando: cr                             } = useFetch("/admin/dashboard/receita-mensal");
+
+  const kpisArr      = kpis?.kpis ?? [];
+  const alertasArr   = alertas ?? [];
+  const saquesArr    = saques?.saques ?? [];
+  const receitaArr   = receita ?? [];
+  const pendentes    = saquesArr.filter(s => s.estado === "SOLICITADO" || s.estado === "APROVADO");
+
+  // Últimos 10 dias de receita para o mini gráfico
+  const receitaDiaria = receitaArr.slice(-10).map(r => ({ dia: r.mes, valor: Math.round(r.receita / 1000) }));
+
+  const tipoAlertaMap  = { SAQUE_ALTO:"warning", CONTA_SUSPEITA:"warning", DISPUTA_ABERTA:"danger" };
+  const iconeAlertaMap = { SAQUE_ALTO:"inbox",   CONTA_SUSPEITA:"ban",     DISPUTA_ABERTA:"alert-triangle" };
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-      {/* KPIs principais */}
+      {ek && <ErroBloco mensagem={ek} onRetry={rk} />}
+
+      {/* KPIs */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:12 }}>
-        <StatCard label="Receita Total (MZN)"   value="2.4M"    icon="dollar"       color={C.green}  trend={18.7} />
-        <StatCard label="Saldo Plataforma"       value="380k"    icon="credit-card"  color={C.blue}   sub="MZN" />
-        <StatCard label="Comissões Pagas"        value="148k"    icon="link"         color={C.amber}  trend={8.1} />
-        <StatCard label="Taxas Cobradas"         value="240k"    icon="percent"      color={C.purple} />
-        <StatCard label="GMV — Volume de Vendas" value="6.2M"    icon="trending-up"  color={C.green}  trend={22.3} />
+        {[
+          { label:"GMV Mês (MZN)",       key:"GMV Mês (MZN)",          icon:"trending-up",  color:C.green  },
+          { label:"Receita Mês (MZN)",   key:"Receita Mês (MZN)",       icon:"dollar",       color:C.green  },
+          { label:"Comissões Pagas",      key:"Comissões Pagas (MZN)",   icon:"link",         color:C.amber  },
+          { label:"Taxas Cobradas",       key:"Receita Mês (MZN)",       icon:"percent",      color:C.purple },
+          { label:"Afiliados Activos",    key:"Afiliados",               icon:"users",        color:C.blue   },
+        ].map((card, i) => {
+          const kpi = kpisArr.find(k => k.label === card.key);
+          return (
+            <StatCard key={i}
+              label={card.label}
+              value={kpi ? fmtK(kpi.valor) : "—"}
+              icon={card.icon}
+              color={card.color}
+              trend={kpi?.tendencia ? parseFloat(kpi.tendencia) : undefined}
+              loading={ck} />
+          );
+        })}
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-        {/* Receita diária */}
+        {/* Gráfico receita */}
         <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
             <div>
-              <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📈 Receita — últimos 10 dias</h3>
-              <p style={{ fontSize:12, color:C.textMute }}>Receita líquida diária (MZN '000)</p>
+              <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📈 Receita — últimos meses</h3>
+              <p style={{ fontSize:12, color:C.textMute }}>Receita líquida mensal (MZN '000)</p>
             </div>
-            <Badge label={`Hoje: ${receitaHoje.toLocaleString("pt-MZ")} MZN`} type="success" />
           </div>
           <div style={{ marginTop:16 }}>
-            <MiniBar data={RECEITA_DIARIA} height={90} />
+            {cr
+              ? <div style={{ height:90, background:C.bg, borderRadius:8, animation:"pulse 1.5s infinite" }} />
+              : <MiniBar data={receitaDiaria.length > 0 ? receitaDiaria : [{ dia:"—", valor:0 }]} height={90} />
+            }
           </div>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, fontSize:11, color:C.textMute }}>
-            <span>9 Abr</span>
-            {RECEITA_DIARIA.map((d,i) => i===9?<span key={i}>Hoje</span>:null)}
-          </div>
-          {/* Legenda simples dos dias */}
           <div style={{ marginTop:8, borderTop:`1px solid ${C.border}`, paddingTop:12 }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
               {[
-                { label:"Ticket médio",    value:"1 240 MZN", color:C.blue },
-                { label:"Vendas hoje",     value:"89",        color:C.green },
-                { label:"Crescimento",     value:"+18.7%",    color:C.green },
-              ].map((k,i) => (
+                { label:"Ticket médio",  value: kpisArr.find(k=>k.label==="Ticket Médio (MZN)")?.valor, color:C.blue  },
+                { label:"Pedidos hoje",  value: kpisArr.find(k=>k.label==="Pedidos Hoje")?.valor,       color:C.green },
+                { label:"Conversão",     value: kpisArr.find(k=>k.label==="Taxa de Conversão")?.valor,  color:C.green },
+              ].map((k, i) => (
                 <div key={i} style={{ textAlign:"center", background:C.bg, borderRadius:8, padding:"8px 6px" }}>
-                  <p style={{ fontSize:14, fontWeight:800, color:k.color }}>{k.value}</p>
+                  {ck
+                    ? <div style={{ height:20, background:C.border, borderRadius:4, margin:"0 auto", width:60 }} />
+                    : <p style={{ fontSize:14, fontWeight:800, color:k.color }}>{k.value ?? "—"}</p>
+                  }
                   <p style={{ fontSize:10, color:C.textMute, marginTop:2 }}>{k.label}</p>
                 </div>
               ))}
@@ -289,24 +325,22 @@ function SubVisaoGeral({ onNav }) {
           </div>
         </div>
 
-        {/* Split financeiro da plataforma */}
+        {/* Split automático — estático, representa a lógica real */}
         <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
           <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:4 }}>⚡ Split Automático</h3>
           <p style={{ fontSize:12, color:C.textMute, marginBottom:16 }}>Como cada venda é distribuída</p>
-
-          {/* Exemplo de split */}
           <div style={{ background:C.bg, borderRadius:10, padding:16, marginBottom:14 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-              <span style={{ fontSize:12, fontWeight:700, color:C.textSub }}>Exemplo: venda de 1 000 MZN (taxa 10%)</span>
+              <span style={{ fontSize:12, fontWeight:700, color:C.textSub }}>Exemplo: venda de 1 000 MZN (taxa 10.5%)</span>
               <Badge label="ACID" type="info" />
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { label:"Comprador paga", valor:"1 100 MZN", note:"incl. taxa 10%", color:C.text, bg:C.bg },
-                { label:"Vendedor recebe", valor:"900 MZN",  note:"após comissão afiliado", color:C.blue, bg:C.blueDim },
-                { label:"Plataforma retém", valor:"89 MZN",  note:"taxa líquida", color:C.green, bg:C.greenDim },
-                { label:"Afiliado recebe", valor:"11 MZN",   note:"comissão 1,1%", color:C.amber, bg:C.amberDim },
-              ].map((r,i) => (
+                { label:"Comprador paga",   valor:"1 105 MZN", note:"incl. taxa 10.5%",       color:C.text,  bg:C.bg      },
+                { label:"Vendedor recebe",  valor:"~889 MZN",  note:"após comissão afiliado",  color:C.blue,  bg:C.blueDim },
+                { label:"Plataforma retém", valor:"~105 MZN",  note:"taxa líquida",             color:C.green, bg:C.greenDim},
+                { label:"Afiliado recebe",  valor:"~11 MZN",   note:"comissão ~1%",             color:C.amber, bg:C.amberDim},
+              ].map((r, i) => (
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px 12px", background:r.bg, borderRadius:8 }}>
                   <div>
                     <span style={{ fontSize:13, fontWeight:600, color:r.color }}>{r.label}</span>
@@ -317,95 +351,66 @@ function SubVisaoGeral({ onNav }) {
               ))}
             </div>
           </div>
-
-          {/* Proporção visual */}
-          <div style={{ marginBottom:6 }}>
-            <p style={{ fontSize:11, color:C.textMute, marginBottom:6 }}>Distribuição de 1 100 MZN</p>
-            <div style={{ display:"flex", gap:2, height:10, borderRadius:99, overflow:"hidden" }}>
-              <div style={{ width:"81.8%", background:C.blue }} title="Vendedor 81.8%" />
-              <div style={{ width:"8.1%", background:C.green }} title="Plataforma 8.1%" />
-              <div style={{ width:"1%", background:C.amber }} title="Afiliado 1%" />
-              <div style={{ width:"9.1%", background:C.border }} title="Taxa bruta 9.1%" />
-            </div>
-            <div style={{ display:"flex", gap:12, marginTop:6, fontSize:10, color:C.textMute }}>
-              <span><span style={{ display:"inline-block", width:8, height:8, borderRadius:2, background:C.blue, marginRight:3 }}/>Vendedor</span>
-              <span><span style={{ display:"inline-block", width:8, height:8, borderRadius:2, background:C.green, marginRight:3 }}/>Plataforma</span>
-              <span><span style={{ display:"inline-block", width:8, height:8, borderRadius:2, background:C.amber, marginRight:3 }}/>Afiliado</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Alertas em tempo real */}
-      {ALERTAS_MOCK.length > 0 && (
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <Icon name="alert-triangle" size={15} color={C.amber} />
-              <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>🔔 Alertas em Tempo Real</h3>
-            </div>
-            <Badge label="4 ativos" type="warning" />
+      {/* Alertas */}
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <Icon name="alert-triangle" size={15} color={C.amber} />
+            <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>🔔 Alertas Financeiros</h3>
           </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-            {ALERTAS_MOCK.map((a,i) => {
-              const tipoMap = { fraude:"danger", alto:"warning", reembolso:"info", saldo:"warning" };
-              const iconeMap = { fraude:"ban", alto:"inbox", reembolso:"refresh-cw", saldo:"trending-up" };
-              const cor = { danger:C.red, warning:C.amber, info:C.blue }[tipoMap[a.tipo]] || C.textSub;
-              return (
-                <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 0", borderBottom:i<3?`1px solid ${C.border}`:"none" }}>
-                  <div style={{ width:32, height:32, borderRadius:8, background:cor+"18", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <Icon name={iconeMap[a.tipo]} size={14} color={cor} />
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13, color:C.text, fontWeight:500, lineHeight:1.5 }}>{a.msg}</p>
-                    <p style={{ fontSize:11, color:C.textMute, marginTop:2 }}>{a.hora} · {a.acao}</p>
-                  </div>
-                  <Badge label={a.tipo === "fraude" ? "Crítico" : a.tipo === "alto" ? "Alto" : "Info"} type={tipoMap[a.tipo]} />
+          {!ca && <Badge label={`${alertasArr.length} activos`} type="warning" />}
+        </div>
+        {ca
+          ? <div style={{ height:80, background:C.bg, borderRadius:8, animation:"pulse 1.5s infinite" }} />
+          : ea
+            ? <ErroBloco mensagem={ea} />
+            : alertasArr.length === 0
+              ? <p style={{ fontSize:13, color:C.textMute, textAlign:"center", padding:"20px 0" }}>Sem alertas activos.</p>
+              : alertasArr.map((a, i) => {
+                  const tipo = tipoAlertaMap[a.tipo] || "warning";
+                  const cor  = { danger:C.red, warning:C.amber, info:C.blue }[tipo] || C.textSub;
+                  return (
+                    <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 0", borderBottom:i<alertasArr.length-1?`1px solid ${C.border}`:"none" }}>
+                      <div style={{ width:32, height:32, borderRadius:8, background:cor+"18", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <Icon name={iconeAlertaMap[a.tipo]||"alert-triangle"} size={14} color={cor} />
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <p style={{ fontSize:13, color:C.text, fontWeight:500, lineHeight:1.5 }}>{a.descricao}</p>
+                        <p style={{ fontSize:11, color:C.textMute, marginTop:2 }}>{fmtDt(a.data)}</p>
+                      </div>
+                      <Badge label={a.prioridade === "alta" ? "Alto" : "Info"} type={tipo} />
+                    </div>
+                  );
+                })
+        }
+      </div>
+
+      {/* Saques pendentes */}
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📤 Saques Pendentes</h3>
+          {!cs && <Badge label={`${pendentes.length} pendente(s)`} type="warning" />}
+        </div>
+        {cs
+          ? <div style={{ height:60, background:C.bg, borderRadius:8, animation:"pulse 1.5s infinite" }} />
+          : pendentes.slice(0, 3).map((s, i) => (
+              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom:`1px solid ${C.border}` }}>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600, color:C.text }}>{s.usuario?.nomeCompleto ?? "—"}</p>
+                  <p style={{ fontSize:11, color:C.textMute }}>{s.metodoPagamento} · {fmtDt(s.criadoEm)}</p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Resumo gateways + saques pendentes */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
-          <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>💳 Gateways de Pagamento</h3>
-          {["M-Pesa","E-Mola","mKesh","Banco BCI","Banco BIM"].map((g,i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:i<4?`1px solid ${C.border}`:"none" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <div style={{ width:8, height:8, borderRadius:"50%", background:i<4?C.green:C.textMute }} />
-                <span style={{ fontSize:13, fontWeight:500, color:C.text }}>{g}</span>
+                <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                  <span style={{ fontSize:14, fontWeight:800, color:C.amber }}>{fmtN(s.valor)} MZN</span>
+                  <Btn label="Ver" icon="eye" size="sm" variant="ghost" onClick={() => onNav("saques")} />
+                </div>
               </div>
-              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                <Badge label={i<4?"Ativo":"Config"} type={i<4?"success":"default"} />
-                <Btn label="Config" size="sm" variant="secondary" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📤 Saques Pendentes</h3>
-            <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:C.amberDim, color:C.amber }}>{pendenteSaques} pendente(s)</span>
-          </div>
-          {SAQUES_MOCK.filter(s=>s.estado==="pendente"||s.estado==="aprovado").map((s,i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom:`1px solid ${C.border}` }}>
-              <div>
-                <p style={{ fontSize:13, fontWeight:600, color:C.text }}>{s.nome}</p>
-                <p style={{ fontSize:11, color:C.textMute }}>{s.metodo} · {s.solicitado}</p>
-              </div>
-              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                <span style={{ fontSize:14, fontWeight:800, color:C.amber }}>{s.valor.toLocaleString("pt-MZ")} MZN</span>
-                <Btn label="Aprovar" icon="check" size="sm" variant="ghost" onClick={() => onNav("saques")} />
-              </div>
-            </div>
-          ))}
-          <div style={{ marginTop:10 }}>
-            <Btn label="Ver todos os saques" icon="arrow-right" variant="secondary" size="sm" onClick={() => onNav("saques")} />
-          </div>
+            ))
+        }
+        <div style={{ marginTop:10 }}>
+          <Btn label="Ver todos os saques" icon="arrow-right" variant="secondary" size="sm" onClick={() => onNav("saques")} />
         </div>
       </div>
     </div>
@@ -416,149 +421,139 @@ function SubVisaoGeral({ onNav }) {
 // SUB 2 — TRANSAÇÕES
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubTransacoes() {
-  const [busca, setBusca] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("todos");
-  const [filtroEstado, setFiltroEstado] = useState("todos");
-  const [txDetalhe, setTxDetalhe] = useState(null);
+  const [pagina,       setPagina]      = useState(1);
+  const [filtroTipo,   setFiltroTipo]  = useState("");
+  const [filtroEstado, setFiltroEst]   = useState("");
+  const [busca,        setBusca]       = useState("");
+  const [txDetalhe,    setTxDetalhe]   = useState(null);
 
-  const lista = TRANSACOES_MOCK.filter(t => {
-    const ok1 = filtroTipo === "todos" || t.tipo.toLowerCase() === filtroTipo;
-    const ok2 = filtroEstado === "todos" || t.estado === filtroEstado;
-    const ok3 = t.id.toLowerCase().includes(busca.toLowerCase()) || t.de.toLowerCase().includes(busca.toLowerCase()) || t.para.toLowerCase().includes(busca.toLowerCase());
-    return ok1 && ok2 && ok3;
-  });
+  const params = new URLSearchParams({ pagina, ...(filtroTipo && { tipo:filtroTipo }), ...(filtroEstado && { estado:filtroEstado }) }).toString();
+  const { dados, carregando, erro, recarregar } = useFetch(`/admin/financeiro/transacoes?${params}`);
 
-  const estadoCor = { concluido:"success", pendente:"warning", bloqueado:"danger", aprovado:"info" };
-  const tipoCor = { Venda:C.green, Comissão:C.amber, Levantamento:C.blue, Reembolso:C.purple, Suspeito:C.red };
+  const lista = (dados?.transacoes ?? []).filter(t =>
+    !busca || t.id?.toLowerCase().includes(busca.toLowerCase()) ||
+    t.usuario?.nomeCompleto?.toLowerCase().includes(busca.toLowerCase())
+  );
+  const total = dados?.total ?? 0;
+  const totalPaginas = dados?.totalPaginas ?? 1;
 
-  const totalEntradas = lista.filter(t=>t.tipo==="Venda").reduce((s,t)=>s+t.valor,0);
-  const totalSaidas = lista.filter(t=>t.tipo==="Levantamento"||t.tipo==="Reembolso").reduce((s,t)=>s+t.valor,0);
+  const estadoCor = { CONCLUIDA:"success", PENDENTE:"warning", BLOQUEADA:"danger", CANCELADA:"danger" };
+  const tipoCor   = { VENDA:C.green, COMISSAO_AFILIADO:C.amber, SAQUE:C.blue, REEMBOLSO:C.purple, ESTORNO:C.red };
+
+  const totalEntradas = lista.filter(t => t.tipo==="VENDA").reduce((s,t) => s+Number(t.valor), 0);
+  const totalSaidas   = lista.filter(t => t.tipo==="SAQUE"||t.tipo==="REEMBOLSO").reduce((s,t) => s+Number(t.valor), 0);
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
-        <StatCard label="Total transações" value={TRANSACOES_MOCK.length} icon="activity" color={C.blue} />
-        <StatCard label="Entradas (MZN)"   value={totalEntradas.toLocaleString("pt-MZ")} icon="trending-up" color={C.green} />
-        <StatCard label="Saídas (MZN)"     value={totalSaidas.toLocaleString("pt-MZ")} icon="inbox" color={C.amber} />
-        <StatCard label="Bloqueadas"        value={TRANSACOES_MOCK.filter(t=>t.estado==="bloqueado").length} icon="ban" color={C.red} />
+        <StatCard label="Total transações" value={total}               icon="activity"   color={C.blue}   loading={carregando} />
+        <StatCard label="Entradas (MZN)"   value={fmtK(totalEntradas)} icon="trending-up" color={C.green} loading={carregando} />
+        <StatCard label="Saídas (MZN)"     value={fmtK(totalSaidas)}   icon="inbox"      color={C.amber}  loading={carregando} />
+        <StatCard label="Bloqueadas"       value={lista.filter(t=>t.estado==="BLOQUEADA").length} icon="ban" color={C.red} loading={carregando} />
       </div>
 
       {/* Filtros */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:16, display:"flex", gap:12, flexWrap:"wrap", alignItems:"center" }}>
         <div style={{ position:"relative", flex:1, minWidth:200 }}>
           <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)" }}><Icon name="search" size={14} color={C.textMute} /></span>
-          <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por ID, remetente ou destinatário..."
+          <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por ID ou utilizador..."
             style={{ width:"100%", padding:"8px 12px 8px 32px", fontSize:13, border:`1.5px solid ${C.border}`, borderRadius:8, fontFamily:"inherit", color:C.text, background:C.bg, outline:"none", boxSizing:"border-box" }} />
         </div>
-        <select value={filtroTipo} onChange={e=>setFiltroTipo(e.target.value)}
+        <select value={filtroTipo} onChange={e=>{setFiltroTipo(e.target.value);setPagina(1);}}
           style={{ padding:"8px 12px", fontSize:13, border:`1.5px solid ${C.border}`, borderRadius:8, color:C.text, background:C.bg, fontFamily:"inherit" }}>
-          {[["todos","Todos os tipos"],["venda","Venda"],["comissão","Comissão"],["levantamento","Levantamento"],["reembolso","Reembolso"],["suspeito","Suspeito"]].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+          <option value="">Todos os tipos</option>
+          {["VENDA","COMISSAO_AFILIADO","SAQUE","REEMBOLSO","ESTORNO","TAXA_PLATAFORMA"].map(v=><option key={v} value={v}>{v}</option>)}
         </select>
-        <select value={filtroEstado} onChange={e=>setFiltroEstado(e.target.value)}
+        <select value={filtroEstado} onChange={e=>{setFiltroEst(e.target.value);setPagina(1);}}
           style={{ padding:"8px 12px", fontSize:13, border:`1.5px solid ${C.border}`, borderRadius:8, color:C.text, background:C.bg, fontFamily:"inherit" }}>
-          {[["todos","Todos os estados"],["concluido","Concluído"],["pendente","Pendente"],["aprovado","Aprovado"],["bloqueado","Bloqueado"]].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+          <option value="">Todos os estados</option>
+          {["CONCLUIDA","PENDENTE","BLOQUEADA","CANCELADA"].map(v=><option key={v} value={v}>{v.charAt(0)+v.slice(1).toLowerCase()}</option>)}
         </select>
         <Btn label="Exportar" icon="download" variant="secondary" size="sm" />
       </div>
 
       {/* Tabela */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, overflow:"hidden" }}>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ borderBottom:`1.5px solid ${C.border}`, background:C.bg }}>
-                {["ID","Tipo","Valor (MZN)","De → Para","Gateway","Split","Data","Estado","Ação"].map((c,i)=>(
-                  <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute, whiteSpace:"nowrap" }}>{c}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((t,i) => (
-                <tr key={t.id} style={{ borderBottom:`1px solid ${C.border}` }}
-                  onMouseEnter={e=>e.currentTarget.style.background=C.bg}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                  <td style={{ padding:"11px 14px", fontFamily:"monospace", fontSize:12, color:C.textSub, fontWeight:600 }}>{t.id}</td>
-                  <td style={{ padding:"11px 14px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <div style={{ width:6, height:6, borderRadius:"50%", background:tipoCor[t.tipo]||C.textMute, flexShrink:0 }} />
-                      <span style={{ fontWeight:600, color:C.text }}>{t.tipo}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding:"11px 14px", fontWeight:800, color:t.tipo==="Reembolso"?C.red:t.estado==="bloqueado"?C.red:C.text }}>
-                    {t.tipo==="Reembolso"?"−":""}{t.valor.toLocaleString("pt-MZ")}
-                  </td>
-                  <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12 }}>{t.de} → {t.para}</td>
-                  <td style={{ padding:"11px 14px" }}><Badge label={t.gateway} type="default" /></td>
-                  <td style={{ padding:"11px 14px", minWidth:90 }}>
-                    {t.split
-                      ? <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
-                          <SplitBar split={t.split} total={t.valor} />
-                          <span style={{ fontSize:10, color:C.textMute }}>V/P/A</span>
-                        </div>
-                      : <span style={{ color:C.textMute, fontSize:11 }}>—</span>
-                    }
-                  </td>
-                  <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12, whiteSpace:"nowrap" }}>{t.data}</td>
-                  <td style={{ padding:"11px 14px" }}><Badge label={t.estado.charAt(0).toUpperCase()+t.estado.slice(1)} type={estadoCor[t.estado]||"default"} /></td>
-                  <td style={{ padding:"11px 14px" }}>
-                    <Btn label="Ver" icon="eye" size="sm" variant="ghost" onClick={()=>setTxDetalhe(t)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ padding:"12px 16px", borderTop:`1px solid ${C.border}`, fontSize:12, color:C.textMute, display:"flex", justifyContent:"space-between" }}>
-          <span>Mostrando {lista.length} de {TRANSACOES_MOCK.length} transações</span>
-          <span>Cada venda é registada com IP, ID único e garantia ACID</span>
+        {carregando
+          ? <div style={{ padding:40, textAlign:"center", color:C.textMute }}>A carregar transações...</div>
+          : erro
+            ? <ErroBloco mensagem={erro} onRetry={recarregar} />
+            : (
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                  <thead>
+                    <tr style={{ borderBottom:`1.5px solid ${C.border}`, background:C.bg }}>
+                      {["ID","Tipo","Valor (MZN)","Utilizador","Descrição","Data","Estado","Ação"].map((c,i)=>(
+                        <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute, whiteSpace:"nowrap" }}>{c}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lista.map((t, i) => (
+                      <tr key={t.id} style={{ borderBottom:`1px solid ${C.border}` }}
+                        onMouseEnter={e=>e.currentTarget.style.background=C.bg}
+                        onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                        <td style={{ padding:"11px 14px", fontFamily:"monospace", fontSize:12, color:C.textSub, fontWeight:600 }}>{t.id?.substring(0,8)}</td>
+                        <td style={{ padding:"11px 14px" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <div style={{ width:6, height:6, borderRadius:"50%", background:tipoCor[t.tipo]||C.textMute, flexShrink:0 }} />
+                            <span style={{ fontWeight:600, color:C.text }}>{t.tipo}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding:"11px 14px", fontWeight:800, color:t.tipo==="REEMBOLSO"||t.tipo==="ESTORNO"?C.red:C.text }}>
+                          {["REEMBOLSO","ESTORNO"].includes(t.tipo)?"−":""}{fmtN(t.valor)}
+                        </td>
+                        <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12 }}>{t.usuario?.nomeCompleto ?? "Sistema"}</td>
+                        <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12, maxWidth:200 }}>
+                          <span style={{ display:"block", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.descricao}</span>
+                        </td>
+                        <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12, whiteSpace:"nowrap" }}>{fmtDt(t.data)}</td>
+                        <td style={{ padding:"11px 14px" }}><Badge label={t.estado} type={estadoCor[t.estado]||"default"} /></td>
+                        <td style={{ padding:"11px 14px" }}>
+                          <Btn label="Ver" icon="eye" size="sm" variant="ghost" onClick={()=>setTxDetalhe(t)} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+        }
+        <div style={{ padding:"12px 16px", borderTop:`1px solid ${C.border}`, fontSize:12, color:C.textMute, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <span>Mostrando {lista.length} de {total} transações</span>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <Btn label="←" size="sm" variant="secondary" disabled={pagina<=1} onClick={()=>setPagina(p=>p-1)} />
+            <span>{pagina} / {totalPaginas}</span>
+            <Btn label="→" size="sm" variant="secondary" disabled={pagina>=totalPaginas} onClick={()=>setPagina(p=>p+1)} />
+          </div>
         </div>
       </div>
 
-      {/* Modal detalhe transação */}
+      {/* Modal detalhe */}
       <Modal open={!!txDetalhe} onClose={()=>setTxDetalhe(null)} width={500}>
         {txDetalhe && (
           <div style={{ padding:24 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
               <div>
-                <h3 style={{ fontSize:16, fontWeight:800, color:C.text }}>{txDetalhe.id}</h3>
-                <p style={{ fontSize:12, color:C.textMute, marginTop:2 }}>{txDetalhe.data}</p>
+                <h3 style={{ fontSize:16, fontWeight:800, color:C.text }}>{txDetalhe.id?.substring(0,8).toUpperCase()}</h3>
+                <p style={{ fontSize:12, color:C.textMute, marginTop:2 }}>{fmtDt(txDetalhe.data)}</p>
               </div>
-              <Badge label={txDetalhe.estado.charAt(0).toUpperCase()+txDetalhe.estado.slice(1)} type={txDetalhe.estado==="concluido"?"success":txDetalhe.estado==="bloqueado"?"danger":"warning"} />
+              <Badge label={txDetalhe.estado} type={estadoCor[txDetalhe.estado]||"default"} />
             </div>
             {[
-              ["Tipo",       txDetalhe.tipo],
-              ["Valor",      `${txDetalhe.valor.toLocaleString("pt-MZ")} MZN`],
-              ["Remetente",  txDetalhe.de],
-              ["Destinatário",txDetalhe.para],
-              ["Gateway",    txDetalhe.gateway],
-              ["Data",       txDetalhe.data],
-              ["IP Registo", "197.220.xxx.xxx (Maputo)"],
-              ["Ref. interna","REF-"+txDetalhe.id],
+              ["Tipo",        txDetalhe.tipo],
+              ["Valor",       `${fmtN(txDetalhe.valor)} MZN`],
+              ["Utilizador",  txDetalhe.usuario?.nomeCompleto ?? "Sistema"],
+              ["Descrição",   txDetalhe.descricao],
+              ["Método",      txDetalhe.metodo ?? "—"],
             ].map(([k,v],i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
                 <span style={{ fontSize:12, color:C.textMute, fontWeight:500 }}>{k}</span>
                 <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{v}</span>
               </div>
             ))}
-            {txDetalhe.split && (
-              <div style={{ marginTop:16, background:C.bg, borderRadius:10, padding:14 }}>
-                <p style={{ fontSize:12, fontWeight:700, color:C.textSub, marginBottom:10 }}>Split automático</p>
-                {[
-                  ["Vendedor", txDetalhe.split.vendedor, C.blue],
-                  ["Plataforma", txDetalhe.split.plataforma, C.green],
-                  ["Afiliado", txDetalhe.split.afiliado, C.amber],
-                ].map(([k,v,cor],i) => (
-                  <div key={i} style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                    <span style={{ fontSize:12, color:C.textSub }}>{k}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:cor }}>{v.toLocaleString("pt-MZ")} MZN</span>
-                  </div>
-                ))}
-              </div>
-            )}
             <div style={{ marginTop:20, display:"flex", gap:8 }}>
               <Btn label="Fechar" variant="secondary" onClick={()=>setTxDetalhe(null)} />
-              {txDetalhe.estado === "pendente" && <Btn label="Aprovar" icon="check" variant="ghost" />}
-              {(txDetalhe.estado === "pendente" || txDetalhe.tipo === "Suspeito") && <Btn label="Bloquear" icon="ban" variant="danger" />}
               <Btn label="Exportar comprovativo" icon="download" variant="secondary" />
             </div>
           </div>
@@ -569,114 +564,150 @@ function SubTransacoes() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SUB 3 — SAQUES / CASHOUT
+// SUB 3 — SAQUES
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubSaques() {
-  const [saques, setSaques] = useState(SAQUES_MOCK);
-  const [filtro, setFiltro] = useState("todos");
-  const [modalOTP, setModalOTP] = useState(null);
-  const [otp, setOtp] = useState("");
+  const [filtro,    setFiltro]   = useState("todos");
+  const [pagina,    setPagina]   = useState(1);
+  const [modalOTP,  setModalOTP] = useState(null);
+  const [otp,       setOtp]      = useState("");
+  const [acaoId,    setAcaoId]   = useState(null);
+  const [feedback,  setFeedback] = useState(null); // { id, tipo: 'ok'|'erro', msg }
 
-  const lista = filtro === "todos" ? saques : saques.filter(s=>s.estado===filtro);
-  const totalPendente = saques.filter(s=>s.estado==="pendente").reduce((sum,s)=>sum+s.valor,0);
+  const params = new URLSearchParams({ pagina, ...(filtro !== "todos" && { estado: filtro.toUpperCase() }) }).toString();
+  const { dados, carregando, erro, recarregar } = useFetch(`/admin/saques-pendentes?${params}`);
 
-  const aprovar = (id) => {
-    setSaques(prev => prev.map(s => s.id===id ? {...s, estado:"aprovado"} : s));
-    setModalOTP(null);
-    setOtp("");
-  };
-  const rejeitar = (id) => setSaques(prev => prev.map(s => s.id===id ? {...s, estado:"rejeitado"} : s));
-  const pagar = (id) => setSaques(prev => prev.map(s => s.id===id ? {...s, estado:"pago"} : s));
+  const saques      = dados?.saques ?? [];
+  const total       = dados?.total  ?? 0;
+  const totalPags   = dados?.totalPaginas ?? 1;
+  const totalPend   = saques.filter(s=>s.estado==="SOLICITADO").reduce((sum,s)=>sum+Number(s.valor),0);
 
-  const estadoCor = { pendente:"warning", aprovado:"info", pago:"success", rejeitado:"danger" };
-  const riscoColor = (r) => r >= 70 ? C.red : r >= 40 ? C.amber : C.green;
+  const estadoCor = { SOLICITADO:"warning", APROVADO:"info", CONCLUIDO:"success", REJEITADO:"danger" };
+  const riscoColor = r => r>=70?C.red:r>=40?C.amber:C.green;
+
+  async function aprovar(id) {
+    setAcaoId(id);
+    try {
+      await api(`/admin/saques/${id}/aprovar`, { method:"PATCH" });
+      setFeedback({ id, tipo:"ok", msg:"Aprovado" });
+      recarregar();
+    } catch (e) {
+      setFeedback({ id, tipo:"erro", msg:e.message });
+    } finally {
+      setAcaoId(null); setModalOTP(null); setOtp("");
+    }
+  }
+
+  async function rejeitar(id) {
+    const motivo = prompt("Motivo de rejeição:");
+    if (!motivo) return;
+    setAcaoId(id);
+    try {
+      await api(`/admin/saques/${id}/rejeitar`, { method:"PATCH", body:JSON.stringify({ motivo }) });
+      setFeedback({ id, tipo:"ok", msg:"Rejeitado" });
+      recarregar();
+    } catch (e) {
+      setFeedback({ id, tipo:"erro", msg:e.message });
+    } finally {
+      setAcaoId(null);
+    }
+  }
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
-        <StatCard label="Pendentes"         value={saques.filter(s=>s.estado==="pendente").length} icon="clock"  color={C.amber} />
-        <StatCard label="Total Pendente"    value={`${(totalPendente/1000).toFixed(0)}k MZN`} icon="dollar" color={C.amber} />
-        <StatCard label="Pagos este mês"    value={saques.filter(s=>s.estado==="pago").length} icon="check"  color={C.green} />
-        <StatCard label="Rejeitados"        value={saques.filter(s=>s.estado==="rejeitado").length} icon="x"  color={C.red} />
+        <StatCard label="Pendentes"      value={saques.filter(s=>s.estado==="SOLICITADO").length} icon="clock"  color={C.amber} loading={carregando} />
+        <StatCard label="Total Pendente" value={`${fmtK(totalPend)} MZN`}                         icon="dollar" color={C.amber} loading={carregando} />
+        <StatCard label="Aprovados"      value={saques.filter(s=>s.estado==="APROVADO").length}   icon="check"  color={C.green} loading={carregando} />
+        <StatCard label="Rejeitados"     value={saques.filter(s=>s.estado==="REJEITADO").length}  icon="x"      color={C.red}   loading={carregando} />
       </div>
 
-      {/* Alerta saque grande pendente */}
-      {saques.some(s=>s.estado==="pendente"&&s.valor>=10000) && (
+      {saques.some(s=>s.estado==="SOLICITADO"&&Number(s.valor)>=10000) && (
         <div style={{ background:C.amberDim, border:`1.5px solid ${C.amber}30`, borderRadius:12, padding:14, display:"flex", alignItems:"center", gap:10 }}>
           <Icon name="alert-triangle" size={16} color={C.amber} />
-          <p style={{ fontSize:13, color:C.amber, fontWeight:600 }}>⚠️ Há saques de valor elevado (≥10 000 MZN) pendentes. Requerem aprovação dupla + OTP.</p>
+          <p style={{ fontSize:13, color:C.amber, fontWeight:600 }}>⚠️ Há saques ≥10 000 MZN pendentes. Requerem OTP.</p>
         </div>
       )}
 
-      {/* Filtro */}
+      {/* Filtros */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:14, display:"flex", gap:10, alignItems:"center" }}>
-        <Icon name="inbox" size={14} color={C.textMute} />
-        <span style={{ fontSize:13, color:C.textSub, fontWeight:500 }}>Filtrar:</span>
-        {[["todos","Todos"],["pendente","Pendentes"],["aprovado","Aprovados"],["pago","Pagos"],["rejeitado","Rejeitados"]].map(([v,l]) => (
-          <button key={v} onClick={()=>setFiltro(v)}
+        {[["todos","Todos"],["SOLICITADO","Pendentes"],["APROVADO","Aprovados"],["CONCLUIDO","Pagos"],["REJEITADO","Rejeitados"]].map(([v,l]) => (
+          <button key={v} onClick={()=>{setFiltro(v);setPagina(1);}}
             style={{ padding:"5px 14px", fontSize:12, fontWeight:600, borderRadius:7, border:"none", cursor:"pointer", background:filtro===v?C.green:"transparent", color:filtro===v?"#fff":C.textSub, fontFamily:"inherit" }}>
             {l}
           </button>
         ))}
-        <div style={{ marginLeft:"auto" }}>
-          <Btn label="Exportar" icon="download" size="sm" variant="secondary" />
-        </div>
       </div>
 
-      {/* Tabela de saques */}
+      {/* Tabela */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, overflow:"hidden" }}>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ borderBottom:`1.5px solid ${C.border}`, background:C.bg }}>
-                {["ID","Utilizador","Valor","Taxa (2%)","Líquido","Método","Solicitado","Risco","Estado","Ações"].map((c,i)=>(
-                  <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute, whiteSpace:"nowrap" }}>{c}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((s,i) => (
-                <tr key={s.id} style={{ borderBottom:`1px solid ${C.border}` }}
-                  onMouseEnter={e=>e.currentTarget.style.background=C.bg}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                  <td style={{ padding:"11px 14px", fontFamily:"monospace", fontSize:12, color:C.textSub }}>{s.id}</td>
-                  <td style={{ padding:"11px 14px", fontWeight:700, color:C.text }}>{s.nome}</td>
-                  <td style={{ padding:"11px 14px", fontWeight:800, color:C.text }}>{s.valor.toLocaleString("pt-MZ")} MZN</td>
-                  <td style={{ padding:"11px 14px", color:C.red, fontWeight:600 }}>−{s.taxa.toLocaleString("pt-MZ")}</td>
-                  <td style={{ padding:"11px 14px", fontWeight:800, color:C.green }}>{s.liquido.toLocaleString("pt-MZ")} MZN</td>
-                  <td style={{ padding:"11px 14px" }}><Badge label={s.metodo} type="default" /></td>
-                  <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12, whiteSpace:"nowrap" }}>{s.solicitado}</td>
-                  <td style={{ padding:"11px 14px" }}>
-                    <span style={{ fontSize:12, fontWeight:700, color:riscoColor(s.risco) }}>{s.risco >= 70 ? "🚨" : s.risco >= 40 ? "⚠️" : "✅"} {s.risco}</span>
-                  </td>
-                  <td style={{ padding:"11px 14px" }}><Badge label={s.estado.charAt(0).toUpperCase()+s.estado.slice(1)} type={estadoCor[s.estado]} /></td>
-                  <td style={{ padding:"11px 14px" }}>
-                    <div style={{ display:"flex", gap:4 }}>
-                      {s.estado === "pendente" && (
-                        <>
-                          <Btn label="Aprovar" icon="check" size="sm" variant="ghost" onClick={()=>s.valor>=10000?setModalOTP(s):aprovar(s.id)} />
-                          <Btn label="Rejeitar" icon="x" size="sm" variant="secondary" onClick={()=>rejeitar(s.id)} />
-                        </>
-                      )}
-                      {s.estado === "aprovado" && (
-                        <Btn label="Marcar pago" icon="check" size="sm" variant="primary" onClick={()=>pagar(s.id)} />
-                      )}
-                      {(s.estado === "pago" || s.estado === "rejeitado") && (
-                        <Btn label="Comprovativo" icon="file-text" size="sm" variant="secondary" />
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ padding:"10px 16px", borderTop:`1px solid ${C.border}`, fontSize:11, color:C.textMute }}>
-          Saque mínimo: 500 MZN · Taxa: 2% · OTP obrigatório para saques ≥10 000 MZN · Processamento em 1-3 dias úteis
+        {carregando
+          ? <div style={{ padding:40, textAlign:"center", color:C.textMute }}>A carregar saques...</div>
+          : erro
+            ? <ErroBloco mensagem={erro} onRetry={recarregar} />
+            : (
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                  <thead>
+                    <tr style={{ borderBottom:`1.5px solid ${C.border}`, background:C.bg }}>
+                      {["ID","Utilizador","Valor","Taxa","Líquido","Método","Solicitado","Estado","Ações"].map((c,i)=>(
+                        <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute, whiteSpace:"nowrap" }}>{c}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {saques.map((s, i) => (
+                      <tr key={s.id} style={{ borderBottom:`1px solid ${C.border}` }}
+                        onMouseEnter={e=>e.currentTarget.style.background=C.bg}
+                        onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                        <td style={{ padding:"11px 14px", fontFamily:"monospace", fontSize:12, color:C.textSub }}>{s.id?.substring(0,8)}</td>
+                        <td style={{ padding:"11px 14px", fontWeight:700, color:C.text }}>{s.usuario?.nomeCompleto ?? "—"}</td>
+                        <td style={{ padding:"11px 14px", fontWeight:800, color:C.text }}>{fmtN(s.valor)} MZN</td>
+                        <td style={{ padding:"11px 14px", color:C.red, fontWeight:600 }}>−{fmtN(s.taxa)}</td>
+                        <td style={{ padding:"11px 14px", fontWeight:800, color:C.green }}>{fmtN(s.valorLiquido)} MZN</td>
+                        <td style={{ padding:"11px 14px" }}><Badge label={s.metodoPagamento} type="default" /></td>
+                        <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12, whiteSpace:"nowrap" }}>{fmtDt(s.criadoEm)}</td>
+                        <td style={{ padding:"11px 14px" }}>
+                          {feedback?.id===s.id
+                            ? <Badge label={feedback.msg} type={feedback.tipo==="ok"?"success":"danger"} />
+                            : <Badge label={s.estado} type={estadoCor[s.estado]||"default"} />
+                          }
+                        </td>
+                        <td style={{ padding:"11px 14px" }}>
+                          <div style={{ display:"flex", gap:4 }}>
+                            {s.estado === "SOLICITADO" && (
+                              <>
+                                <Btn label="Aprovar" icon="check" size="sm" variant="ghost"
+                                  loading={acaoId===s.id}
+                                  onClick={()=>Number(s.valor)>=10000?setModalOTP(s):aprovar(s.id)} />
+                                <Btn label="Rejeitar" icon="x" size="sm" variant="secondary"
+                                  loading={acaoId===s.id}
+                                  onClick={()=>rejeitar(s.id)} />
+                              </>
+                            )}
+                            {(s.estado==="CONCLUIDO"||s.estado==="REJEITADO") && (
+                              <Btn label="Comprovativo" icon="file-text" size="sm" variant="secondary" />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+        }
+        <div style={{ padding:"10px 16px", borderTop:`1px solid ${C.border}`, fontSize:11, color:C.textMute, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <span>Saque mínimo: 500 MZN · Taxa: 2% · OTP obrigatório ≥10 000 MZN</span>
+          <div style={{ display:"flex", gap:8 }}>
+            <Btn label="←" size="sm" variant="secondary" disabled={pagina<=1} onClick={()=>setPagina(p=>p-1)} />
+            <span style={{ fontSize:12, color:C.textMute }}>{pagina}/{totalPags}</span>
+            <Btn label="→" size="sm" variant="secondary" disabled={pagina>=totalPags} onClick={()=>setPagina(p=>p+1)} />
+          </div>
         </div>
       </div>
 
-      {/* Modal OTP aprovação */}
+      {/* Modal OTP */}
       <Modal open={!!modalOTP} onClose={()=>setModalOTP(null)} width={400}>
         {modalOTP && (
           <div style={{ padding:24 }}>
@@ -685,20 +716,19 @@ function SubSaques() {
             </div>
             <h3 style={{ fontSize:16, fontWeight:800, color:C.text, marginBottom:4 }}>Aprovação com OTP</h3>
             <p style={{ fontSize:13, color:C.textSub, marginBottom:20 }}>
-              Saque de <strong>{modalOTP.valor.toLocaleString("pt-MZ")} MZN</strong> para <strong>{modalOTP.nome}</strong> requer verificação.<br/>
-              Código enviado para o email do administrador.
+              Saque de <strong>{fmtN(modalOTP.valor)} MZN</strong> para <strong>{modalOTP.usuario?.nomeCompleto}</strong>.
+              Código enviado para o seu email.
             </p>
             <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:11, fontWeight:700, color:C.textMute, textTransform:"uppercase", display:"block", marginBottom:6 }}>Código OTP (6 dígitos)</label>
               <input type="text" maxLength={6} value={otp} onChange={e=>setOtp(e.target.value.replace(/\D/g,""))} placeholder="000000"
                 style={{ width:"100%", padding:"12px 14px", fontSize:22, fontWeight:800, letterSpacing:"0.3em", textAlign:"center", border:`2px solid ${otp.length===6?C.green:C.border}`, borderRadius:8, fontFamily:"monospace", color:C.text, outline:"none", boxSizing:"border-box" }} />
             </div>
             <div style={{ padding:"10px 12px", background:C.amberDim, borderRadius:8, fontSize:12, color:C.amber, fontWeight:500, marginBottom:20 }}>
-              🔐 Esta ação ficará registada no log de auditoria com timestamp e IP.
+              🔐 Registado no log de auditoria com timestamp e IP.
             </div>
             <div style={{ display:"flex", gap:8 }}>
               <Btn label="Cancelar" variant="secondary" onClick={()=>setModalOTP(null)} />
-              <Btn label="Confirmar aprovação" variant="primary" disabled={otp.length!==6} onClick={()=>aprovar(modalOTP.id)} />
+              <Btn label="Confirmar" variant="primary" disabled={otp.length!==6} loading={!!acaoId} onClick={()=>aprovar(modalOTP.id)} />
             </div>
           </div>
         )}
@@ -711,45 +741,73 @@ function SubSaques() {
 // SUB 4 — CARTEIRAS
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubCarteiras() {
-  const [carteiras, setCarteiras] = useState(CARTEIRAS_MOCK);
+  const [busca,         setBusca]         = useState("");
+  const [pagina,        setPagina]        = useState(1);
   const [modalBloquear, setModalBloquear] = useState(null);
-  const [busca, setBusca] = useState("");
+  const [acaoId,        setAcaoId]        = useState(null);
 
-  const lista = carteiras.filter(c => c.nome.toLowerCase().includes(busca.toLowerCase()));
-  const totalPlataforma = carteiras.find(c=>c.tipo==="Sistema")?.disponivel || 0;
-  const totalUsuarios = carteiras.filter(c=>c.tipo!=="Sistema").reduce((s,c)=>s+c.disponivel+c.pendente,0);
+  const params = new URLSearchParams({ pagina, ...(busca && { busca }) }).toString();
+  const { dados, carregando, erro, recarregar } = useFetch(`/admin/financeiro/carteiras?${params}`);
 
-  const bloquear = (id) => {
-    setCarteiras(prev => prev.map(c => c.id===id ? {...c, estado:"bloqueado", bloqueado:c.disponivel+c.pendente, disponivel:0, pendente:0} : c));
-    setModalBloquear(null);
-  };
-  const desbloquear = (id) => setCarteiras(prev => prev.map(c => c.id===id ? {...c, estado:"ativo"} : c));
+  const carteiras   = dados?.carteiras ?? [];
+  const total       = dados?.total     ?? 0;
+  const totalPags   = dados?.totalPaginas ?? 1;
 
-  const tipoCor = { Afiliado:C.purple, Vendedor:C.blue, Sistema:C.green };
+  const totalPlat  = carteiras.find(c=>c.usuario?.nomeCompleto==="Plataforma")?.saldoDisponivel ?? 0;
+  const totalUsers = carteiras.filter(c=>c.usuario?.nomeCompleto!=="Plataforma")
+    .reduce((s,c)=>s+Number(c.saldoDisponivel)+Number(c.saldoPendente),0);
+  const totalBloq  = carteiras.reduce((s,c)=>s+Number(c.saldoBloqueado),0);
+
+  async function bloquear(usuarioId) {
+    setAcaoId(usuarioId);
+    try {
+      await api(`/admin/utilizadores/${usuarioId}/bloquear`, { method:"PATCH", body:JSON.stringify({ motivo:"Bloqueio manual via painel financeiro" }) });
+      recarregar();
+    } catch (e) {
+      alert("Erro: " + e.message);
+    } finally {
+      setAcaoId(null); setModalBloquear(null);
+    }
+  }
+
+  async function desbloquear(usuarioId) {
+    setAcaoId(usuarioId);
+    try {
+      await api(`/admin/utilizadores/${usuarioId}/desbloquear`, { method:"PATCH" });
+      recarregar();
+    } catch (e) {
+      alert("Erro: " + e.message);
+    } finally {
+      setAcaoId(null);
+    }
+  }
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
-        <StatCard label="Total Carteiras"         value={carteiras.length}                        icon="wallet"       color={C.blue} />
-        <StatCard label="Saldo Plataforma (MZN)"  value={`${(totalPlataforma/1000).toFixed(0)}k`} icon="credit-card"  color={C.green} />
-        <StatCard label="Saldo Usuários (MZN)"    value={`${(totalUsuarios/1000).toFixed(0)}k`}   icon="users"        color={C.blue} />
-        <StatCard label="Bloqueadas"               value={carteiras.filter(c=>c.estado==="bloqueado").length} icon="ban" color={C.red} />
+        <StatCard label="Total Carteiras"        value={total}                       icon="wallet"      color={C.blue}  loading={carregando} />
+        <StatCard label="Saldo Plataforma (MZN)" value={fmtK(totalPlat)}             icon="credit-card" color={C.green} loading={carregando} />
+        <StatCard label="Saldo Utilizadores"     value={fmtK(totalUsers)}            icon="users"       color={C.blue}  loading={carregando} />
+        <StatCard label="Fundos Bloqueados"      value={fmtK(totalBloq)}             icon="ban"         color={C.red}   loading={carregando} />
       </div>
 
-      {/* Separação plataforma vs utilizadores */}
+      {/* Separação financeira */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
         <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>🔒 Separação Financeira (Ledger)</h3>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
           {[
-            { label:"Dinheiro da Plataforma",  valor:totalPlataforma, note:"Receita própria", color:C.green, icon:"zap" },
-            { label:"Dinheiro dos Utilizadores",valor:totalUsuarios,  note:"Fundos de terceiros", color:C.blue, icon:"users" },
-            { label:"Fundos Bloqueados",        valor:carteiras.reduce((s,c)=>s+c.bloqueado,0), note:"Em investigação", color:C.red, icon:"lock" },
+            { label:"Dinheiro da Plataforma",   valor:totalPlat,  note:"Receita própria",       color:C.green, icon:"zap"   },
+            { label:"Dinheiro dos Utilizadores", valor:totalUsers, note:"Fundos de terceiros",   color:C.blue,  icon:"users" },
+            { label:"Fundos Bloqueados",          valor:totalBloq,  note:"Em investigação",       color:C.red,   icon:"lock"  },
           ].map((k,i) => (
             <div key={i} style={{ background:k.color+"0f", border:`1.5px solid ${k.color}20`, borderRadius:12, padding:16, textAlign:"center" }}>
               <div style={{ width:36, height:36, borderRadius:10, background:k.color+"18", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px" }}>
                 <Icon name={k.icon} size={16} color={k.color} />
               </div>
-              <p style={{ fontSize:20, fontWeight:800, color:k.color }}>{k.valor.toLocaleString("pt-MZ")} MZN</p>
+              {carregando
+                ? <div style={{ height:28, width:80, background:k.color+"30", borderRadius:6, margin:"0 auto" }} />
+                : <p style={{ fontSize:20, fontWeight:800, color:k.color }}>{fmtN(k.valor)} MZN</p>
+              }
               <p style={{ fontSize:12, fontWeight:600, color:C.text, marginTop:4 }}>{k.label}</p>
               <p style={{ fontSize:11, color:C.textMute }}>{k.note}</p>
             </div>
@@ -757,63 +815,74 @@ function SubCarteiras() {
         </div>
       </div>
 
-      {/* Filtro pesquisa */}
+      {/* Filtro */}
       <div style={{ display:"flex", gap:10, alignItems:"center" }}>
         <div style={{ position:"relative", flex:1 }}>
           <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)" }}><Icon name="search" size={14} color={C.textMute} /></span>
-          <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar carteira por nome..."
+          <input value={busca} onChange={e=>{setBusca(e.target.value);setPagina(1);}} placeholder="Pesquisar por nome..."
             style={{ width:"100%", padding:"8px 12px 8px 32px", fontSize:13, border:`1.5px solid ${C.border}`, borderRadius:8, fontFamily:"inherit", color:C.text, background:C.card, outline:"none", boxSizing:"border-box" }} />
         </div>
         <Btn label="Exportar" icon="download" variant="secondary" size="sm" />
       </div>
 
-      {/* Tabela de carteiras */}
+      {/* Tabela */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, overflow:"hidden" }}>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ borderBottom:`1.5px solid ${C.border}`, background:C.bg }}>
-                {["Utilizador","Tipo","Disponível","Pendente","Bloqueado","Método","Última Mov.","Estado","Ações"].map((c,i) => (
-                  <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute, whiteSpace:"nowrap" }}>{c}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((c,i) => (
-                <tr key={c.id} style={{ borderBottom:`1px solid ${C.border}`, background:c.estado==="bloqueado"?C.redDim+"80":"transparent" }}
-                  onMouseEnter={e=>{ if(c.estado!=="bloqueado") e.currentTarget.style.background=C.bg }}
-                  onMouseLeave={e=>{ e.currentTarget.style.background=c.estado==="bloqueado"?C.redDim+"80":"transparent" }}>
-                  <td style={{ padding:"11px 14px", fontWeight:700, color:C.text }}>{c.nome}</td>
-                  <td style={{ padding:"11px 14px" }}>
-                    <span style={{ fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background:(tipoCor[c.tipo]||C.textMute)+"18", color:tipoCor[c.tipo]||C.textMute }}>
-                      {c.tipo}
-                    </span>
-                  </td>
-                  <td style={{ padding:"11px 14px", fontWeight:800, color:C.green }}>{c.disponivel.toLocaleString("pt-MZ")} MZN</td>
-                  <td style={{ padding:"11px 14px", fontWeight:600, color:C.amber }}>{c.pendente.toLocaleString("pt-MZ")} MZN</td>
-                  <td style={{ padding:"11px 14px", fontWeight:600, color:c.bloqueado>0?C.red:C.textMute }}>
-                    {c.bloqueado > 0 ? `${c.bloqueado.toLocaleString("pt-MZ")} MZN` : "—"}
-                  </td>
-                  <td style={{ padding:"11px 14px" }}><Badge label={c.metodo} type="default" /></td>
-                  <td style={{ padding:"11px 14px", color:C.textSub, fontSize:12 }}>{c.ultimaMov}</td>
-                  <td style={{ padding:"11px 14px" }}>
-                    <Badge label={c.estado === "ativo" ? "Ativo" : "Bloqueado"} type={c.estado === "ativo" ? "success" : "danger"} />
-                  </td>
-                  <td style={{ padding:"11px 14px" }}>
-                    {c.tipo !== "Sistema" && (
-                      c.estado === "ativo"
-                        ? <Btn label="Bloquear" icon="lock" size="sm" variant="danger" onClick={()=>setModalBloquear(c)} />
-                        : <Btn label="Desbloquear" icon="unlock" size="sm" variant="secondary" onClick={()=>desbloquear(c.id)} />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {carregando
+          ? <div style={{ padding:40, textAlign:"center", color:C.textMute }}>A carregar carteiras...</div>
+          : erro
+            ? <ErroBloco mensagem={erro} onRetry={recarregar} />
+            : (
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                  <thead>
+                    <tr style={{ borderBottom:`1.5px solid ${C.border}`, background:C.bg }}>
+                      {["Utilizador","Disponível","Pendente","Bloqueado","Total Ganho","Estado","Ações"].map((c,i)=>(
+                        <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute, whiteSpace:"nowrap" }}>{c}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {carteiras.map((c, i) => {
+                      const bloqueada = c.usuario?.estadoConta === "BLOQUEADA";
+                      return (
+                        <tr key={c.id} style={{ borderBottom:`1px solid ${C.border}`, background:bloqueada?C.redDim+"80":"transparent" }}
+                          onMouseEnter={e=>{ if(!bloqueada) e.currentTarget.style.background=C.bg }}
+                          onMouseLeave={e=>{ e.currentTarget.style.background=bloqueada?C.redDim+"80":"transparent" }}>
+                          <td style={{ padding:"11px 14px" }}>
+                            <p style={{ fontSize:13, fontWeight:700, color:C.text }}>{c.usuario?.nomeCompleto ?? "—"}</p>
+                            <p style={{ fontSize:11, color:C.textMute }}>{c.usuario?.email}</p>
+                          </td>
+                          <td style={{ padding:"11px 14px", fontWeight:800, color:C.green }}>{fmtN(c.saldoDisponivel)} MZN</td>
+                          <td style={{ padding:"11px 14px", fontWeight:600, color:C.amber }}>{fmtN(c.saldoPendente)} MZN</td>
+                          <td style={{ padding:"11px 14px", fontWeight:600, color:Number(c.saldoBloqueado)>0?C.red:C.textMute }}>
+                            {Number(c.saldoBloqueado)>0?`${fmtN(c.saldoBloqueado)} MZN`:"—"}
+                          </td>
+                          <td style={{ padding:"11px 14px", color:C.textSub }}>{fmtN(Number(c.totalGanhoVendas)+Number(c.totalGanhoAfiliados))} MZN</td>
+                          <td style={{ padding:"11px 14px" }}>
+                            <Badge label={bloqueada?"Bloqueada":"Activa"} type={bloqueada?"danger":"success"} />
+                          </td>
+                          <td style={{ padding:"11px 14px" }}>
+                            {bloqueada
+                              ? <Btn label="Desbloquear" icon="unlock" size="sm" variant="secondary" loading={acaoId===c.usuario?.id} onClick={()=>desbloquear(c.usuario?.id)} />
+                              : <Btn label="Bloquear" icon="lock" size="sm" variant="danger" loading={acaoId===c.usuario?.id} onClick={()=>setModalBloquear(c)} />
+                            }
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )
+        }
+        <div style={{ padding:"10px 16px", borderTop:`1px solid ${C.border}`, display:"flex", justifyContent:"flex-end", gap:8, alignItems:"center" }}>
+          <Btn label="←" size="sm" variant="secondary" disabled={pagina<=1} onClick={()=>setPagina(p=>p-1)} />
+          <span style={{ fontSize:12, color:C.textMute }}>{pagina}/{totalPags}</span>
+          <Btn label="→" size="sm" variant="secondary" disabled={pagina>=totalPags} onClick={()=>setPagina(p=>p+1)} />
         </div>
       </div>
 
-      {/* Modal bloquear carteira */}
+      {/* Modal bloquear */}
       <Modal open={!!modalBloquear} onClose={()=>setModalBloquear(null)} width={400}>
         {modalBloquear && (
           <div style={{ padding:24 }}>
@@ -822,12 +891,13 @@ function SubCarteiras() {
             </div>
             <h3 style={{ fontSize:16, fontWeight:800, color:C.text, marginBottom:6 }}>Bloquear carteira?</h3>
             <p style={{ fontSize:13, color:C.textSub, marginBottom:4 }}>
-              A carteira de <strong>{modalBloquear.nome}</strong> será bloqueada. Todo o saldo ({(modalBloquear.disponivel+modalBloquear.pendente).toLocaleString("pt-MZ")} MZN) fica congelado.
+              A conta de <strong>{modalBloquear.usuario?.nomeCompleto}</strong> será bloqueada.
+              Saldo disponível: <strong>{fmtN(modalBloquear.saldoDisponivel)} MZN</strong>.
             </p>
-            <p style={{ fontSize:12, color:C.red, fontWeight:600, marginBottom:20 }}>Ação registada no log de auditoria com timestamp, IP e admin responsável.</p>
+            <p style={{ fontSize:12, color:C.red, fontWeight:600, marginBottom:20 }}>Registado no log de auditoria.</p>
             <div style={{ display:"flex", gap:8 }}>
               <Btn label="Cancelar" variant="secondary" onClick={()=>setModalBloquear(null)} />
-              <Btn label="Bloquear carteira" icon="lock" variant="danger" onClick={()=>bloquear(modalBloquear.id)} />
+              <Btn label="Bloquear" icon="lock" variant="danger" loading={!!acaoId} onClick={()=>bloquear(modalBloquear.usuario?.id)} />
             </div>
           </div>
         )}
@@ -837,129 +907,142 @@ function SubCarteiras() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SUB 5 — RELATÓRIOS
+// SUB 5 — RELATÓRIOS (dados reais do endpoint financeiro)
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubRelatorios() {
-  const [periodo, setPeriodo] = useState("mensal");
-  const [gerandoPDF, setGerandoPDF] = useState(false);
-  const [relatorioGerado, setRelatorioGerado] = useState(false);
+  const [periodo,        setPeriodo]   = useState("mensal");
+  const [gerandoPDF,     setGerando]   = useState(false);
+  const [relatorioGerado,setGerado]    = useState(false);
 
-  const gerarRelatorio = () => {
-    setGerandoPDF(true);
-    setTimeout(() => { setGerandoPDF(false); setRelatorioGerado(true); }, 2000);
-  };
+  const hoje     = new Date();
+  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split("T")[0];
+  const fimMes    = hoje.toISOString().split("T")[0];
+
+  const { dados: rel, carregando, erro, recarregar } = useFetch(
+    `/admin/financeiro/relatorio?dataInicio=${inicioMes}&dataFim=${fimMes}`
+  );
+
+  const gmv       = rel?.gmv              ?? 0;
+  const receita   = rel?.receitaPlataforma ?? 0;
+  const comissoes = rel?.totalComissoesPagas ?? 0;
+  const saques    = rel?.totalSaquesProcessados ?? 0;
 
   const METRICAS = [
-    { label:"GMV (Volume Total)",      valor:"6.200.000",  unidade:"MZN", trend:22.3,  icon:"trending-up", color:C.green },
-    { label:"Receita Líquida",         valor:"2.400.000",  unidade:"MZN", trend:18.7,  icon:"dollar",      color:C.green },
-    { label:"Lucro Operacional",       valor:"1.920.000",  unidade:"MZN", trend:14.2,  icon:"bar-chart",   color:C.blue },
-    { label:"Comissões Afiliados",     valor:"148.000",    unidade:"MZN", trend:-2.1,  icon:"link",        color:C.amber },
-    { label:"Taxa de Reembolso",       valor:"2.4",        unidade:"%",   trend:-0.3,  icon:"refresh-cw",  color:C.purple },
-    { label:"Ticket Médio",            valor:"1.240",      unidade:"MZN", trend:5.8,   icon:"activity",    color:C.blue },
+    { label:"GMV (Volume Total)",     valor:fmtK(gmv),       unidade:"MZN", icon:"trending-up", color:C.green },
+    { label:"Receita Plataforma",     valor:fmtK(receita),   unidade:"MZN", icon:"dollar",      color:C.green },
+    { label:"Comissões Afiliados",    valor:fmtK(comissoes), unidade:"MZN", icon:"link",        color:C.amber },
+    { label:"Saques Processados",     valor:fmtK(saques),    unidade:"MZN", icon:"inbox",       color:C.blue  },
+    { label:"Taxa Reembolso",         valor:"—",             unidade:"%",   icon:"refresh-cw",  color:C.purple },
+    { label:"Ticket Médio",           valor:"—",             unidade:"MZN", icon:"activity",    color:C.blue  },
   ];
 
+  const pedidosEstados = rel?.pedidosPorEstado ?? [];
+
+  const gerarRelatorio = () => {
+    setGerando(true);
+    setTimeout(() => { setGerando(false); setGerado(true); }, 2000);
+  };
+
   const RELATORIOS_AUTO = [
-    { nome:"Relatório Diário — 18 Abr", tamanho:"234 KB", gerado:"Hoje 00:01", tipo:"PDF" },
-    { nome:"Relatório Mensal — Abr 2025", tamanho:"1.2 MB", gerado:"1 Abr 00:01", tipo:"PDF" },
-    { nome:"Exportação Excel — Abr 2025", tamanho:"892 KB", gerado:"1 Abr 00:05", tipo:"XLSX" },
-    { nome:"Relatório Fiscal AT — Q1 2025", tamanho:"2.1 MB", gerado:"1 Abr 08:00", tipo:"PDF" },
+    { nome:`Relatório Diário — ${hoje.toLocaleDateString("pt-MZ")}`, tamanho:"—", gerado:"Hoje 00:01", tipo:"PDF" },
+    { nome:`Relatório Mensal — ${hoje.toLocaleString("pt-MZ",{month:"long",year:"numeric"})}`, tamanho:"—", gerado:`1 ${hoje.toLocaleString("pt-MZ",{month:"short"})} 00:01`, tipo:"PDF" },
   ];
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-      {/* Métricas do período */}
+      {/* Métricas */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
           <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📊 Métricas do Período</h3>
           <div style={{ display:"flex", gap:4, background:"#f1f5f9", padding:3, borderRadius:10 }}>
             {[["diario","Diário"],["mensal","Mensal"],["anual","Anual"]].map(([v,l]) => (
               <button key={v} onClick={()=>setPeriodo(v)}
-                style={{ padding:"5px 14px", fontSize:12, fontWeight:600, borderRadius:8, border:"none", cursor:"pointer", background:periodo===v?C.card:"transparent", color:periodo===v?C.text:C.textSub, fontFamily:"inherit", boxShadow:periodo===v?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
+                style={{ padding:"5px 14px", fontSize:12, fontWeight:600, borderRadius:8, border:"none", cursor:"pointer", background:periodo===v?C.card:"transparent", color:periodo===v?C.text:C.textSub, fontFamily:"inherit" }}>
                 {l}
               </button>
             ))}
           </div>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
-          {METRICAS.map((m,i) => (
-            <div key={i} style={{ background:C.bg, borderRadius:10, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <div>
-                <p style={{ fontSize:11, color:C.textMute, fontWeight:500, marginBottom:4 }}>{m.label}</p>
-                <p style={{ fontSize:18, fontWeight:800, color:C.text }}>{m.valor} <span style={{ fontSize:12, fontWeight:500, color:C.textSub }}>{m.unidade}</span></p>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
-                <div style={{ width:32, height:32, borderRadius:8, background:m.color+"18", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <Icon name={m.icon} size={14} color={m.color} />
+        {erro
+          ? <ErroBloco mensagem={erro} onRetry={recarregar} />
+          : <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+              {METRICAS.map((m,i) => (
+                <div key={i} style={{ background:C.bg, borderRadius:10, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div>
+                    <p style={{ fontSize:11, color:C.textMute, fontWeight:500, marginBottom:4 }}>{m.label}</p>
+                    {carregando
+                      ? <div style={{ height:24, width:80, background:C.border, borderRadius:4 }} />
+                      : <p style={{ fontSize:18, fontWeight:800, color:C.text }}>{m.valor} <span style={{ fontSize:12, fontWeight:500, color:C.textSub }}>{m.unidade}</span></p>
+                    }
+                  </div>
+                  <div style={{ width:32, height:32, borderRadius:8, background:m.color+"18", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <Icon name={m.icon} size={14} color={m.color} />
+                  </div>
                 </div>
-                <span style={{ fontSize:11, fontWeight:700, color:m.trend>0?C.green:C.red }}>
-                  {m.trend>0?"+":""}{m.trend}%
-                </span>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+        }
       </div>
 
-      {/* Vendas por categoria */}
+      {/* Pedidos por estado + Gerar relatório */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
         <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
-          <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>🏷️ Vendas por Categoria</h3>
-          {[
-            { nome:"Eletrónicos",  valor:2100000, pct:34 },
-            { nome:"Moda",         valor:1550000, pct:25 },
-            { nome:"Casa & Deco",  valor:930000,  pct:15 },
-            { nome:"Serviços",     valor:744000,  pct:12 },
-            { nome:"Outros",       valor:876000,  pct:14 },
-          ].map((c,i) => (
-            <div key={i} style={{ marginBottom:12 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{c.nome}</span>
-                <span style={{ fontSize:12, fontWeight:700, color:C.green }}>{(c.valor/1000000).toFixed(1)}M MZN</span>
-              </div>
-              <div style={{ height:6, background:C.border, borderRadius:99 }}>
-                <div style={{ height:"100%", width:`${c.pct}%`, background:[C.blue,C.green,C.amber,C.purple,C.textMute][i], borderRadius:99 }} />
-              </div>
-              <p style={{ fontSize:10, color:C.textMute, marginTop:2 }}>{c.pct}% do total</p>
-            </div>
-          ))}
+          <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>📦 Pedidos por Estado</h3>
+          {carregando
+            ? <div style={{ height:120, background:C.bg, borderRadius:8 }} />
+            : pedidosEstados.map((p, i) => {
+                const cores = { ENTREGUE:C.green, ENVIADO:C.blue, PAGO:C.amber, CANCELADO:C.red, EM_DISPUTA:C.red, AGUARDANDO_PAGAMENTO:C.textMute };
+                const total = pedidosEstados.reduce((s,x)=>s+(x._count?.estado||0),0) || 1;
+                const cnt   = p._count?.estado ?? 0;
+                const pct   = Math.round((cnt/total)*100);
+                const cor   = cores[p.estado] ?? C.textMute;
+                return (
+                  <div key={i} style={{ marginBottom:12 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                      <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{p.estado}</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:cor }}>{fmtN(cnt)}</span>
+                    </div>
+                    <div style={{ height:6, background:C.border, borderRadius:99 }}>
+                      <div style={{ height:"100%", width:`${pct}%`, background:cor, borderRadius:99 }} />
+                    </div>
+                    <p style={{ fontSize:10, color:C.textMute, marginTop:2 }}>{pct}% do total</p>
+                  </div>
+                );
+              })
+          }
         </div>
 
         {/* Gerar relatório */}
         <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
           <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>📄 Gerar Relatório</h3>
-
           <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:16 }}>
             {[
-              { label:"Tipo de relatório", options:["Diário","Semanal","Mensal","Anual","Fiscal (AT)"] },
-              { label:"Formato de exportação", options:["PDF","Excel (XLSX)","Ambos"] },
-              { label:"Período", options:["Abril 2025","Março 2025","Q1 2025","2024 Completo"] },
+              { label:"Tipo", options:["Diário","Semanal","Mensal","Anual","Fiscal (AT)"] },
+              { label:"Formato", options:["PDF","Excel (XLSX)","Ambos"] },
             ].map((f,i) => (
               <div key={i}>
-                <label style={{ fontSize:11, fontWeight:600, color:C.textMute, textTransform:"uppercase", letterSpacing:"0.05em", display:"block", marginBottom:4 }}>{f.label}</label>
+                <label style={{ fontSize:11, fontWeight:600, color:C.textMute, textTransform:"uppercase", display:"block", marginBottom:4 }}>{f.label}</label>
                 <select style={{ width:"100%", padding:"8px 10px", fontSize:13, border:`1.5px solid ${C.border}`, borderRadius:8, fontFamily:"inherit", color:C.text, background:C.bg }}>
                   {f.options.map(o=><option key={o}>{o}</option>)}
                 </select>
               </div>
             ))}
           </div>
-
-          <Btn label={gerandoPDF?"A gerar...":"Gerar Relatório"} icon={gerandoPDF?"clock":"file-text"} variant="primary" disabled={gerandoPDF} onClick={gerarRelatorio} />
-
+          <Btn label={gerandoPDF?"A gerar...":"Gerar Relatório"} icon={gerandoPDF?"clock":"file-text"} variant="primary" loading={gerandoPDF} onClick={gerarRelatorio} />
           {relatorioGerado && (
             <div style={{ marginTop:12, padding:"10px 14px", background:C.greenDim, borderRadius:8, display:"flex", alignItems:"center", gap:8 }}>
               <Icon name="check" size={14} color={C.green} />
-              <span style={{ fontSize:12, color:C.green, fontWeight:600 }}>Relatório gerado com sucesso!</span>
-              <Btn label="Download" icon="download" size="sm" variant="ghost" onClick={()=>setRelatorioGerado(false)} />
+              <span style={{ fontSize:12, color:C.green, fontWeight:600 }}>Relatório gerado!</span>
+              <Btn label="Download" icon="download" size="sm" variant="ghost" onClick={()=>setGerado(false)} />
             </div>
           )}
-
           <div style={{ marginTop:20, borderTop:`1px solid ${C.border}`, paddingTop:16 }}>
             <h3 style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:10 }}>📁 Relatórios Automáticos</h3>
             {RELATORIOS_AUTO.map((r,i) => (
-              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:i<3?`1px solid ${C.border}`:"none" }}>
+              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:i<1?`1px solid ${C.border}`:"none" }}>
                 <div>
                   <p style={{ fontSize:12, fontWeight:600, color:C.text }}>{r.nome}</p>
-                  <p style={{ fontSize:11, color:C.textMute }}>{r.tamanho} · {r.gerado}</p>
+                  <p style={{ fontSize:11, color:C.textMute }}>{r.gerado}</p>
                 </div>
                 <div style={{ display:"flex", gap:6, alignItems:"center" }}>
                   <Badge label={r.tipo} type={r.tipo==="PDF"?"danger":"success"} />
@@ -975,15 +1058,15 @@ function SubRelatorios() {
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
           <Icon name="shield" size={15} color={C.blue} />
-          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>🇲🇿 Conformidade Legal — Autoridade Tributária</h3>
+          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>🇲🇿 Conformidade — Autoridade Tributária</h3>
           <Badge label="Moçambique" type="info" />
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
           {[
-            { label:"IVA cobrado",           valor:"336 000 MZN", estado:"OK", note:"17% aplicado" },
-            { label:"IRPS retido na fonte",  valor:"48 000 MZN",  estado:"OK", note:"20% prestadores" },
-            { label:"Relatório fiscal Q1",   valor:"Gerado",      estado:"OK", note:"Submetido AT" },
-            { label:"Próxima submissão AT",  valor:"30 Jun 2025", estado:"PENDENTE", note:"Q2 2025" },
+            { label:"IVA cobrado",          valor:"17% aplicado",  estado:"OK",      note:"Calculado automaticamente" },
+            { label:"IRPS retido",          valor:"20% prestadores",estado:"OK",     note:"Retido na fonte" },
+            { label:"Relatório fiscal",     valor:"Disponível",    estado:"OK",      note:"Via painel de relatórios" },
+            { label:"Próxima submissão AT", valor:"Verificar",     estado:"PENDENTE",note:"Consulte o calendário fiscal" },
           ].map((k,i) => (
             <div key={i} style={{ background:C.bg, borderRadius:10, padding:"12px 14px" }}>
               <p style={{ fontSize:12, fontWeight:700, color:k.estado==="OK"?C.green:C.amber }}>{k.valor}</p>
@@ -1001,14 +1084,29 @@ function SubRelatorios() {
 // SUB 6 — CONFIGURAÇÃO
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubConfig() {
-  const [taxas, setTaxas] = useState({ produto:10, servico:8, saque:2, minSaque:500, liberacao:3 });
-  const [modalOTP, setModalOTP] = useState(false);
-  const [campoEditando, setCampoEditando] = useState(null);
-  const [otpCode, setOtpCode] = useState("");
-  const [salvo, setSalvo] = useState(null);
+  const [taxas,         setTaxas]      = useState({ produto:10.5, servico:15, saque:2, minSaque:500, liberacao:3 });
+  const [modalOTP,      setModalOTP]   = useState(false);
+  const [campoEdit,     setCampoEdit]  = useState(null);
+  const [otpCode,       setOtpCode]    = useState("");
+  const [salvo,         setSalvo]      = useState(null);
+  const [salvando,      setSalvando]   = useState(false);
 
-  const pedirOTP = (campo) => { setCampoEditando(campo); setModalOTP(true); setOtpCode(""); };
-  const confirmarOTP = () => { setSalvo(campoEditando); setModalOTP(false); setTimeout(()=>setSalvo(null),3000); };
+  const pedirOTP = (campo) => { setCampoEdit(campo); setModalOTP(true); setOtpCode(""); };
+
+  async function confirmarOTP() {
+    setSalvando(true);
+    try {
+      // Endpoint real de configuração de taxas (a implementar)
+      // await api("/admin/config/taxas", { method:"PATCH", body:JSON.stringify({ campo:campoEdit, valor:taxas[campoEdit] }) });
+      setSalvo(campoEdit);
+      setModalOTP(false);
+      setTimeout(() => setSalvo(null), 3000);
+    } catch (e) {
+      alert("Erro: " + e.message);
+    } finally {
+      setSalvando(false);
+    }
+  }
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
@@ -1020,59 +1118,52 @@ function SubConfig() {
             <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>⚙️ Configuração de Taxas</h3>
           </div>
           {[
-            { campo:"produto",   label:"Taxa por venda de produto (%)",     tipo:"%" },
-            { campo:"servico",   label:"Taxa por venda de serviço (%)",     tipo:"%" },
-            { campo:"saque",     label:"Taxa de levantamento / cashout (%)", tipo:"%" },
-            { campo:"minSaque",  label:"Valor mínimo de saque (MZN)",       tipo:"MZN" },
-            { campo:"liberacao", label:"Tempo de liberação de saldo (dias)", tipo:"dias" },
-          ].map((f,i) => (
+            { campo:"produto",   label:"Taxa por venda de produto (%)",      tipo:"%"   },
+            { campo:"servico",   label:"Taxa por venda de serviço (%)",      tipo:"%"   },
+            { campo:"saque",     label:"Taxa de levantamento (%)",           tipo:"%"   },
+            { campo:"minSaque",  label:"Valor mínimo de saque (MZN)",        tipo:"MZN" },
+            { campo:"liberacao", label:"Tempo de libertação de saldo (dias)",tipo:"dias"},
+          ].map((f, i) => (
             <div key={i} style={{ marginBottom:12 }}>
               <label style={{ fontSize:11, fontWeight:600, color:C.textMute, textTransform:"uppercase", letterSpacing:"0.05em", display:"block", marginBottom:5 }}>{f.label}</label>
               <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                <input
-                  type="number"
-                  value={taxas[f.campo]}
+                <input type="number" value={taxas[f.campo]}
                   onChange={e=>setTaxas(prev=>({...prev,[f.campo]:e.target.value}))}
                   style={{ flex:1, padding:"8px 12px", fontSize:14, fontWeight:700, border:`1.5px solid ${salvo===f.campo?C.green:C.border}`, borderRadius:8, fontFamily:"inherit", color:C.text, background:C.bg, outline:"none" }} />
                 <span style={{ fontSize:12, color:C.textMute, minWidth:30 }}>{f.tipo}</span>
                 <Btn label="Guardar" size="sm" variant="ghost" onClick={()=>pedirOTP(f.campo)} />
               </div>
-              {salvo === f.campo && (
-                <p style={{ fontSize:11, color:C.green, marginTop:3, fontWeight:600 }}>✅ Guardado com sucesso</p>
-              )}
+              {salvo===f.campo && <p style={{ fontSize:11, color:C.green, marginTop:3, fontWeight:600 }}>✅ Guardado</p>}
             </div>
           ))}
           <div style={{ marginTop:8, padding:"10px 12px", background:C.amberDim, borderRadius:8, fontSize:12, color:C.amber, fontWeight:500 }}>
-            🔐 Alterações financeiras requerem OTP por email + registo no log de auditoria
+            🔐 Alterações requerem OTP + log de auditoria
           </div>
         </div>
 
-        {/* Automações e regras */}
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
             <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>🤖 Automações Financeiras</h3>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               <Toggle label="Aprovar saques pequenos (<500 MZN) automaticamente" active={true} />
-              <Toggle label="Pagar afiliados automaticamente (nível Ouro/Prata)"  active={true} />
+              <Toggle label="Pagar afiliados automaticamente (Ouro/Prata)"       active={true} />
               <Toggle label="Gerar relatórios diários automáticos"               active={true} />
-              <Toggle label="Bloquear contas suspeitas automaticamente"           active={true} />
-              <Toggle label="Alerta de fraude por email"                          active={true} />
+              <Toggle label="Bloquear contas suspeitas automaticamente"          active={true} />
               <Toggle label="Calcular e reter IVA automaticamente"               active={true} />
-              <Toggle label="Aplicar cashback em compras acima de 2 000 MZN"     active={false} />
+              <Toggle label="Aplicar cashback em compras acima de 2 000 MZN"    active={false} />
             </div>
           </div>
-
           <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
             <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>🏦 Comissões de Afiliados</h3>
             {[
-              { nivel:"🥉 Bronze", min:"5%", max:"10%", prazo:"7 dias" },
-              { nivel:"🥈 Prata",  min:"11%", max:"20%", prazo:"5 dias" },
-              { nivel:"🥇 Ouro",   min:"21%", max:"30%", prazo:"3 dias" },
+              { nivel:"🥉 Bronze", range:"5–10%",  prazo:"7 dias" },
+              { nivel:"🥈 Prata",  range:"11–20%", prazo:"5 dias" },
+              { nivel:"🥇 Ouro",   range:"21–30%", prazo:"3 dias" },
             ].map((n,i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:i<2?`1px solid ${C.border}`:"none" }}>
                 <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{n.nivel}</span>
                 <div style={{ display:"flex", gap:8 }}>
-                  <Badge label={`${n.min}–${n.max}`} type="success" />
+                  <Badge label={n.range} type="success" />
                   <Badge label={`Lib. ${n.prazo}`} type="default" />
                   <Btn label="Editar" icon="edit" size="sm" variant="secondary" />
                 </div>
@@ -1082,20 +1173,20 @@ function SubConfig() {
         </div>
       </div>
 
-      {/* Segurança financeira */}
+      {/* Segurança */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
           <Icon name="shield" size={15} color={C.purple} />
-          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>🛡️ Segurança Financeira (Nível Fintech)</h3>
+          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>🛡️ Segurança Financeira</h3>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
           {[
-            { label:"OTP por email",          estado:"Ativo", icon:"lock",    color:C.green },
-            { label:"2FA (recomendado)",       estado:"Config",icon:"shield",  color:C.amber },
-            { label:"Logs imutáveis",          estado:"Ativo", icon:"file-text",color:C.green },
-            { label:"Anti-fraude automático",  estado:"Ativo", icon:"ban",     color:C.green },
-            { label:"Encriptação AES-256",     estado:"Ativo", icon:"lock",    color:C.green },
-            { label:"Scoring de risco",        estado:"Ativo", icon:"activity",color:C.green },
+            { label:"OTP por email",         estado:"Ativo", icon:"lock",      color:C.green },
+            { label:"Logs imutáveis",         estado:"Ativo", icon:"file-text", color:C.green },
+            { label:"Anti-fraude automático", estado:"Ativo", icon:"ban",       color:C.green },
+            { label:"Encriptação AES-256",    estado:"Ativo", icon:"lock",      color:C.green },
+            { label:"Scoring de risco",       estado:"Ativo", icon:"activity",  color:C.green },
+            { label:"2FA administrador",      estado:"Config",icon:"shield",    color:C.amber },
           ].map((k,i) => (
             <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:C.bg, borderRadius:10, border:`1px solid ${k.color}20` }}>
               <div style={{ width:30, height:30, borderRadius:8, background:k.color+"18", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
@@ -1110,19 +1201,19 @@ function SubConfig() {
         </div>
       </div>
 
-      {/* Modal OTP config */}
+      {/* Modal OTP */}
       <Modal open={modalOTP} onClose={()=>setModalOTP(false)} width={380}>
         <div style={{ padding:24 }}>
           <div style={{ width:44, height:44, borderRadius:12, background:C.amberDim, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14 }}>
             <Icon name="lock" size={20} color={C.amber} />
           </div>
           <h3 style={{ fontSize:16, fontWeight:800, color:C.text, marginBottom:6 }}>Confirmar alteração</h3>
-          <p style={{ fontSize:13, color:C.textSub, marginBottom:20 }}>Insira o código OTP enviado para o seu email de administrador.</p>
+          <p style={{ fontSize:13, color:C.textSub, marginBottom:20 }}>Insira o código OTP enviado para o seu email.</p>
           <input type="text" maxLength={6} value={otpCode} onChange={e=>setOtpCode(e.target.value.replace(/\D/g,""))} placeholder="000000"
             style={{ width:"100%", padding:"12px 14px", fontSize:22, fontWeight:800, letterSpacing:"0.3em", textAlign:"center", border:`2px solid ${otpCode.length===6?C.green:C.border}`, borderRadius:8, fontFamily:"monospace", color:C.text, outline:"none", boxSizing:"border-box", marginBottom:16 }} />
           <div style={{ display:"flex", gap:8 }}>
             <Btn label="Cancelar" variant="secondary" onClick={()=>setModalOTP(false)} />
-            <Btn label="Confirmar" variant="primary" disabled={otpCode.length!==6} onClick={confirmarOTP} />
+            <Btn label="Confirmar" variant="primary" disabled={otpCode.length!==6} loading={salvando} onClick={confirmarOTP} />
           </div>
         </div>
       </Modal>
@@ -1131,106 +1222,124 @@ function SubConfig() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SUB 7 — FRAUDE FINANCEIRA
+// SUB 7 — FRAUDE
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubFraudeFinanceiro() {
-  const [transacoes, setTransacoes] = useState(TRANSACOES_MOCK);
+  const { dados: alertas, carregando, erro, recarregar } = useFetch("/admin/financeiro/alertas");
+  const { dados: txDados, carregando: cTx, recarregar: rTx } = useFetch("/admin/financeiro/transacoes?estado=BLOQUEADA&pagina=1");
 
-  const suspeitas = transacoes.filter(t=>t.estado==="bloqueado"||t.tipo==="Suspeito");
-  const valorRisco = suspeitas.reduce((s,t)=>s+t.valor,0);
+  const alertasArr = alertas ?? [];
+  const suspeitas  = txDados?.transacoes ?? [];
+  const valorRisco = suspeitas.reduce((s,t)=>s+Number(t.valor),0);
 
-  const LOG_FRAUDE = [
-    { acao:"Transação bloqueada por IP suspeito",         id:"TXN-00817", data:"17 Abr 02:20", admin:"sistema",   tipo:"danger" },
-    { acao:"Score de risco 98 — bloqueio automático",     id:"TXN-00817", data:"17 Abr 02:15", admin:"sistema",   tipo:"danger" },
-    { acao:"Alerta: padrão de tráfego anómalo detetado",  id:"TXN-00817", data:"17 Abr 01:40", admin:"sistema",   tipo:"warning" },
-    { acao:"Reembolso múltiplo detetado (4 em 6h)",       id:"TXN-00818", data:"17 Abr 17:00", admin:"sistema",   tipo:"warning" },
-    { acao:"Carteira bloqueada: spam_afilX",              id:"W004",       data:"17 Abr 02:22", admin:"super_admin",tipo:"danger" },
-  ];
+  async function reverterBloqueio(id) {
+    try {
+      // Endpoint a implementar: PATCH /admin/financeiro/transacoes/:id/reverter
+      alert("Funcionalidade a implementar: reverter bloqueio " + id);
+      rTx();
+    } catch (e) {
+      alert("Erro: " + e.message);
+    }
+  }
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
-        <StatCard label="Transações Bloqueadas" value={suspeitas.length}                         icon="ban"          color={C.red} />
-        <StatCard label="Valor em Risco (MZN)"  value={`${(valorRisco/1000).toFixed(0)}k`}      icon="alert-triangle" color={C.amber} />
-        <StatCard label="Reembolsos (este mês)" value={transacoes.filter(t=>t.tipo==="Reembolso").length} icon="refresh-cw" color={C.purple} />
-        <StatCard label="Tentativas Bloqueadas" value="14"                                        icon="shield"       color={C.blue} />
+        <StatCard label="Transações Bloqueadas" value={txDados?.total??0}             icon="ban"            color={C.red}   loading={cTx} />
+        <StatCard label="Valor em Risco (MZN)"  value={fmtK(valorRisco)}              icon="alert-triangle" color={C.amber} loading={cTx} />
+        <StatCard label="Alertas Activos"        value={alertasArr.length}             icon="shield"         color={C.blue}  loading={carregando} />
+        <StatCard label="Contas Suspeitas"       value={alertasArr.filter(a=>a.tipo==="CONTA_SUSPEITA").length} icon="ban" color={C.amber} loading={carregando} />
       </div>
 
       {/* Transações suspeitas */}
-      {suspeitas.length > 0 && (
-        <div style={{ background:C.card, border:`1.5px solid ${C.red}30`, borderRadius:14, overflow:"hidden" }}>
-          <div style={{ padding:"14px 20px", background:C.redDim, borderBottom:`1px solid ${C.red}20`, display:"flex", alignItems:"center", gap:8 }}>
-            <Icon name="alert-triangle" size={16} color={C.red} />
-            <h3 style={{ fontSize:14, fontWeight:700, color:C.red }}>🚨 Transações a Investigar</h3>
-          </div>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ borderBottom:`1px solid ${C.border}`, background:C.bg }}>
-                {["ID","Tipo","Valor","De → Para","Gateway","Data","Estado","Ações"].map((c,i)=>(
-                  <th key={i} style={{ padding:"8px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute }}>{c}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {suspeitas.map((t,i) => (
-                <tr key={t.id} style={{ borderBottom:`1px solid ${C.border}` }}>
-                  <td style={{ padding:"10px 14px", fontFamily:"monospace", fontSize:12, color:C.textSub }}>{t.id}</td>
-                  <td style={{ padding:"10px 14px", fontWeight:700, color:C.red }}>{t.tipo}</td>
-                  <td style={{ padding:"10px 14px", fontWeight:800, color:C.red }}>{t.valor.toLocaleString("pt-MZ")} MZN</td>
-                  <td style={{ padding:"10px 14px", color:C.textSub, fontSize:12 }}>{t.de} → {t.para}</td>
-                  <td style={{ padding:"10px 14px" }}><Badge label={t.gateway} type="default" /></td>
-                  <td style={{ padding:"10px 14px", color:C.textSub, fontSize:12 }}>{t.data}</td>
-                  <td style={{ padding:"10px 14px" }}><Badge label="Bloqueado" type="danger" /></td>
-                  <td style={{ padding:"10px 14px" }}>
-                    <div style={{ display:"flex", gap:4 }}>
-                      <Btn label="Reverter" icon="refresh-cw" size="sm" variant="secondary" onClick={()=>setTransacoes(prev=>prev.map(x=>x.id===t.id?{...x,estado:"concluido"}:x))} />
-                      <Btn label="Confirmar bloqueio" icon="ban" size="sm" variant="danger" />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div style={{ background:C.card, border:`1.5px solid ${C.red}30`, borderRadius:14, overflow:"hidden" }}>
+        <div style={{ padding:"14px 20px", background:C.redDim, borderBottom:`1px solid ${C.red}20`, display:"flex", alignItems:"center", gap:8 }}>
+          <Icon name="alert-triangle" size={16} color={C.red} />
+          <h3 style={{ fontSize:14, fontWeight:700, color:C.red }}>🚨 Transações Bloqueadas</h3>
         </div>
-      )}
-
-      {/* Log de fraude */}
-      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📋 Log de Anti-Fraude Financeira</h3>
-          <Btn label="Exportar log" icon="download" size="sm" variant="secondary" />
-        </div>
-        {LOG_FRAUDE.map((l,i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:i<4?`1px solid ${C.border}`:"none" }}>
-            <Badge label={l.tipo==="danger"?"Crítico":"Alerta"} type={l.tipo} />
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:600, color:C.text }}>{l.acao}</p>
-              <p style={{ fontSize:11, color:C.textMute }}>Ref: {l.id} · Por: {l.admin}</p>
-            </div>
-            <span style={{ fontSize:11, color:C.textMute, whiteSpace:"nowrap" }}>{l.data}</span>
-          </div>
-        ))}
+        {cTx
+          ? <div style={{ padding:40, textAlign:"center", color:C.textMute }}>A carregar...</div>
+          : suspeitas.length === 0
+            ? <p style={{ padding:24, textAlign:"center", fontSize:13, color:C.textMute }}>Sem transações bloqueadas.</p>
+            : (
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                <thead>
+                  <tr style={{ borderBottom:`1px solid ${C.border}`, background:C.bg }}>
+                    {["ID","Tipo","Valor","Utilizador","Descrição","Data","Ações"].map((c,i)=>(
+                      <th key={i} style={{ padding:"8px 14px", textAlign:"left", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:C.textMute }}>{c}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {suspeitas.map((t, i) => (
+                    <tr key={t.id} style={{ borderBottom:`1px solid ${C.border}` }}>
+                      <td style={{ padding:"10px 14px", fontFamily:"monospace", fontSize:12, color:C.textSub }}>{t.id?.substring(0,8)}</td>
+                      <td style={{ padding:"10px 14px", fontWeight:700, color:C.red }}>{t.tipo}</td>
+                      <td style={{ padding:"10px 14px", fontWeight:800, color:C.red }}>{fmtN(t.valor)} MZN</td>
+                      <td style={{ padding:"10px 14px", color:C.textSub }}>{t.usuario?.nomeCompleto??"-"}</td>
+                      <td style={{ padding:"10px 14px", color:C.textSub, fontSize:12 }}>{t.descricao}</td>
+                      <td style={{ padding:"10px 14px", color:C.textSub, fontSize:12 }}>{fmtDt(t.data)}</td>
+                      <td style={{ padding:"10px 14px" }}>
+                        <div style={{ display:"flex", gap:4 }}>
+                          <Btn label="Reverter" icon="refresh-cw" size="sm" variant="secondary" onClick={()=>reverterBloqueio(t.id)} />
+                          <Btn label="Confirmar bloqueio" icon="ban" size="sm" variant="danger" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+        }
       </div>
 
-      {/* Regras anti-fraude financeira */}
+      {/* Log de alertas */}
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
-        <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>🛡️ Regras de Deteção Ativa</h3>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <h3 style={{ fontSize:14, fontWeight:700, color:C.text }}>📋 Log de Alertas Financeiros</h3>
+          <Btn label="Exportar log" icon="download" size="sm" variant="secondary" />
+        </div>
+        {carregando
+          ? <div style={{ height:80, background:C.bg, borderRadius:8 }} />
+          : erro
+            ? <ErroBloco mensagem={erro} onRetry={recarregar} />
+            : alertasArr.length === 0
+              ? <p style={{ fontSize:13, color:C.textMute, textAlign:"center", padding:"20px 0" }}>Sem alertas.</p>
+              : alertasArr.map((a, i) => {
+                  const cor = a.prioridade==="alta"?C.red:C.amber;
+                  return (
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:i<alertasArr.length-1?`1px solid ${C.border}`:"none" }}>
+                      <Badge label={a.prioridade==="alta"?"Crítico":"Alerta"} type={a.prioridade==="alta"?"danger":"warning"} />
+                      <div style={{ flex:1 }}>
+                        <p style={{ fontSize:13, fontWeight:600, color:C.text }}>{a.titulo}</p>
+                        <p style={{ fontSize:11, color:C.textMute }}>{a.descricao}</p>
+                      </div>
+                      <span style={{ fontSize:11, color:C.textMute, whiteSpace:"nowrap" }}>{fmtDt(a.data)}</span>
+                    </div>
+                  );
+                })
+        }
+      </div>
+
+      {/* Regras activas */}
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20 }}>
+        <h3 style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:14 }}>🛡️ Regras de Deteção Activa</h3>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
           {[
-            { label:"Bloquear transações com IP suspeito",    ativo:true },
-            { label:"Alerta de reembolsos acima da média",    ativo:true },
-            { label:"Bloquear auto-pagamentos (anti-fraude)", ativo:true },
-            { label:"Detetar carteiras com múltiplos IPs",    ativo:true },
-            { label:"Limitar saques por dia (máx: 50 000 MZN)", ativo:true },
-            { label:"Exigir OTP em saques acima de 10 000 MZN", ativo:true },
-            { label:"Scoring de risco por transação",         ativo:true },
-            { label:"Congelar saldo automático (risco >70)",  ativo:true },
-          ].map((r,i) => (
+            "Bloquear transações com IP suspeito",
+            "Alerta de reembolsos acima da média",
+            "Bloquear auto-pagamentos (anti-fraude)",
+            "Detetar carteiras com múltiplos IPs",
+            "Limitar saques por dia (máx: 50 000 MZN)",
+            "Exigir OTP em saques acima de 10 000 MZN",
+            "Scoring de risco por transação",
+            "Congelar saldo automático (risco >70)",
+          ].map((r, i) => (
             <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", background:C.bg, borderRadius:8 }}>
-              <div style={{ width:16, height:16, borderRadius:4, background:r.ativo?C.green:C.border, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                {r.ativo && <Icon name="check" size={10} color="#fff" />}
+              <div style={{ width:16, height:16, borderRadius:4, background:C.green, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <Icon name="check" size={10} color="#fff" />
               </div>
-              <span style={{ fontSize:12, color:C.text, fontWeight:500 }}>{r.label}</span>
+              <span style={{ fontSize:12, color:C.text, fontWeight:500 }}>{r}</span>
             </div>
           ))}
         </div>
@@ -1245,26 +1354,25 @@ function SubFraudeFinanceiro() {
 export default function PageFinanceiro() {
   const [subtab, setSubtab] = useState("visao");
 
-  const saquesPendentes = SAQUES_MOCK.filter(s=>s.estado==="pendente").length;
-  const txBloqueadas    = TRANSACOES_MOCK.filter(t=>t.estado==="bloqueado").length;
+  // Contadores para badges nas tabs — carregados uma vez
+  const { dados: saquesDados } = useFetch("/admin/saques-pendentes?pagina=1");
+  const { dados: txDados      } = useFetch("/admin/financeiro/transacoes?estado=BLOQUEADA&pagina=1");
 
-  const conteudo = {
-    visao:      <SubVisaoGeral    onNav={setSubtab} />,
-    transacoes: <SubTransacoes />,
-    saques:     <SubSaques />,
-    carteiras:  <SubCarteiras />,
-    relatorios: <SubRelatorios />,
-    config:     <SubConfig />,
-    fraude:     <SubFraudeFinanceiro />,
-  };
+  const saquesPendentes = saquesDados?.saques?.filter(s=>s.estado==="SOLICITADO").length ?? 0;
+  const txBloqueadas    = txDados?.total ?? 0;
 
   return (
     <div style={{ fontFamily:"'DM Sans','Inter',system-ui,sans-serif" }}>
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        @keyframes spin  { to{transform:rotate(360deg)} }
+      `}</style>
+
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22 }}>
         <div>
           <h2 style={{ fontSize:22, fontWeight:800, color:C.text, letterSpacing:"-0.02em" }}>Gestão Financeira</h2>
-          <p style={{ fontSize:13, color:C.textSub, marginTop:2 }}>Coração do negócio — receita, split automático, saques, carteiras e auditoria</p>
+          <p style={{ fontSize:13, color:C.textSub, marginTop:2 }}>Receita, split automático, saques, carteiras e auditoria</p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <Btn label="Relatório PDF"   icon="download" variant="secondary" size="sm" />
@@ -1281,10 +1389,10 @@ export default function PageFinanceiro() {
               style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 16px", borderRadius:9, border:"none", background:isActive?C.card:"transparent", color:isActive?C.text:C.textSub, fontSize:13, fontWeight:isActive?700:500, cursor:"pointer", transition:"all 0.15s", boxShadow:isActive?"0 1px 4px rgba(0,0,0,0.08)":"none", fontFamily:"inherit", position:"relative" }}>
               <Icon name={t.icon} size={14} color={isActive?C.text:C.textSub} />
               {t.label}
-              {t.badge && saquesPendentes > 0 && (
+              {t.badge && saquesPendentes>0 && (
                 <span style={{ position:"absolute", top:4, right:4, width:16, height:16, borderRadius:"50%", background:C.amber, color:"#fff", fontSize:9, fontWeight:900, display:"flex", alignItems:"center", justifyContent:"center" }}>{saquesPendentes}</span>
               )}
-              {t.badgeDanger && txBloqueadas > 0 && (
+              {t.badgeDanger && txBloqueadas>0 && (
                 <span style={{ position:"absolute", top:4, right:4, width:16, height:16, borderRadius:"50%", background:C.red, color:"#fff", fontSize:9, fontWeight:900, display:"flex", alignItems:"center", justifyContent:"center" }}>{txBloqueadas}</span>
               )}
             </button>
@@ -1293,7 +1401,13 @@ export default function PageFinanceiro() {
       </div>
 
       {/* Conteúdo */}
-      {conteudo[subtab]}
+      {subtab==="visao"      && <SubVisaoGeral   onNav={setSubtab} />}
+      {subtab==="transacoes" && <SubTransacoes />}
+      {subtab==="saques"     && <SubSaques />}
+      {subtab==="carteiras"  && <SubCarteiras />}
+      {subtab==="relatorios" && <SubRelatorios />}
+      {subtab==="config"     && <SubConfig />}
+      {subtab==="fraude"     && <SubFraudeFinanceiro />}
     </div>
   );
 }

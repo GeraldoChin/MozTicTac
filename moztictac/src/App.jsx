@@ -14,6 +14,7 @@ import BlogPage from "./pages/Site/Blogpage";
 import PromoBannersPage from "./pages/Site/PromobannerPage";
 import PaginaFAQ from "./pages/Site/PaginaFacs";
 import LoginPage from "./pages/Site/Loginpage";
+import RedirecionarAfiliado from "./pages/Site/RedirecionarAfiliado";
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/blog"        element={<BlogPage />} />
       <Route path="/promos"      element={<PromoBannersPage />} />
       <Route path="/faq"         element={<PaginaFAQ />} />
+      <Route path="/r/:codigoAfiliado" element={<RedirecionarAfiliado />} />
 
       {/* Rotas protegidas */}
       <Route path="/minha-conta" element={<RotaProtegida><MinhaConta /></RotaProtegida>} />

@@ -499,7 +499,7 @@ function ModalEndereco({ open, endereco, onChange, onClose }) {
     setStep("loading");
     setErro("");
     try {
-      await apiFetch("/usuarios/perfil", {
+      await apiFetch("/usuario/perfil", {
         method: "PUT",
         // ModalPublicar usa 'provincia' (sem acento) — alinhado aqui
         body: JSON.stringify({ provincia: form.provincia, cidade: form.cidade, bairro: form.bairro }),

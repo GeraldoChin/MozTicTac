@@ -1,4 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+// ─── Config ────────────────────────────────────────────────────────────────
+const BASE_URL = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:3000/api/v1";
+
+// ⚠️ Confirma este path com o ficheiro de rotas — assumido a partir do authControlador
+const ROTA_ALTERAR_SENHA = "/auth/alterar-senha";
+const ROTA_SESSOES = "/conta/seguranca/sessoes";
+
+async function requisitar(caminho, opcoes = {}) {
+  const token = localStorage.getItem("token");
+  const resposta = await fetch(`${BASE_URL}${caminho}`, {
+    ...opcoes,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...opcoes.headers,
+    },
+  });
+  const dados = await resposta.json().catch(() => ({}));
+  if (!resposta.ok) throw new Error(dados.mensagem || dados.message || `Erro ${resposta.status}`);
+  return dados;
+}
 
 // ─── Ícones SVG inline ────────────────────────────────────────────────────────
 const IcoLock     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>;
@@ -14,25 +36,41 @@ const IcoX        = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="
 const IcoAlert    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
 const IcoSpin     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>;
 const IcoLogin    = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>;
-const IcoKey      = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>;
-const IcoQR       = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><line x1="18" y1="14" x2="18" y2="14"/><line x1="21" y1="17" x2="21" y2="17"/><line x1="18" y1="20" x2="21" y2="20"/><line x1="21" y1="14" x2="21" y2="14"/></svg>;
+const IcoLockClosed = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>;
 const IcoChevD    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>;
 const IcoChevU    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>;
 
-// ─── Dados mock ───────────────────────────────────────────────────────────────
-const SESSOES_INICIAIS = [
-  { id: "S1", dispositivo: "Chrome · Windows 11", tipo: "desktop", local: "Beira, Sofala",   ip: "196.46.12.34", data: "Agora",        atual: true  },
-  { id: "S2", dispositivo: "Chrome · Android 13", tipo: "mobile",  local: "Maputo, MZ",      ip: "196.46.88.12", data: "Há 2 dias",    atual: false },
-  { id: "S3", dispositivo: "Safari · iPhone 14",  tipo: "mobile",  local: "Nampula, MZ",     ip: "41.220.14.9",  data: "Há 5 dias",    atual: false },
-];
+// ─── Helpers de formatação ─────────────────────────────────────────────────
+function formatarData(dataStr) {
+  if (!dataStr) return "—";
+  const data = new Date(dataStr);
+  const agora = new Date();
+  const diff  = agora - data;
+  const mins  = Math.floor(diff / 60000);
+  const horas = Math.floor(diff / 3600000);
+  const dias  = Math.floor(diff / 86400000);
+  if (mins < 1)   return "Agora mesmo";
+  if (mins < 60)  return `Há ${mins} min`;
+  if (horas < 24) return `Hoje · ${data.toLocaleTimeString("pt-MZ", { hour: "2-digit", minute: "2-digit" })}`;
+  if (dias === 1) return `Ontem · ${data.toLocaleTimeString("pt-MZ", { hour: "2-digit", minute: "2-digit" })}`;
+  return data.toLocaleDateString("pt-MZ", { day: "2-digit", month: "short" });
+}
 
-const LOGINS_RECENTES = [
-  { data: "17 Abr · 08:14", ip: "196.46.12.34", dispositivo: "Chrome · Windows",  local: "Beira, MZ",   resultado: "sucesso" },
-  { data: "14 Abr · 09:03", ip: "102.89.34.11", dispositivo: "Safari · iPhone",   local: "Desconhecido",resultado: "falha"   },
-  { data: "12 Abr · 07:30", ip: "196.46.12.34", dispositivo: "Chrome · Windows",  local: "Beira, MZ",   resultado: "sucesso" },
-  { data: "10 Abr · 18:55", ip: "196.46.88.12", dispositivo: "Chrome · Android",  local: "Maputo, MZ",  resultado: "sucesso" },
-  { data: "08 Abr · 22:10", ip: "102.89.34.11", dispositivo: "Firefox · Windows", local: "Desconhecido",resultado: "falha"   },
-];
+function ehMobile(dispositivoStr = "") {
+  return /android|iphone|mobile|ipad/i.test(dispositivoStr);
+}
+
+function nomeAmigavelDispositivo(uaOuTexto) {
+  if (!uaOuTexto) return "Dispositivo desconhecido";
+  // Tenta extrair algo legível de um user-agent bruto; senão devolve como está
+  if (uaOuTexto.length > 60) {
+    if (/chrome/i.test(uaOuTexto)) return ehMobile(uaOuTexto) ? "Chrome · Mobile" : "Chrome · Desktop";
+    if (/firefox/i.test(uaOuTexto)) return "Firefox";
+    if (/safari/i.test(uaOuTexto)) return ehMobile(uaOuTexto) ? "Safari · Mobile" : "Safari · Desktop";
+    return "Dispositivo desconhecido";
+  }
+  return uaOuTexto;
+}
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 function Toggle({ value, onChange, disabled }) {
@@ -117,7 +155,7 @@ function ForcaSenha({ senha }) {
   );
 }
 
-// ─── Secção: Alterar Senha ────────────────────────────────────────────────────
+// ─── Secção: Alterar Senha (LIGADO AO BACKEND) ────────────────────────────────
 function SecaoAlterarSenha() {
   const [atual,    setAtual]    = useState("");
   const [nova,     setNova]     = useState("");
@@ -128,24 +166,33 @@ function SecaoAlterarSenha() {
 
   const validar = () => {
     const e = {};
-    if (!atual)           e.atual    = "Introduz a tua senha actual.";
-    if (nova.length < 8)  e.nova     = "A senha deve ter pelo menos 8 caracteres.";
-    if (nova === atual)   e.nova     = "A nova senha não pode ser igual à actual.";
+    if (!atual)            e.atual    = "Introduz a tua senha actual.";
+    if (nova.length < 8)   e.nova     = "A senha deve ter pelo menos 8 caracteres.";
+    if (nova === atual)    e.nova     = "A nova senha não pode ser igual à actual.";
     if (nova !== confirma) e.confirma = "As senhas não coincidem.";
     return e;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const e = validar();
     setErros(e);
     if (Object.keys(e).length > 0) return;
+
     setSalvando(true);
-    setTimeout(() => {
-      setSalvando(false);
+    try {
+      await requisitar(ROTA_ALTERAR_SENHA, {
+        method: "POST",
+        body: JSON.stringify({ senhaAtual: atual, novaSenha: nova }),
+      });
       setSucesso(true);
-      setAtual(""); setNova(""); setConfirma("");
+      setAtual(""); setNova(""); setConfirma(""); setErros({});
       setTimeout(() => setSucesso(false), 3000);
-    }, 1400);
+    } catch (err) {
+      // Backend devolve "Senha atual incorreta" quando aplicável
+      setErros({ atual: err.message });
+    } finally {
+      setSalvando(false);
+    }
   };
 
   return (
@@ -157,17 +204,17 @@ function SecaoAlterarSenha() {
       <div className="p-4 space-y-3">
         {sucesso && (
           <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-100 rounded-lg text-green-700 text-xs font-medium">
-            <IcoCheck /> Senha actualizada com sucesso!
+            <IcoCheck /> Senha actualizada com sucesso! As outras sessões foram terminadas.
           </div>
         )}
         <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex gap-2 items-start">
           <span className="text-blue-600 flex-shrink-0 mt-0.5"><IcoShield /></span>
           <p className="text-xs text-blue-800">As senhas são protegidas com <strong>bcrypt</strong>. Nunca armazenamos a tua senha em texto simples.</p>
         </div>
-        <CampoSenha label="Senha actual"                 value={atual}    onChange={setAtual}    erro={erros.atual}    />
-        <CampoSenha label="Nova senha"                   value={nova}     onChange={setNova}     erro={erros.nova}     />
+        <CampoSenha label="Senha actual"         value={atual}    onChange={setAtual}    erro={erros.atual}    />
+        <CampoSenha label="Nova senha"            value={nova}     onChange={setNova}     erro={erros.nova}     />
         <ForcaSenha senha={nova} />
-        <CampoSenha label="Confirmar nova senha"         value={confirma} onChange={setConfirma} erro={erros.confirma} />
+        <CampoSenha label="Confirmar nova senha"  value={confirma} onChange={setConfirma} erro={erros.confirma} />
         <button onClick={handleSubmit} disabled={salvando}
           className={`w-full py-2.5 rounded-lg text-sm font-medium border-0 transition-colors flex items-center justify-center gap-2
             ${salvando ? "bg-gray-200 text-gray-400 cursor-default" : "bg-green-600 hover:bg-green-700 text-white cursor-pointer"}`}>
@@ -178,29 +225,8 @@ function SecaoAlterarSenha() {
   );
 }
 
-// ─── Secção: 2FA ──────────────────────────────────────────────────────────────
+// ─── Secção: 2FA (SEM BACKEND — UI desactivada de propósito) ─────────────────
 function Secao2FA() {
-  const [emailAtivo,  setEmailAtivo]  = useState(true);
-  const [appAtivo,    setAppAtivo]    = useState(false);
-  const [setupApp,    setSetupApp]    = useState(false);
-  const [codigoOTP,   setCodigoOTP]   = useState("");
-  const [erroOTP,     setErroOTP]     = useState("");
-  const [verificando, setVerificando] = useState(false);
-  const [confirmado,  setConfirmado]  = useState(false);
-
-  const verificarOTP = () => {
-    if (codigoOTP.length !== 6) { setErroOTP("Introduz os 6 dígitos."); return; }
-    setVerificando(true);
-    setTimeout(() => {
-      setVerificando(false);
-      setAppAtivo(true);
-      setSetupApp(false);
-      setConfirmado(true);
-      setCodigoOTP("");
-      setTimeout(() => setConfirmado(false), 3000);
-    }, 1200);
-  };
-
   return (
     <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
@@ -208,95 +234,46 @@ function Secao2FA() {
         <p className="text-sm font-semibold text-gray-800">Autenticação em Dois Factores (2FA)</p>
       </div>
       <div className="p-4 space-y-3">
-        {confirmado && (
-          <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-100 rounded-lg text-green-700 text-xs font-medium">
-            <IcoCheck /> App autenticadora activada!
-          </div>
-        )}
-
-        {/* OTP por email */}
+        {/* OTP por email — sempre activo nas acções críticas (login de risco, recuperação, saques) */}
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${emailAtivo ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-green-100 text-green-700">
               <IcoMail />
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">Verificação por Email</p>
-              <p className="text-xs text-gray-400">OTP enviado para ana.machava@gmail.com</p>
+              <p className="text-xs text-gray-400">Código OTP usado em recuperação de senha e saques</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {emailAtivo && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Activo</span>}
-            <Toggle value={emailAtivo} onChange={setEmailAtivo} />
-          </div>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Sempre activo</span>
         </div>
 
-        {/* App autenticadora */}
-        <div className="border border-gray-100 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between p-3 bg-gray-50">
+        {/* App autenticadora — sem endpoint no backend ainda */}
+        <div className="relative border border-gray-100 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between p-3 bg-gray-50 opacity-60">
             <div className="flex items-center gap-3">
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${appAtivo ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
-                <IcoQR />
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-100 text-gray-400">
+                <IcoLockClosed />
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">App Autenticadora</p>
                 <p className="text-xs text-gray-400">Google Authenticator, Authy, etc.</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {appAtivo && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Activo</span>}
-              <Toggle value={appAtivo} onChange={(v) => { if (!v) { setAppAtivo(false); } else { setSetupApp(true); } }} />
-            </div>
+            <Toggle value={false} onChange={() => {}} disabled />
           </div>
-
-          {/* Setup app — QR code */}
-          {setupApp && !appAtivo && (
-            <div className="p-4 border-t border-gray-100 space-y-3">
-              <p className="text-xs text-gray-500">1. Abre a tua app autenticadora e digitaliza o QR code abaixo:</p>
-              {/* QR placeholder */}
-              <div className="flex justify-center">
-                <div className="w-28 h-28 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                  <div className="grid grid-cols-7 gap-0.5 p-2">
-                    {Array.from({ length: 49 }, (_, i) =>
-                      <div key={i} className={`w-2.5 h-2.5 rounded-sm ${Math.random() > 0.45 ? "bg-gray-900" : "bg-white"}`} />
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 rounded-lg px-3 py-2 text-center">
-                <p className="text-xs text-gray-400 mb-1">Ou introduz manualmente:</p>
-                <p className="text-xs font-mono font-semibold text-gray-700 tracking-widest">JBSWY3DP EHPK3PXP</p>
-              </div>
-              <p className="text-xs text-gray-500">2. Introduz o código de 6 dígitos gerado pela app:</p>
-              <div>
-                <input
-                  maxLength={6}
-                  value={codigoOTP}
-                  onChange={e => { setCodigoOTP(e.target.value.replace(/\D/g, "")); setErroOTP(""); }}
-                  placeholder="000000"
-                  className={`w-full border rounded-lg px-3 py-2 text-sm text-center font-mono tracking-[0.3em] focus:outline-none transition-colors
-                    ${erroOTP ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-green-500"}`}
-                />
-                {erroOTP && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><IcoAlert /> {erroOTP}</p>}
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setSetupApp(false); setCodigoOTP(""); }} className="flex-1 py-2 border border-gray-200 rounded-lg text-xs text-gray-500 bg-transparent cursor-pointer">Cancelar</button>
-                <button onClick={verificarOTP} disabled={verificando}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium border-0 flex items-center justify-center gap-1.5
-                    ${verificando ? "bg-gray-200 text-gray-400 cursor-default" : "bg-green-600 hover:bg-green-700 text-white cursor-pointer"}`}>
-                  {verificando ? <><IcoSpin /> A verificar...</> : "Verificar e activar"}
-                </button>
-              </div>
-            </div>
-          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-white/40">
+            <span className="text-xs font-semibold text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200 shadow-sm">
+              Em breve
+            </span>
+          </div>
         </div>
 
-        {/* Info brute force */}
         <div className="flex gap-2 items-start p-3 bg-amber-50 border border-amber-100 rounded-xl">
           <span className="text-amber-600 flex-shrink-0 mt-0.5"><IcoAlert /></span>
           <div>
             <p className="text-xs font-semibold text-amber-800">Protecção contra ataques</p>
-            <p className="text-xs text-amber-700 mt-0.5">Após 5 tentativas falhadas, a conta é bloqueada automaticamente por 30 minutos. Tokens são invalidados com <strong>JWT + rotação</strong>.</p>
+            <p className="text-xs text-amber-700 mt-0.5">Após 5 tentativas falhadas, a conta é bloqueada automaticamente. Tokens são invalidados com <strong>JWT + rotação</strong>.</p>
           </div>
         </div>
       </div>
@@ -304,31 +281,20 @@ function Secao2FA() {
   );
 }
 
-// ─── Secção: Sessões ──────────────────────────────────────────────────────────
-function SecaoSessoes() {
-  const [sessoes,    setSessoes]    = useState(SESSOES_INICIAIS);
-  const [encerrando, setEncerrando] = useState(null);
-  const [confirma,   setConfirma]   = useState(null);
+// ─── Secção: Sessões (LIGADO AO BACKEND) ──────────────────────────────────────
+function SecaoSessoes({ sessoes, carregando, erro, onTerminar, onTerminarTodas, terminandoId }) {
+  const [confirma, setConfirma] = useState(null);
+  const [confirmaTodas, setConfirmaTodas] = useState(false);
 
-  const encerrar = (id) => {
-    setEncerrando(id);
-    setTimeout(() => {
-      setSessoes(prev => prev.filter(s => s.id !== id));
-      setEncerrando(null);
-      setConfirma(null);
-    }, 900);
+  const handleTerminar = (id) => {
+    onTerminar(id);
+    setConfirma(null);
   };
 
-  const encerrarTodas = () => {
-    const outras = sessoes.filter(s => !s.atual).map(s => s.id);
-    outras.forEach(id => {
-      setEncerrando(id);
-      setTimeout(() => setSessoes(prev => prev.filter(s => s.atual || s.id === id ? (s.atual ? true : false) : true)), 900);
-    });
-    setTimeout(() => setSessoes(prev => prev.filter(s => s.atual)), 1000);
+  const handleTerminarTodas = () => {
+    onTerminarTodas();
+    setConfirmaTodas(false);
   };
-
-  const outrasAtivas = sessoes.filter(s => !s.atual).length;
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
@@ -337,61 +303,78 @@ function SecaoSessoes() {
           <span className="text-green-600"><IcoMonitor /></span>
           <p className="text-sm font-semibold text-gray-800">Sessões Activas</p>
         </div>
-        {outrasAtivas > 0 && (
-          <button onClick={encerrarTodas} className="text-xs text-red-500 font-semibold border-0 bg-transparent cursor-pointer hover:text-red-700">
+        {sessoes.length > 1 && !confirmaTodas && (
+          <button onClick={() => setConfirmaTodas(true)} className="text-xs text-red-500 font-semibold border-0 bg-transparent cursor-pointer hover:text-red-700">
             Terminar todas
           </button>
         )}
+        {confirmaTodas && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Isto também vai desconectar-te. Confirmas?</span>
+            <button onClick={() => setConfirmaTodas(false)} className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-500 bg-transparent cursor-pointer">Não</button>
+            <button onClick={handleTerminarTodas} className="px-2 py-1 rounded-lg text-xs font-medium border-0 bg-red-500 hover:bg-red-600 text-white cursor-pointer">Sim, terminar</button>
+          </div>
+        )}
       </div>
-      <div className="divide-y divide-gray-50">
-        {sessoes.map(s => (
-          <div key={s.id} className="flex items-center gap-3 px-4 py-3">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${s.atual ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
-              {s.tipo === "mobile" ? <IcoPhone /> : <IcoMonitor />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-sm font-semibold text-gray-900">{s.dispositivo}</p>
-                {s.atual && <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Esta sessão</span>}
-              </div>
-              <div className="flex items-center gap-3 mt-0.5">
-                <span className="text-xs text-gray-400 flex items-center gap-1"><IcoMapPin /> {s.local}</span>
-                <span className="text-xs text-gray-300">·</span>
-                <span className="text-xs text-gray-400 font-mono">{s.ip}</span>
-                <span className="text-xs text-gray-300">·</span>
-                <span className="text-xs text-gray-400">{s.data}</span>
+
+      {carregando ? (
+        <div className="p-4 space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="flex items-center gap-3 animate-pulse">
+              <div className="w-9 h-9 rounded-lg bg-gray-100" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 bg-gray-100 rounded w-1/3" />
+                <div className="h-2.5 bg-gray-100 rounded w-1/2" />
               </div>
             </div>
-            {!s.atual && (
-              confirma === s.id ? (
+          ))}
+        </div>
+      ) : erro ? (
+        <div className="p-4 text-xs text-red-500 text-center">{erro}</div>
+      ) : (
+        <div className="divide-y divide-gray-50">
+          {sessoes.map(s => (
+            <div key={s.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100 text-gray-400">
+                {ehMobile(s.dispositivo) ? <IcoPhone /> : <IcoMonitor />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">{nomeAmigavelDispositivo(s.dispositivo)}</p>
+                <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                  <span className="text-xs text-gray-400 font-mono">{s.ip || "IP desconhecido"}</span>
+                  <span className="text-xs text-gray-300">·</span>
+                  <span className="text-xs text-gray-400">Última actividade: {formatarData(s.ultimoAcesso)}</span>
+                </div>
+              </div>
+              {confirma === s.id ? (
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button onClick={() => setConfirma(null)} className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-500 bg-transparent cursor-pointer">Não</button>
-                  <button onClick={() => encerrar(s.id)} disabled={encerrando === s.id}
+                  <button onClick={() => handleTerminar(s.id)} disabled={terminandoId === s.id}
                     className={`px-2 py-1 rounded-lg text-xs font-medium border-0 flex items-center gap-1
-                      ${encerrando === s.id ? "bg-gray-200 text-gray-400 cursor-default" : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"}`}>
-                    {encerrando === s.id ? <IcoSpin /> : "Sim"}
+                      ${terminandoId === s.id ? "bg-gray-200 text-gray-400 cursor-default" : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"}`}>
+                    {terminandoId === s.id ? <IcoSpin /> : "Sim"}
                   </button>
                 </div>
               ) : (
                 <button onClick={() => setConfirma(s.id)} className="text-xs font-semibold text-red-500 hover:text-red-700 border-0 bg-transparent cursor-pointer flex-shrink-0">
                   Terminar
                 </button>
-              )
-            )}
-          </div>
-        ))}
-        {sessoes.length === 1 && (
-          <div className="px-4 py-3 text-xs text-gray-400 text-center">Só a sessão actual está activa.</div>
-        )}
-      </div>
+              )}
+            </div>
+          ))}
+          {sessoes.length === 0 && (
+            <div className="px-4 py-3 text-xs text-gray-400 text-center">Nenhuma sessão activa encontrada.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Secção: Histórico de Logins ──────────────────────────────────────────────
-function SecaoHistoricoLogins() {
+// ─── Secção: Histórico de Logins (LIGADO AO BACKEND) ─────────────────────────
+function SecaoHistoricoLogins({ logins, carregando, erro }) {
   const [aberto, setAberto] = useState(false);
-  const visiveis = aberto ? LOGINS_RECENTES : LOGINS_RECENTES.slice(0, 3);
+  const visiveis = aberto ? logins : logins.slice(0, 3);
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
@@ -399,43 +382,112 @@ function SecaoHistoricoLogins() {
         <span className="text-green-600"><IcoLogin /></span>
         <p className="text-sm font-semibold text-gray-800">Histórico de Logins</p>
       </div>
-      <div className="divide-y divide-gray-50">
-        {visiveis.map((l, i) => (
-          <div key={i} className="flex items-center gap-3 px-4 py-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold
-              ${l.resultado === "sucesso" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-              {l.resultado === "sucesso" ? <IcoCheck /> : <IcoX />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-xs font-semibold text-gray-800">{l.dispositivo}</p>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium
-                  ${l.resultado === "sucesso" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                  {l.resultado}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                <span className="text-xs text-gray-400">{l.data}</span>
-                <span className="text-xs text-gray-300">·</span>
-                <span className="text-xs text-gray-400 font-mono">{l.ip}</span>
-                <span className="text-xs text-gray-300">·</span>
-                <span className="text-xs text-gray-400 flex items-center gap-0.5"><IcoMapPin /> {l.local}</span>
+
+      {carregando ? (
+        <div className="p-4 space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-3 animate-pulse">
+              <div className="w-8 h-8 rounded-lg bg-gray-100" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 bg-gray-100 rounded w-1/3" />
+                <div className="h-2.5 bg-gray-100 rounded w-1/2" />
               </div>
             </div>
+          ))}
+        </div>
+      ) : erro ? (
+        <div className="p-4 text-xs text-red-500 text-center">{erro}</div>
+      ) : (
+        <>
+          <div className="divide-y divide-gray-50">
+            {visiveis.map((l) => {
+              const sucesso = (l.resultado || "").toLowerCase() === "sucesso";
+              return (
+                <div key={l.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold
+                    ${sucesso ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+                    {sucesso ? <IcoCheck /> : <IcoX />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-xs font-semibold text-gray-800">{l.acao === "LOGIN" ? "Login" : "Logout"}</p>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium
+                        ${sucesso ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        {l.resultado || "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-xs text-gray-400">{formatarData(l.data)}</span>
+                      <span className="text-xs text-gray-300">·</span>
+                      <span className="text-xs text-gray-400 font-mono">{l.ip || "—"}</span>
+                      <span className="text-xs text-gray-300">·</span>
+                      <span className="text-xs text-gray-400">{nomeAmigavelDispositivo(l.dispositivo)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {logins.length === 0 && (
+              <div className="px-4 py-3 text-xs text-gray-400 text-center">Sem registos de login.</div>
+            )}
           </div>
-        ))}
-      </div>
-      <button onClick={() => setAberto(v => !v)}
-        className="w-full py-2.5 text-xs text-green-600 font-medium border-t border-gray-100 bg-transparent cursor-pointer hover:bg-gray-50 flex items-center justify-center gap-1 transition-colors">
-        {aberto ? <><IcoChevU /> Ver menos</> : <><IcoChevD /> Ver todos ({LOGINS_RECENTES.length} logins)</>}
-      </button>
+          {logins.length > 3 && (
+            <button onClick={() => setAberto(v => !v)}
+              className="w-full py-2.5 text-xs text-green-600 font-medium border-t border-gray-100 bg-transparent cursor-pointer hover:bg-gray-50 flex items-center justify-center gap-1 transition-colors">
+              {aberto ? <><IcoChevU /> Ver menos</> : <><IcoChevD /> Ver todos ({logins.length} logins)</>}
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export function SecaoSeguranca() {
-  const score2fa = 2; // email + (app se ativo)
+  const [sessoes,      setSessoes]      = useState([]);
+  const [logins,       setLogins]       = useState([]);
+  const [carregando,   setCarregando]   = useState(true);
+  const [erro,         setErro]         = useState(null);
+  const [terminandoId, setTerminandoId] = useState(null);
+
+  const carregar = useCallback(() => {
+    setCarregando(true);
+    setErro(null);
+    requisitar(ROTA_SESSOES)
+      .then(res => {
+        const d = res.data ?? res.dados ?? {};
+        setSessoes(d.sessoesAtivas ?? []);
+        setLogins(d.loginsRecentes ?? []);
+      })
+      .catch(e => setErro(e.message))
+      .finally(() => setCarregando(false));
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  async function terminarSessao(id) {
+    setTerminandoId(id);
+    try {
+      await requisitar(`${ROTA_SESSOES}/${id}`, { method: "DELETE" });
+      setSessoes(prev => prev.filter(s => s.id !== id));
+    } catch (e) {
+      alert("Erro ao terminar sessão: " + e.message);
+    } finally {
+      setTerminandoId(null);
+    }
+  }
+
+  async function terminarTodasSessoes() {
+    try {
+      await requisitar(ROTA_SESSOES, { method: "DELETE" });
+      // Backend revoga TODOS os tokens, incluindo o desta sessão — força logout
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    } catch (e) {
+      alert("Erro: " + e.message);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -443,7 +495,7 @@ export function SecaoSeguranca() {
       <div className="flex items-center justify-between pb-3 border-b border-gray-100">
         <div>
           <p className="text-base font-semibold text-gray-900">Segurança da Conta</p>
-          <p className="text-xs text-gray-400">Última actualização: 14 Abr 2025</p>
+          <p className="text-xs text-gray-400">Mantém a tua conta protegida</p>
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-green-50 border border-green-100 rounded-xl">
           <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -451,29 +503,33 @@ export function SecaoSeguranca() {
         </div>
       </div>
 
-      {/* Score de segurança */}
-      <div className="grid grid-cols-3 gap-2.5">
+      {/* Resumo dinâmico */}
+      <div className="grid grid-cols-2 gap-2.5">
         <div className="bg-gray-50 rounded-xl p-3">
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Nível</p>
-          <p className="text-xl font-semibold text-green-600">Alto</p>
-          <p className="text-xs text-gray-400 mt-1">protecção activa</p>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-3">
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">2FA</p>
-          <p className="text-xl font-semibold font-mono text-gray-900">{score2fa}<span className="text-sm text-gray-400">/2</span></p>
-          <p className="text-xs text-gray-400 mt-1">métodos activos</p>
+          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">2FA Email</p>
+          <p className="text-xl font-semibold text-green-600">Activo</p>
+          <p className="text-xs text-gray-400 mt-1">acções críticas protegidas</p>
         </div>
         <div className="bg-gray-50 rounded-xl p-3">
           <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Sessões</p>
-          <p className="text-xl font-semibold font-mono text-gray-900">3</p>
-          <p className="text-xs text-gray-400 mt-1">dispositivos</p>
+          <p className="text-xl font-semibold font-mono text-gray-900">
+            {carregando ? "—" : sessoes.length}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">dispositivos activos</p>
         </div>
       </div>
 
       <SecaoAlterarSenha />
       <Secao2FA />
-      <SecaoSessoes />
-      <SecaoHistoricoLogins />
+      <SecaoSessoes
+        sessoes={sessoes}
+        carregando={carregando}
+        erro={erro}
+        onTerminar={terminarSessao}
+        onTerminarTodas={terminarTodasSessoes}
+        terminandoId={terminandoId}
+      />
+      <SecaoHistoricoLogins logins={logins} carregando={carregando} erro={erro} />
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
